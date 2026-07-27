@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     assemblyai_api_key: str = ""
     speechmatics_api_key: str = ""
     mistral_api_key: str = ""
+    google_project_id: str = ""  # auth via ADC (GOOGLE_APPLICATION_CREDENTIALS)
     azure_speech_key: str = ""
     azure_speech_region: str = ""
     aws_access_key_id: str = ""

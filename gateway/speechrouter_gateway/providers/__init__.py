@@ -1,6 +1,7 @@
 from .assemblyai import adapter as _assemblyai_adapter  # noqa: F401  (self-registers)
 from .assemblyai import batch as _assemblyai_batch  # noqa: F401
 from .aws import adapter as _aws_adapter  # noqa: F401
+from .azure import adapter as _azure_adapter  # noqa: F401
 from .azure import batch as _azure_batch  # noqa: F401
 from .base import (  # noqa: F401
     BillingBasis,
@@ -17,6 +18,7 @@ from .deepgram import adapter as _deepgram_adapter  # noqa: F401  (self-register
 from .deepgram import batch as _deepgram_batch  # noqa: F401
 from .elevenlabs import adapter as _elevenlabs_adapter  # noqa: F401
 from .elevenlabs import batch as _elevenlabs_batch  # noqa: F401
+from .google import adapter as _google_adapter  # noqa: F401
 from .groq import batch as _groq_batch  # noqa: F401
 from .mistral import adapter as _mistral_adapter  # noqa: F401
 from .mistral import batch as _mistral_batch  # noqa: F401

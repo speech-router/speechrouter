@@ -15,6 +15,10 @@ dependencies = [
     "python-multipart>=0.0.32",
 ]
 
+[project.optional-dependencies]
+azure = ["azure-cognitiveservices-speech>=1.42"]
+google = ["google-cloud-speech>=2.33"]
+
 [dependency-groups]
 dev = [
     "pytest>=8.3",
