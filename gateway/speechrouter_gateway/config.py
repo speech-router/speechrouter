@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     # Provider credentials (gateway-owned; BYOK arrives via the cloud keystore)
     deepgram_api_key: str = ""
     soniox_api_key: str = ""
+    assemblyai_api_key: str = ""
+    speechmatics_api_key: str = ""
+    mistral_api_key: str = ""
     azure_speech_key: str = ""
     azure_speech_region: str = ""
     aws_access_key_id: str = ""
