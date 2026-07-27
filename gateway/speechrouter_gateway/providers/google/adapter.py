@@ -61,11 +61,11 @@ def endpoint_for(location: str) -> str:
 def _seconds(offset: Any) -> float | None:
     if offset is None:
         return None
+    from typing import cast
     total = getattr(offset, "total_seconds", None)
     if not callable(total):
         return None
-    value: float = total()
-    return round(value, 3)
+    return round(cast(float, total()), 3)
 
 
 def parse_response(response: Any, offset: float) -> list[STTEvent]:
