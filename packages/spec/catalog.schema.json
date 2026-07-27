@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spec.speechrouter.ai/catalog.schema.json",
+  "title": "SpeechRouter Model Catalog Entry v0",
+  "description": "One entry per model in GET /v1/models. The capability matrix that powers routing, validation, docs, and the public model pages.",
+  "type": "object",
+  "required": ["slug", "provider", "kind", "pricing", "capabilities"],
+  "properties": {
+    "slug": { "type": "string", "pattern": "^[a-z0-9-]+/[a-z0-9._-]+$", "description": "e.g. deepgram/nova-3, elevenlabs/scribe-v1" },
+    "provider": { "type": "string" },
+    "name": { "type": "string", "description": "Display name" },
+    "kind": { "enum": ["stt", "tts"] },
+    "modes": { "type": "array", "items": { "enum": ["streaming", "batch"] } },
+    "pricing": {
+      "type": "object",
+      "description": "What WE charge. Provider cost tracked privately in cloud.",
+      "properties": {
+        "per_second_usd": { "type": "number", "description": "STT" },
+        "per_character_usd": { "type": "number", "description": "TTS" },
+        "minimum_usd": { "type": "number" }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "properties": {
+        "diarization": { "type": "boolean" },
+        "word_timestamps": { "type": "boolean" },
+        "interim_results": { "type": "boolean" },
+        "endpointing": { "type": "boolean" },
+        "keyword_boosting": { "type": "boolean" },
+        "languages": { "type": "array", "items": { "type": "string" }, "description": "BCP-47; [\"auto\"] = autodetect" },
+        "encodings": { "type": "array", "items": { "type": "string" } },
+        "sample_rates": { "type": "array", "items": { "type": "integer" } },
+        "voices": { "type": "array", "items": { "type": "string" }, "description": "TTS: namespaced voice ids" },
+        "max_audio_seconds": { "type": "number", "description": "batch upload limit" }
+      }
+    },
+    "latency": {
+      "type": "object",
+      "description": "Measured by our benchmark harness, refreshed nightly",
+      "properties": {
+        "ttfb_ms_p50": { "type": "number" },
+        "ttfb_ms_p95": { "type": "number" },
+        "measured_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "hipaa_eligible": { "type": "boolean", "description": "Provider offers BAA + zero-retention for this model" },
+    "deprecated": { "type": "boolean" }
+  }
+}

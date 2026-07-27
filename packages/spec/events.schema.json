@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spec.speechrouter.ai/events.schema.json",
+  "title": "SpeechRouter WebSocket Protocol v0",
+  "description": "Every message on WSS /v1/listen and /v1/speak. Client->server and server->client events, discriminated by `type`. DRAFT v0 — argue here, not in code review.",
+  "oneOf": [
+    { "$ref": "#/$defs/SessionOpen" },
+    { "$ref": "#/$defs/Transcript" },
+    { "$ref": "#/$defs/SpeechStarted" },
+    { "$ref": "#/$defs/UtteranceEnd" },
+    { "$ref": "#/$defs/ProviderSwitched" },
+    { "$ref": "#/$defs/AudioChunk" },
+    { "$ref": "#/$defs/Finalize" },
+    { "$ref": "#/$defs/Done" },
+    { "$ref": "#/$defs/Error" }
+  ],
+  "$defs": {
+    "Word": {
+      "type": "object",
+      "required": ["w", "start", "end"],
+      "properties": {
+        "w": { "type": "string", "description": "The word, punctuated/cased as the provider returns it" },
+        "start": { "type": "number", "description": "Seconds from session start" },
+        "end": { "type": "number" },
+        "conf": { "type": "number", "minimum": 0, "maximum": 1 },
+        "speaker": { "type": "integer", "description": "Speaker index when diarization on; absent otherwise" },
+        "lang": { "type": "string", "description": "BCP-47, present only for multilingual models" }
+      }
+    },
+    "SessionOpen": {
+      "type": "object",
+      "description": "server->client, first message after WS accept",
+      "required": ["type", "session_id", "model"],
+      "properties": {
+        "type": { "const": "session.open" },
+        "session_id": { "type": "string" },
+        "model": { "type": "string", "description": "Resolved slug, e.g. deepgram/nova-3" },
+        "encoding": { "type": "string" },
+        "sample_rate": { "type": "integer" }
+      }
+    },
+    "Transcript": {
+      "type": "object",
+      "description": "server->client, the core event",
+      "required": ["type", "is_final", "text"],
+      "properties": {
+        "type": { "const": "transcript" },
+        "is_final": { "type": "boolean" },
+        "text": { "type": "string" },
+        "words": { "type": "array", "items": { "$ref": "#/$defs/Word" } },
+        "start": { "type": "number" },
+        "end": { "type": "number" },
+        "lang": { "type": "string" },
+        "provider_raw": { "type": "object", "description": "Optional passthrough of provider payload, only when ?include_raw=true" }
+      }
+    },
+    "SpeechStarted": {
+      "type": "object",
+      "required": ["type", "at"],
+      "properties": { "type": { "const": "speech_started" }, "at": { "type": "number" } }
+    },
+    "UtteranceEnd": {
+      "type": "object",
+      "description": "Endpointing signal — the voice-agent trigger to respond",
+      "required": ["type", "at"],
+      "properties": { "type": { "const": "utterance_end" }, "at": { "type": "number" } }
+    },
+    "ProviderSwitched": {
+      "type": "object",
+      "description": "Mid-stream failover happened; transcripts continue in same schema",
+      "required": ["type", "from", "to", "resumed_at"],
+      "properties": {
+        "type": { "const": "provider_switched" },
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "resumed_at": { "type": "number", "description": "Audio-time seconds replayed from ring buffer" }
+      }
+    },
+    "AudioChunk": {
+      "type": "object",
+      "description": "TTS /v1/speak server->client; audio itself travels as binary WS frames, this JSON frame precedes each with timing metadata",
+      "required": ["type", "seq"],
+      "properties": {
+        "type": { "const": "audio.chunk" },
+        "seq": { "type": "integer" },
+        "start": { "type": "number" },
+        "word_timestamps": { "type": "array", "items": { "$ref": "#/$defs/Word" } }
+      }
+    },
+    "Finalize": {
+      "type": "object",
+      "description": "client->server: flush and finish (STT) / end of text input (TTS)",
+      "required": ["type"],
+      "properties": { "type": { "const": "finalize" } }
+    },
+    "Done": {
+      "type": "object",
+      "description": "server->client, last message before close",
+      "required": ["type", "usage"],
+      "properties": {
+        "type": { "const": "done" },
+        "usage": {
+          "type": "object",
+          "properties": {
+            "audio_seconds": { "type": "number" },
+            "characters": { "type": "integer" },
+            "model": { "type": "string" },
+            "cost_usd": { "type": "number" }
+          }
+        }
+      }
+    },
+    "Error": {
+      "type": "object",
+      "required": ["type", "code", "message"],
+      "properties": {
+        "type": { "const": "error" },
+        "code": { "type": "string", "description": "stable machine codes: auth_failed | insufficient_credits | provider_error | unsupported_capability | rate_limited" },
+        "message": { "type": "string" },
+        "provider": { "type": "string" },
+        "recoverable": { "type": "boolean", "description": "true = stream continues (e.g. failover in progress)" }
+      }
+    }
+  }
+}
