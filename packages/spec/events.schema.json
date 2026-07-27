@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://spec.speechrouter.ai/events.schema.json",
   "title": "SpeechRouter WebSocket Protocol v0",
-  "description": "Every message on WSS /v1/listen and /v1/speak. Client->server and server->client events, discriminated by `type`. DRAFT v0 — argue here, not in code review.",
+  "description": "Every JSON message on WSS /v1/listen and /v1/speak, discriminated by `type`. FRAMING: audio always travels as raw binary WS frames (client->server on /v1/listen, server->client on /v1/speak); ALL JSON events travel as text frames — a text frame is always an event in this schema, a binary frame is always audio. TIME BASE: every timestamp is audio-time seconds from the first audio sample of the session (not wall clock, not provider-native), monotonic across provider failover.",
   "oneOf": [
     { "$ref": "#/$defs/SessionOpen" },
     { "$ref": "#/$defs/Transcript" },
@@ -10,6 +10,10 @@
     { "$ref": "#/$defs/UtteranceEnd" },
     { "$ref": "#/$defs/ProviderSwitched" },
     { "$ref": "#/$defs/AudioChunk" },
+    { "$ref": "#/$defs/TextDelta" },
+    { "$ref": "#/$defs/Clear" },
+    { "$ref": "#/$defs/Cleared" },
+    { "$ref": "#/$defs/KeepAlive" },
     { "$ref": "#/$defs/Finalize" },
     { "$ref": "#/$defs/Done" },
     { "$ref": "#/$defs/Error" }
@@ -20,7 +24,7 @@
       "required": ["w", "start", "end"],
       "properties": {
         "w": { "type": "string", "description": "The word, punctuated/cased as the provider returns it" },
-        "start": { "type": "number", "description": "Seconds from session start" },
+        "start": { "type": "number", "description": "Audio-time seconds from first audio sample of the session; monotonic across failover (adapters apply the session offset)" },
         "end": { "type": "number" },
         "conf": { "type": "number", "minimum": 0, "maximum": 1 },
         "speaker": { "type": "integer", "description": "Speaker index when diarization on; absent otherwise" },
@@ -67,14 +71,45 @@
     },
     "ProviderSwitched": {
       "type": "object",
-      "description": "Mid-stream failover happened; transcripts continue in same schema",
-      "required": ["type", "from", "to", "resumed_at"],
+      "description": "Mid-stream failover happened; transcripts continue in same schema. DEDUP GUARANTEE: the gateway suppresses final transcripts from the new provider covering audio time already delivered as final — clients never receive duplicate finals for the same audio range. Interim events may re-cover replayed audio; standard interim semantics apply (superseded by the next final).",
+      "required": ["type", "from", "to", "resumed_at", "speaker_mapping_preserved"],
       "properties": {
         "type": { "const": "provider_switched" },
         "from": { "type": "string" },
         "to": { "type": "string" },
-        "resumed_at": { "type": "number", "description": "Audio-time seconds replayed from ring buffer" }
+        "resumed_at": { "type": "number", "description": "Audio-time seconds replayed from ring buffer" },
+        "speaker_mapping_preserved": { "type": "boolean", "description": "false: speaker indices reset with the new provider (client must treat labels as a new epoch). true: gateway aligned old/new labels via ring-buffer overlap and indices remain comparable. v1 always emits false; true is a forward-compatible upgrade." }
       }
+    },
+    "TextDelta": {
+      "type": "object",
+      "description": "client->server on /v1/speak: a chunk of text to synthesize. Text stays JSON (small); synthesized audio returns as binary frames.",
+      "required": ["type", "text"],
+      "properties": {
+        "type": { "const": "text.delta" },
+        "text": { "type": "string" }
+      }
+    },
+    "Clear": {
+      "type": "object",
+      "description": "client->server on /v1/speak: barge-in. Discard all queued/undelivered synthesis immediately; server responds with `cleared`. Essential for voice-agent interruption.",
+      "required": ["type"],
+      "properties": { "type": { "const": "clear" } }
+    },
+    "Cleared": {
+      "type": "object",
+      "description": "server->client on /v1/speak: ack for `clear`. Chunks with seq <= last_seq are stale (client discards any it has buffered); chunks after belong to post-clear synthesis.",
+      "required": ["type", "last_seq"],
+      "properties": {
+        "type": { "const": "cleared" },
+        "last_seq": { "type": "integer" }
+      }
+    },
+    "KeepAlive": {
+      "type": "object",
+      "description": "client->server on either socket: hold the session open during audio/text silence. Needed because browser WebSocket API cannot send protocol-level pings. Send every ~8s of inactivity; sessions idle beyond the server's limit close with error audio_timeout.",
+      "required": ["type"],
+      "properties": { "type": { "const": "keepalive" } }
     },
     "AudioChunk": {
       "type": "object",
@@ -115,7 +150,17 @@
       "required": ["type", "code", "message"],
       "properties": {
         "type": { "const": "error" },
-        "code": { "type": "string", "description": "stable machine codes: auth_failed | insufficient_credits | provider_error | unsupported_capability | rate_limited" },
+        "code": {
+          "enum": [
+            "auth_failed", "key_revoked",
+            "insufficient_credits",
+            "rate_limited", "concurrency_exceeded",
+            "invalid_request", "model_not_found", "unsupported_capability", "unsupported_encoding", "payload_too_large",
+            "provider_error", "provider_timeout", "all_providers_failed", "audio_timeout", "session_expired",
+            "internal_error"
+          ],
+          "description": "Closed, stable set. REST endpoints wrap the same codes in an OpenAI-compatible {error:{code,message,type}} envelope."
+        },
         "message": { "type": "string" },
         "provider": { "type": "string" },
         "recoverable": { "type": "boolean", "description": "true = stream continues (e.g. failover in progress)" }
