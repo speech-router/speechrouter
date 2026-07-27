@@ -19,6 +19,7 @@ from collections.abc import AsyncIterator
 
 import websockets
 
+from ...config import Settings
 from ...logging import logger
 from ...protocol import SpeechStarted, Transcript, UtteranceEnd, Word
 from ..base import (
@@ -28,7 +29,7 @@ from ..base import (
     STTEvent,
     STTStreamProvider,
 )
-from ..registry import register_stt_stream
+from ..registry import ProviderNotConfigured, register_stt_stream
 
 WS_BASE = "wss://api.deepgram.com/v1/listen"
 KEEPALIVE_INTERVAL = 5.0
@@ -132,7 +133,13 @@ def parse_message(raw: str, last_utterance_end: float) -> tuple[list[STTEvent], 
     return events, last_utterance_end
 
 
-@register_stt_stream("deepgram")
+@register_stt_stream("deepgram", capabilities=CAPABILITIES)
+def build(settings: Settings) -> "DeepgramSTTStream":
+    if not settings.deepgram_api_key:
+        raise ProviderNotConfigured("deepgram")
+    return DeepgramSTTStream(settings.deepgram_api_key)
+
+
 class DeepgramSTTStream(STTStreamProvider):
     name = "deepgram"
     capabilities = CAPABILITIES
@@ -170,7 +177,9 @@ class DeepgramSTTStream(STTStreamProvider):
 
     async def events(self) -> AsyncIterator[STTEvent]:
         if self._ws is None:
-            raise ProviderStreamError("events before connect", recoverable=False, provider=self.name)
+            raise ProviderStreamError(
+                "events before connect", recoverable=False, provider=self.name
+            )
         last_utterance_end = -1.0
         try:
             async for raw in self._ws:

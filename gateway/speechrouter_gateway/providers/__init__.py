@@ -7,10 +7,11 @@ from .base import (  # noqa: F401
     STTEvent,
     STTStreamProvider,
 )
-from .deepgram.adapter import DeepgramSTTStream  # noqa: F401  (self-registers)
+from .deepgram import adapter as _deepgram_adapter  # noqa: F401  (self-registers)
 from .registry import (  # noqa: F401
+    ProviderNotConfigured,
     register_stt_batch,
     register_stt_stream,
-    stt_batch_factory,
-    stt_stream_factory,
+    stt_batch_provider,
+    stt_stream_provider,
 )
