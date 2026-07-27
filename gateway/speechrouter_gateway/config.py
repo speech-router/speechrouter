@@ -1,18 +1,18 @@
 """Gateway settings. Every self-host/cloud difference is an env var read here."""
 
-from enum import Enum
+from enum import StrEnum
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class KeyStoreKind(str, Enum):
+class KeyStoreKind(StrEnum):
     none = "none"  # dev only: auth disabled, logs a loud warning
     local = "local"  # keys from SPEECHROUTER_KEYS env
     cloud = "cloud"  # Redis cache backed by shared Postgres
 
 
-class UsageEmitterKind(str, Enum):
+class UsageEmitterKind(StrEnum):
     log = "log"  # structured log line per usage event
     redis = "redis"  # XADD to the usage stream consumed by cloud
 
