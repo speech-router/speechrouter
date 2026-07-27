@@ -1,0 +1,18 @@
+[
+  {
+    "slug": "azure/fast-transcription",
+    "provider": "azure",
+    "name": "Azure AI Speech Fast Transcription",
+    "kind": "stt",
+    "modes": ["batch"],
+    "pricing": { "per_second_usd": 0.00025 },
+    "capabilities": {
+      "word_timestamps": true,
+      "diarization": true,
+      "keyword_boosting": true,
+      "languages": ["auto"],
+      "max_audio_seconds": 18000
+    },
+    "hipaa_eligible": true
+  }
+]
