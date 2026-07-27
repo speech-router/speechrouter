@@ -81,12 +81,12 @@ class SonioxSTTBatch(STTBatchProvider):
                     ),
                     "upload",
                 )
-                file_id = upload["id"]
+                file_id = str(upload["id"])
                 job = await self._check(
                     await client.post("/v1/transcriptions", json=build_job(file_id, config)),
                     "create",
                 )
-                job_id = job["id"]
+                job_id = str(job["id"])
                 await self._poll(client, job_id)
                 transcript = await self._check(
                     await client.get(f"/v1/transcriptions/{job_id}/transcript"), "transcript"
