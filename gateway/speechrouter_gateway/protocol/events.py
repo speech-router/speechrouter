@@ -4,27 +4,30 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field, RootModel, confloat
+from pydantic import BaseModel, Field, RootModel
 
 
 class Word(BaseModel):
-    w: str = Field(
-        ..., description='The word, punctuated/cased as the provider returns it'
-    )
-    start: float = Field(
-        ...,
-        description='Audio-time seconds from first audio sample of the session; monotonic across failover (adapters apply the session offset)',
-    )
+    w: Annotated[
+        str, Field(description='The word, punctuated/cased as the provider returns it')
+    ]
+    start: Annotated[
+        float,
+        Field(
+            description='Audio-time seconds from first audio sample of the session; monotonic across failover (adapters apply the session offset)'
+        ),
+    ]
     end: float
-    conf: confloat(ge=0.0, le=1.0) | None = None
-    speaker: int | None = Field(
-        None, description='Speaker index when diarization on; absent otherwise'
-    )
-    lang: str | None = Field(
-        None, description='BCP-47, present only for multilingual models'
-    )
+    conf: Annotated[float | None, Field(ge=0.0, le=1.0)] = None
+    speaker: Annotated[
+        int | None,
+        Field(description='Speaker index when diarization on; absent otherwise'),
+    ] = None
+    lang: Annotated[
+        str | None, Field(description='BCP-47, present only for multilingual models')
+    ] = None
 
 
 class SessionOpen(BaseModel):
@@ -34,7 +37,7 @@ class SessionOpen(BaseModel):
 
     type: Literal['session.open']
     session_id: str
-    model: str = Field(..., description='Resolved slug, e.g. deepgram/nova-3')
+    model: Annotated[str, Field(description='Resolved slug, e.g. deepgram/nova-3')]
     encoding: str | None = None
     sample_rate: int | None = None
 
@@ -51,10 +54,12 @@ class Transcript(BaseModel):
     start: float | None = None
     end: float | None = None
     lang: str | None = None
-    provider_raw: dict[str, Any] | None = Field(
-        None,
-        description='Optional passthrough of provider payload, only when ?include_raw=true',
-    )
+    provider_raw: Annotated[
+        dict[str, Any] | None,
+        Field(
+            description='Optional passthrough of provider payload, only when ?include_raw=true'
+        ),
+    ] = None
 
 
 class SpeechStarted(BaseModel):
@@ -77,15 +82,17 @@ class ProviderSwitched(BaseModel):
     """
 
     type: Literal['provider_switched']
-    from_: str = Field(..., alias='from')
+    from_: Annotated[str, Field(alias='from')]
     to: str
-    resumed_at: float = Field(
-        ..., description='Audio-time seconds replayed from ring buffer'
-    )
-    speaker_mapping_preserved: bool = Field(
-        ...,
-        description='false: speaker indices reset with the new provider (client must treat labels as a new epoch). true: gateway aligned old/new labels via ring-buffer overlap and indices remain comparable. v1 always emits false; true is a forward-compatible upgrade.',
-    )
+    resumed_at: Annotated[
+        float, Field(description='Audio-time seconds replayed from ring buffer')
+    ]
+    speaker_mapping_preserved: Annotated[
+        bool,
+        Field(
+            description='false: speaker indices reset with the new provider (client must treat labels as a new epoch). true: gateway aligned old/new labels via ring-buffer overlap and indices remain comparable. v1 always emits false; true is a forward-compatible upgrade.'
+        ),
+    ]
 
 
 class TextDelta(BaseModel):
@@ -182,15 +189,18 @@ class Code(Enum):
 
 class Error(BaseModel):
     type: Literal['error']
-    code: Code = Field(
-        ...,
-        description='Closed, stable set. REST endpoints wrap the same codes in an OpenAI-compatible {error:{code,message,type}} envelope.',
-    )
+    code: Annotated[
+        Code,
+        Field(
+            description='Closed, stable set. REST endpoints wrap the same codes in an OpenAI-compatible {error:{code,message,type}} envelope.'
+        ),
+    ]
     message: str
     provider: str | None = None
-    recoverable: bool | None = Field(
-        None, description='true = stream continues (e.g. failover in progress)'
-    )
+    recoverable: Annotated[
+        bool | None,
+        Field(description='true = stream continues (e.g. failover in progress)'),
+    ] = None
 
 
 class SpeechrouterWebsocketProtocolV0(
@@ -210,7 +220,7 @@ class SpeechrouterWebsocketProtocolV0(
         | Error
     ]
 ):
-    root: (
+    root: Annotated[
         SessionOpen
         | Transcript
         | SpeechStarted
@@ -223,9 +233,9 @@ class SpeechrouterWebsocketProtocolV0(
         | KeepAlive
         | Finalize
         | Done
-        | Error
-    ) = Field(
-        ...,
-        description='Every JSON message on WSS /v1/listen and /v1/speak, discriminated by `type`. FRAMING: audio always travels as raw binary WS frames (client->server on /v1/listen, server->client on /v1/speak); ALL JSON events travel as text frames — a text frame is always an event in this schema, a binary frame is always audio. TIME BASE: every timestamp is audio-time seconds from the first audio sample of the session (not wall clock, not provider-native), monotonic across provider failover.',
-        title='SpeechRouter WebSocket Protocol v0',
-    )
+        | Error,
+        Field(
+            description='Every JSON message on WSS /v1/listen and /v1/speak, discriminated by `type`. FRAMING: audio always travels as raw binary WS frames (client->server on /v1/listen, server->client on /v1/speak); ALL JSON events travel as text frames — a text frame is always an event in this schema, a binary frame is always audio. TIME BASE: every timestamp is audio-time seconds from the first audio sample of the session (not wall clock, not provider-native), monotonic across provider failover.',
+            title='SpeechRouter WebSocket Protocol v0',
+        ),
+    ]

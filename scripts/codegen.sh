@@ -8,5 +8,5 @@ uv run datamodel-codegen \
   --output speechrouter_gateway/protocol/events.py \
   --output-model-type pydantic_v2.BaseModel \
   --target-python-version 3.13 \
-  --use-schema-description --collapse-root-models --disable-timestamp \
+  --use-schema-description --collapse-root-models --disable-timestamp --use-annotated --field-constraints \
   --formatters black isort
