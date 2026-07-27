@@ -1,0 +1,47 @@
+[project]
+name = "speechrouter-gateway"
+version = "0.1.0"
+description = "SpeechRouter data plane: unified realtime STT/TTS gateway"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+dependencies = [
+    "fastapi>=0.116",
+    "uvicorn[standard]>=0.35",
+    "websockets>=15.0",
+    "httpx>=0.28",
+    "redis>=6.0",
+    "pydantic>=2.11",
+    "pydantic-settings>=2.10",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=1.0",
+    "ruff>=0.12",
+    "pyright>=1.1.400",
+    "datamodel-code-generator>=0.30",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["speechrouter_gateway"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+
+[tool.pyright]
+include = ["speechrouter_gateway"]
+pythonVersion = "3.13"
+typeCheckingMode = "standard"
