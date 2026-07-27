@@ -4,15 +4,32 @@
     "provider": "cartesia",
     "name": "Cartesia Ink-2",
     "kind": "stt",
-    "modes": ["streaming"],
-    "pricing": { "per_second_usd": 0.000108 },
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_second_usd": 0.000108
+    },
     "capabilities": {
       "word_timestamps": true,
       "interim_results": true,
       "keyword_boosting": true,
-      "languages": ["en"],
-      "encodings": ["linear16", "linear32", "mulaw", "alaw"],
-      "sample_rates": [8000, 16000, 24000, 44100, 48000]
+      "languages": [
+        "en"
+      ],
+      "encodings": [
+        "linear16",
+        "linear32",
+        "mulaw",
+        "alaw"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100,
+        48000
+      ]
     }
   },
   {
@@ -20,14 +37,67 @@
     "provider": "cartesia",
     "name": "Cartesia Ink-Whisper",
     "kind": "stt",
-    "modes": ["streaming", "batch"],
-    "pricing": { "per_second_usd": 0.000036 },
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_second_usd": 3.6e-05
+    },
     "capabilities": {
       "word_timestamps": true,
       "interim_results": true,
-      "languages": ["auto"],
-      "encodings": ["linear16", "linear32", "mulaw", "alaw"],
-      "sample_rates": [8000, 16000, 24000, 44100, 48000]
+      "languages": [
+        "auto"
+      ],
+      "encodings": [
+        "linear16",
+        "linear32",
+        "mulaw",
+        "alaw"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100,
+        48000
+      ]
+    }
+  },
+  {
+    "slug": "cartesia/ink-2-turns",
+    "provider": "cartesia",
+    "name": "Cartesia Ink-2 (Turns)",
+    "kind": "stt",
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_second_usd": 0.000108
+    },
+    "capabilities": {
+      "word_timestamps": false,
+      "interim_results": true,
+      "endpointing": true,
+      "keyword_boosting": true,
+      "diarization": false,
+      "languages": [
+        "en"
+      ],
+      "encodings": [
+        "linear16",
+        "linear32",
+        "mulaw",
+        "alaw"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100,
+        48000
+      ]
     }
   }
 ]

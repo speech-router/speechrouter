@@ -29,6 +29,7 @@ from ..base import (
     STTEvent,
     STTStreamProvider,
 )
+from ..dispatch import ModelDispatchStream
 from ..registry import ProviderNotConfigured, register_stt_stream
 
 WS_BASE = "wss://api.deepgram.com/v1/listen"
@@ -134,10 +135,19 @@ def parse_message(raw: str, last_utterance_end: float) -> tuple[list[STTEvent], 
 
 
 @register_stt_stream("deepgram", capabilities=CAPABILITIES)
-def build(settings: Settings) -> "DeepgramSTTStream":
+def build(settings: Settings) -> "ModelDispatchStream":
     if not settings.deepgram_api_key:
         raise ProviderNotConfigured("deepgram")
-    return DeepgramSTTStream(settings.deepgram_api_key)
+    api_key = settings.deepgram_api_key
+
+    def choose(config: STTConfig) -> tuple[STTStreamProvider, STTConfig]:
+        if config.model.startswith("flux"):
+            from .flux import DeepgramFluxStream  # noqa: PLC0415 - avoid import cycle
+
+            return DeepgramFluxStream(api_key), config
+        return DeepgramSTTStream(api_key), config
+
+    return ModelDispatchStream("deepgram", CAPABILITIES, choose)
 
 
 class DeepgramSTTStream(STTStreamProvider):

@@ -13,6 +13,7 @@ Protocol facts (docs/providers/cartesia.md, verified 2026-07-27):
 import json
 import urllib.parse
 from collections.abc import AsyncIterator
+from dataclasses import replace
 
 import websockets
 
@@ -26,6 +27,7 @@ from ..base import (
     STTEvent,
     STTStreamProvider,
 )
+from ..dispatch import ModelDispatchStream
 from ..registry import ProviderNotConfigured, register_stt_stream
 
 WS_BASE = "wss://api.cartesia.ai/stt/websocket"
@@ -108,10 +110,21 @@ def parse_message(raw: str) -> tuple[str, list[STTEvent]]:
 
 
 @register_stt_stream("cartesia", capabilities=CAPABILITIES)
-def build(settings: Settings) -> "CartesiaSTTStream":
+def build(settings: Settings) -> "ModelDispatchStream":
     if not settings.cartesia_api_key:
         raise ProviderNotConfigured("cartesia")
-    return CartesiaSTTStream(settings.cartesia_api_key)
+    api_key = settings.cartesia_api_key
+
+    def choose(config: STTConfig) -> tuple[STTStreamProvider, STTConfig]:
+        if config.model == "ink-2-turns":
+            from .turns import CartesiaTurnsStream  # noqa: PLC0415 - avoid import cycle
+
+            # Slug model "ink-2-turns" selects the turns endpoint; the
+            # provider-side model name is plain "ink-2".
+            return CartesiaTurnsStream(api_key), replace(config, model="ink-2")
+        return CartesiaSTTStream(api_key), config
+
+    return ModelDispatchStream("cartesia", CAPABILITIES, choose)
 
 
 class CartesiaSTTStream(STTStreamProvider):

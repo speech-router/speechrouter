@@ -4,17 +4,38 @@
     "provider": "deepgram",
     "name": "Deepgram Nova-3",
     "kind": "stt",
-    "modes": ["streaming", "batch"],
-    "pricing": { "per_second_usd": 0.00008 },
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_second_usd": 8e-05
+    },
     "capabilities": {
       "diarization": true,
       "word_timestamps": true,
       "interim_results": true,
       "endpointing": true,
       "keyword_boosting": true,
-      "languages": ["auto"],
-      "encodings": ["linear16", "linear32", "mulaw", "alaw", "opus", "ogg-opus", "flac"],
-      "sample_rates": [8000, 16000, 24000, 44100, 48000]
+      "languages": [
+        "auto"
+      ],
+      "encodings": [
+        "linear16",
+        "linear32",
+        "mulaw",
+        "alaw",
+        "opus",
+        "ogg-opus",
+        "flac"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100,
+        48000
+      ]
     },
     "hipaa_eligible": true
   },
@@ -23,17 +44,38 @@
     "provider": "deepgram",
     "name": "Deepgram Nova-3 Medical",
     "kind": "stt",
-    "modes": ["streaming", "batch"],
-    "pricing": { "per_second_usd": 0.00008 },
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_second_usd": 8e-05
+    },
     "capabilities": {
       "diarization": true,
       "word_timestamps": true,
       "interim_results": true,
       "endpointing": true,
       "keyword_boosting": true,
-      "languages": ["en"],
-      "encodings": ["linear16", "linear32", "mulaw", "alaw", "opus", "ogg-opus", "flac"],
-      "sample_rates": [8000, 16000, 24000, 44100, 48000]
+      "languages": [
+        "en"
+      ],
+      "encodings": [
+        "linear16",
+        "linear32",
+        "mulaw",
+        "alaw",
+        "opus",
+        "ogg-opus",
+        "flac"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100,
+        48000
+      ]
     },
     "hipaa_eligible": true
   },
@@ -42,18 +84,122 @@
     "provider": "deepgram",
     "name": "Deepgram Nova-2",
     "kind": "stt",
-    "modes": ["streaming", "batch"],
-    "pricing": { "per_second_usd": 0.00008 },
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_second_usd": 8e-05
+    },
     "capabilities": {
       "diarization": true,
       "word_timestamps": true,
       "interim_results": true,
       "endpointing": true,
       "keyword_boosting": true,
-      "languages": ["auto"],
-      "encodings": ["linear16", "linear32", "mulaw", "alaw", "opus", "ogg-opus", "flac"],
-      "sample_rates": [8000, 16000, 24000, 44100, 48000]
+      "languages": [
+        "auto"
+      ],
+      "encodings": [
+        "linear16",
+        "linear32",
+        "mulaw",
+        "alaw",
+        "opus",
+        "ogg-opus",
+        "flac"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100,
+        48000
+      ]
     },
     "hipaa_eligible": true
+  },
+  {
+    "slug": "deepgram/flux-general-en",
+    "provider": "deepgram",
+    "name": "Deepgram Flux (English)",
+    "kind": "stt",
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_second_usd": 0.000108
+    },
+    "capabilities": {
+      "word_timestamps": true,
+      "interim_results": true,
+      "endpointing": true,
+      "keyword_boosting": true,
+      "diarization": false,
+      "languages": [
+        "en"
+      ],
+      "encodings": [
+        "linear16",
+        "linear32",
+        "mulaw",
+        "alaw",
+        "opus",
+        "ogg-opus"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100,
+        48000
+      ]
+    }
+  },
+  {
+    "slug": "deepgram/flux-general-multi",
+    "provider": "deepgram",
+    "name": "Deepgram Flux (Multilingual)",
+    "kind": "stt",
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_second_usd": 0.00013
+    },
+    "capabilities": {
+      "word_timestamps": true,
+      "interim_results": true,
+      "endpointing": true,
+      "keyword_boosting": true,
+      "diarization": false,
+      "languages": [
+        "en",
+        "es",
+        "fr",
+        "de",
+        "hi",
+        "ru",
+        "pt",
+        "ja",
+        "it",
+        "nl"
+      ],
+      "encodings": [
+        "linear16",
+        "linear32",
+        "mulaw",
+        "alaw",
+        "opus",
+        "ogg-opus"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100,
+        48000
+      ]
+    }
   }
 ]
