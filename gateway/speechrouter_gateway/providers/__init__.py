@@ -15,3 +15,4 @@ from .registry import (  # noqa: F401
     stt_batch_provider,
     stt_stream_provider,
 )
+from .soniox import adapter as _soniox_adapter  # noqa: F401  (self-registers)

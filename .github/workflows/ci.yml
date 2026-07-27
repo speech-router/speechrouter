@@ -1,0 +1,25 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Sync dependencies
+        run: uv sync --directory gateway
+      - name: Lint
+        run: uv run --directory gateway ruff check .
+      - name: Typecheck
+        run: uv run --directory gateway pyright speechrouter_gateway
+      - name: Tests
+        run: uv run --directory gateway pytest -q
+      - name: Spec drift check (protocol models must match packages/spec)
+        run: |
+          ./scripts/codegen.sh
+          git diff --exit-code gateway/speechrouter_gateway/protocol/ \
+            || (echo "::error::protocol models out of sync with packages/spec — run scripts/codegen.sh" && exit 1)

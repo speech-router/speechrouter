@@ -1,0 +1,15 @@
+# SpeechRouter self-host: gateway with your own provider keys.
+#   cp .env.example .env   # paste your provider API keys
+#   docker compose up
+# Then: wss://localhost:8080/v1/listen?model=deepgram/nova-3&api_key=<your SPEECHROUTER_KEYS entry>
+
+services:
+  gateway:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    restart: unless-stopped
