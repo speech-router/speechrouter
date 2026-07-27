@@ -9,10 +9,13 @@ Feb 2026 refresh: "Voxtral Transcribe 2".
 - $0.003/min ($0.18/hr)
 - Exact response JSON schema unverified — pull a live sample before finalizing adapter normalization.
 
-## Realtime WS (new!)
-- `wss://api.mistral.ai/v1/audio/transcriptions/realtime`, model `voxtral-mini-transcribe-realtime-2602`
-- Audio: **pcm_s16le @ 16000 Hz** (vs OpenAI 24k — resampling needed between providers), ~480ms chunks
-- Latency knob: `target_streaming_delay_ms` (240 fast .. 2400 max-accuracy)
-- Events: session created → text deltas → done (+error). Raw JSON event names NOT published — verify against live socket or SDK source before adapter work.
-- No diarization, no word timestamps in realtime. $0.006/min.
-- Open weights: Voxtral-Mini-4B-Realtime-2602 on HF, Apache-2.0 → potential self-hosted fallback path.
+## Realtime WS (protocol verified from SDK source 2026-07-27, commit b0613c7)
+- `wss://api.mistral.ai/v1/audio/transcriptions/realtime?model=voxtral-mini-transcribe-realtime-2602` — model is the ONLY query param
+- Auth: `Authorization: Bearer` header on upgrade. No subprotocol.
+- **Server sends first**: `{"type":"session.created","session":{request_id, model, audio_format, target_streaming_delay_ms}}` — wait for it before anything.
+- Optional BEFORE audio: `{"type":"session.update","session":{"audio_format":{"encoding":"pcm_s16le","sample_rate":16000},"target_streaming_delay_ms":800}}` → `session.updated`. Encodings: pcm_s16le/s32le/f16le/f32le/mulaw/alaw.
+- Audio: **base64 in JSON text frames** `{"type":"input_audio.append","audio":"<b64>"}`, **max 262144 decoded bytes/message**. Never binary frames.
+- End sequence: `{"type":"input_audio.flush"}` → `{"type":"input_audio.end"}` → read until `transcription.done` → close 1000.
+- Server events: `transcription.language` {audio_language}; `transcription.text.delta` {text} (incremental); `transcription.segment` {text, start, end, speaker_id?} (finalized span, SECONDS); `transcription.done` {text, language, segments[] (type "transcription_segment" w/ underscore!), usage{prompt_audio_seconds}}; `error` {error:{message (str|obj), code (int)}}.
+- Keepalive: none app-level — standard WS ping/pong (websockets defaults) suffices.
+- No diarization/word timestamps realtime. $0.006/min. Open weights Voxtral-Mini-4B-Realtime-2602 (Apache-2.0) = self-host fallback.

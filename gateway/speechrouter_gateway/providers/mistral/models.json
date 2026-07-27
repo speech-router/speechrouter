@@ -4,14 +4,73 @@
     "provider": "mistral",
     "name": "Mistral Voxtral Mini Transcribe",
     "kind": "stt",
-    "modes": ["batch"],
-    "pricing": { "per_second_usd": 0.00005 },
+    "modes": [
+      "batch"
+    ],
+    "pricing": {
+      "per_second_usd": 5e-05
+    },
     "capabilities": {
       "word_timestamps": true,
       "diarization": true,
       "keyword_boosting": true,
-      "languages": ["en", "zh", "hi", "es", "ar", "fr", "pt", "ru", "de", "ja", "ko", "it", "nl"],
+      "languages": [
+        "en",
+        "zh",
+        "hi",
+        "es",
+        "ar",
+        "fr",
+        "pt",
+        "ru",
+        "de",
+        "ja",
+        "ko",
+        "it",
+        "nl"
+      ],
       "max_audio_seconds": 10800
+    }
+  },
+  {
+    "slug": "mistral/voxtral-mini-transcribe-realtime-2602",
+    "provider": "mistral",
+    "name": "Mistral Voxtral Mini Realtime",
+    "kind": "stt",
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_second_usd": 0.0001
+    },
+    "capabilities": {
+      "word_timestamps": false,
+      "interim_results": true,
+      "endpointing": true,
+      "languages": [
+        "en",
+        "zh",
+        "hi",
+        "es",
+        "ar",
+        "fr",
+        "pt",
+        "ru",
+        "de",
+        "ja",
+        "ko",
+        "it",
+        "nl"
+      ],
+      "encodings": [
+        "linear16",
+        "linear32",
+        "mulaw",
+        "alaw"
+      ],
+      "sample_rates": [
+        16000
+      ]
     }
   }
 ]

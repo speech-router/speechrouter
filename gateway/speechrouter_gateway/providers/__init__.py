@@ -18,6 +18,7 @@ from .deepgram import batch as _deepgram_batch  # noqa: F401
 from .elevenlabs import adapter as _elevenlabs_adapter  # noqa: F401
 from .elevenlabs import batch as _elevenlabs_batch  # noqa: F401
 from .groq import batch as _groq_batch  # noqa: F401
+from .mistral import adapter as _mistral_adapter  # noqa: F401
 from .mistral import batch as _mistral_batch  # noqa: F401
 from .openai import adapter as _openai_adapter  # noqa: F401
 from .openai import batch as _openai_batch  # noqa: F401
