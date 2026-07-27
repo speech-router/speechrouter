@@ -9,8 +9,12 @@ from functools import partial
 
 from ..config import Settings
 from ..protocol.events import Code
-from ..providers.base import STTConfig, STTStreamProvider
-from ..providers.registry import ProviderNotConfigured, stt_stream_provider
+from ..providers.base import STTBatchProvider, STTConfig, STTStreamProvider
+from ..providers.registry import (
+    ProviderNotConfigured,
+    stt_batch_provider,
+    stt_stream_provider,
+)
 from .catalog import Catalog
 
 
@@ -38,6 +42,44 @@ class ResolvedAttempt:
     slug: str
     config: STTConfig
     build: Callable[[], STTStreamProvider]
+
+
+@dataclass(frozen=True)
+class ResolvedBatch:
+    slug: str
+    config: STTConfig
+    build: Callable[[], STTBatchProvider]
+
+
+def resolve_batch(
+    slug: str, request: StreamRequest, settings: Settings, catalog: Catalog
+) -> ResolvedBatch:
+    provider_id, _, model_name = slug.partition("/")
+    if not provider_id or not model_name:
+        raise ResolveError(Code.model_not_found, f"invalid model slug '{slug}'")
+    registered = stt_batch_provider(provider_id)
+    entry = catalog.find(slug)
+    if registered is None or entry is None or "batch" not in entry.get("modes", []):
+        raise ResolveError(Code.model_not_found, f"'{slug}' is not available for batch")
+    caps = registered.capabilities
+    if request.diarization and not caps.diarization:
+        raise ResolveError(Code.unsupported_capability, f"'{slug}' does not support diarization")
+    try:
+        _ = registered.build(settings)
+    except ProviderNotConfigured as exc:
+        raise ResolveError(Code.invalid_request, str(exc)) from exc
+    config = STTConfig(
+        model=model_name,
+        encoding=request.encoding,
+        sample_rate=request.sample_rate,
+        channels=request.channels,
+        language=request.language,
+        interim_results=False,
+        diarization=request.diarization,
+        keyterms=request.keyterms,
+        provider_params=request.provider_params,
+    )
+    return ResolvedBatch(slug=slug, config=config, build=partial(registered.build, settings))
 
 
 def resolve_stream(

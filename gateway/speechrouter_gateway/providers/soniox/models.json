@@ -17,5 +17,20 @@
       "sample_rates": [8000, 16000, 24000, 44100, 48000]
     },
     "hipaa_eligible": true
+  },
+  {
+    "slug": "soniox/stt-async-v5",
+    "provider": "soniox",
+    "name": "Soniox STT Async v5",
+    "kind": "stt",
+    "modes": ["batch"],
+    "pricing": { "per_second_usd": 0.0000278 },
+    "capabilities": {
+      "diarization": true,
+      "word_timestamps": true,
+      "keyword_boosting": true,
+      "languages": ["auto"]
+    },
+    "hipaa_eligible": true
   }
 ]
