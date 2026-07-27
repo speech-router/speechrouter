@@ -1,5 +1,6 @@
 from .assemblyai import adapter as _assemblyai_adapter  # noqa: F401  (self-registers)
 from .assemblyai import batch as _assemblyai_batch  # noqa: F401
+from .aws import adapter as _aws_adapter  # noqa: F401
 from .base import (  # noqa: F401
     BillingBasis,
     Capabilities,
