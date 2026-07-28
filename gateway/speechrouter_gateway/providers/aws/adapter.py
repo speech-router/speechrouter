@@ -67,7 +67,7 @@ def speaker_to_int(label: str | None) -> int | None:
     return int(digits) if digits.isdigit() else None
 
 
-def parse_transcript_payload(payload: dict) -> list[STTEvent]:
+def parse_transcript_payload(payload: dict, include_raw: bool = False) -> list[STTEvent]:
     events: list[STTEvent] = []
     for result in payload.get("Transcript", {}).get("Results", []):
         alternatives = result.get("Alternatives") or []
@@ -107,6 +107,7 @@ def parse_transcript_payload(payload: dict) -> list[STTEvent]:
                 start=start,
                 end=end,
                 lang=language,
+                provider_raw=result if include_raw else None,
             )
         )
         if is_final and end is not None:
@@ -137,8 +138,10 @@ class AWSTranscribeStream(STTStreamProvider):
         self._last_send = 0.0
         self._finished = False
         self._closed = False
+        self._include_raw = False
 
     async def connect(self, config: STTConfig) -> None:
+        self._include_raw = config.include_raw
         url = presigned_url(
             access_key=self._access_key,
             secret_key=self._secret_key,
@@ -195,7 +198,8 @@ class AWSTranscribeStream(STTStreamProvider):
                         code=exception_type,
                     )
                 if message_type == "event" and headers.get(":event-type") == "TranscriptEvent":
-                    for event in parse_transcript_payload(json.loads(payload)):
+                    for event in parse_transcript_payload(json.loads(payload),
+                                                          self._include_raw):
                         yield event
         except websockets.exceptions.ConnectionClosedOK:
             pass

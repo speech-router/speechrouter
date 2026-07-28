@@ -29,7 +29,7 @@ def build_job(audio_url: str, config: STTConfig) -> dict:
     return job
 
 
-def parse_transcript(payload: dict) -> Transcript:
+def parse_transcript(payload: dict, include_raw: bool = False) -> Transcript:
     words = [
         Word(
             w=w["text"],
@@ -49,6 +49,7 @@ def parse_transcript(payload: dict) -> Transcript:
         start=0.0,
         end=words[-1].end if words else None,
         lang=payload.get("language_code"),
+        provider_raw=payload if include_raw else None,
     )
 
 
@@ -88,7 +89,7 @@ class AssemblyAISTTBatch(STTBatchProvider):
                 )
                 state = status.get("status")
                 if state == "completed":
-                    return parse_transcript(status)
+                    return parse_transcript(status, config.include_raw)
                 if state == "error":
                     raise ProviderStreamError(
                         f"assemblyai job failed: {status.get('error', '')}",

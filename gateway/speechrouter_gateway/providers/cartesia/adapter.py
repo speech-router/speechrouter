@@ -71,7 +71,7 @@ def build_url(config: STTConfig, base: str = WS_BASE) -> str:
     return f"{base}?{urllib.parse.urlencode(params)}"
 
 
-def parse_message(raw: str) -> tuple[str, list[STTEvent]]:
+def parse_message(raw: str, include_raw: bool = False) -> tuple[str, list[STTEvent]]:
     """Returns (kind, events): kind in {"events", "flush_done", "done"}."""
     msg = json.loads(raw)
     msg_type = msg.get("type")
@@ -93,6 +93,7 @@ def parse_message(raw: str) -> tuple[str, list[STTEvent]]:
                 start=words[0].start if words else None,
                 end=words[-1].end if words else None,
                 lang=msg.get("language"),
+                provider_raw=msg if include_raw else None,
             )
         ]
     if msg_type == "flush_done":
@@ -138,8 +139,10 @@ class CartesiaSTTStream(STTStreamProvider):
         self._ws: websockets.ClientConnection | None = None
         self._finished = False
         self._closed = False
+        self._include_raw = False
 
     async def connect(self, config: STTConfig) -> None:
+        self._include_raw = config.include_raw
         try:
             self._ws = await ws_connect(
                 build_url(config, self._ws_base),
@@ -167,7 +170,7 @@ class CartesiaSTTStream(STTStreamProvider):
             async for raw in self._ws:
                 if isinstance(raw, bytes):
                     continue
-                kind, parsed = parse_message(raw)
+                kind, parsed = parse_message(raw, self._include_raw)
                 if kind == "done":
                     return
                 for event in parsed:

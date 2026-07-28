@@ -27,7 +27,7 @@ def build_job_config(config: STTConfig) -> dict:
     return {"type": "transcription", "transcription_config": transcription}
 
 
-def parse_json_v2(payload: dict) -> Transcript:
+def parse_json_v2(payload: dict, include_raw: bool = False) -> Transcript:
     results = payload.get("results", [])
     words = results_to_words(results)
     text = " ".join(w.w for w in words)
@@ -38,6 +38,7 @@ def parse_json_v2(payload: dict) -> Transcript:
         words=words or None,
         start=0.0,
         end=words[-1].end if words else None,
+        provider_raw=payload if include_raw else None,
     )
 
 
@@ -90,7 +91,7 @@ class SpeechmaticsSTTBatch(STTBatchProvider):
                 await client.get(f"/v2/jobs/{job_id}/transcript", params={"format": "json-v2"}),
                 "transcript",
             )
-            return parse_json_v2(transcript)
+            return parse_json_v2(transcript, config.include_raw)
 
     async def _check(self, response: httpx.Response, stage: str,
                      expect: set[int] | frozenset[int] = frozenset({200})) -> dict:

@@ -65,7 +65,7 @@ def build_url(config: STTConfig, base: str = WS_BASE) -> str:
     return f"{base}?{urllib.parse.urlencode(params)}"
 
 
-def parse_message(raw: str) -> list[STTEvent]:
+def parse_message(raw: str, include_raw: bool = False) -> list[STTEvent]:
     msg = json.loads(raw)
     msg_type = msg.get("type")
     if msg_type == "Error":
@@ -110,6 +110,7 @@ def parse_message(raw: str) -> list[STTEvent]:
             words=words or None,
             start=window_start,
             end=window_end,
+            provider_raw=msg if include_raw else None,
         )
     ]
     if is_final:
@@ -127,8 +128,10 @@ class DeepgramFluxStream(STTStreamProvider):
         self._ws: websockets.ClientConnection | None = None
         self._finished = False
         self._closed = False
+        self._include_raw = False
 
     async def connect(self, config: STTConfig) -> None:
+        self._include_raw = config.include_raw
         if config.diarization:
             raise ProviderStreamError(
                 "deepgram flux does not support diarization",
@@ -168,7 +171,7 @@ class DeepgramFluxStream(STTStreamProvider):
             async for raw in self._ws:
                 if isinstance(raw, bytes):
                     continue
-                for event in parse_message(raw):
+                for event in parse_message(raw, self._include_raw):
                     if isinstance(event, Transcript):
                         pending = None if event.is_final else event
                     yield event

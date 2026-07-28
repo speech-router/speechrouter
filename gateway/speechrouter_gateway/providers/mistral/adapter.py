@@ -60,7 +60,8 @@ CAPABILITIES = Capabilities(
 class _StreamState:
     """Pure event translation; fixture-testable."""
 
-    def __init__(self) -> None:
+    def __init__(self, include_raw: bool = False) -> None:
+        self.include_raw = include_raw
         self.hypothesis = ""
         self.language: str | None = None
         self.segments_emitted = 0
@@ -76,6 +77,7 @@ class _StreamState:
                     Transcript(
                         type="transcript", is_final=False, text=self.hypothesis,
                         lang=self.language,
+                        provider_raw=msg if self.include_raw else None,
                     )
                 )
         elif msg_type == "transcription.segment":
@@ -91,6 +93,7 @@ class _StreamState:
                         start=msg.get("start"),
                         end=msg.get("end"),
                         lang=self.language,
+                        provider_raw=msg if self.include_raw else None,
                     )
                 )
         elif msg_type == "transcription.language":
@@ -103,6 +106,7 @@ class _StreamState:
                     Transcript(
                         type="transcript", is_final=True, text=text,
                         lang=msg.get("language") or self.language,
+                        provider_raw=msg if self.include_raw else None,
                     )
                 )
         elif msg_type == "error":
@@ -148,6 +152,7 @@ class MistralRealtimeSTT(STTStreamProvider):
         self._closed = False
 
     async def connect(self, config: STTConfig) -> None:
+        self._state = _StreamState(include_raw=config.include_raw)
         url = f"{self._ws_base}?model={config.model}"
         try:
             self._ws = await ws_connect(

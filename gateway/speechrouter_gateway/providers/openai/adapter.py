@@ -70,7 +70,9 @@ def build_session_update(config: STTConfig) -> dict:
     return {"type": "session.update", "session": session}
 
 
-def parse_event(msg: dict, accumulator: dict[str, str]) -> list[STTEvent]:
+def parse_event(
+    msg: dict, accumulator: dict[str, str], include_raw: bool = False
+) -> list[STTEvent]:
     """Pure translation; accumulator maps item_id -> accumulated delta text."""
     msg_type = msg.get("type", "")
     events: list[STTEvent] = []
@@ -79,14 +81,16 @@ def parse_event(msg: dict, accumulator: dict[str, str]) -> list[STTEvent]:
         accumulator[item_id] = accumulator.get(item_id, "") + msg.get("delta", "")
         if accumulator[item_id].strip():
             events.append(
-                Transcript(type="transcript", is_final=False, text=accumulator[item_id])
+                Transcript(type="transcript", is_final=False, text=accumulator[item_id],
+                           provider_raw=msg if include_raw else None)
             )
     elif msg_type == "conversation.item.input_audio_transcription.completed":
         item_id = msg.get("item_id", "")
         accumulator.pop(item_id, None)
         text = msg.get("transcript", "")
         if text.strip():
-            events.append(Transcript(type="transcript", is_final=True, text=text))
+            events.append(Transcript(type="transcript", is_final=True, text=text,
+                                     provider_raw=msg if include_raw else None))
     elif msg_type == "input_audio_buffer.speech_started":
         events.append(
             SpeechStarted(
@@ -127,8 +131,10 @@ class OpenAIRealtimeSTT(STTStreamProvider):
         self._accumulator: dict[str, str] = {}
         self._finished = False
         self._closed = False
+        self._include_raw = False
 
     async def connect(self, config: STTConfig) -> None:
+        self._include_raw = config.include_raw
         try:
             self._ws = await ws_connect(
                 self._ws_url,
@@ -174,7 +180,8 @@ class OpenAIRealtimeSTT(STTStreamProvider):
                     raw = await self._ws.recv()
                 if isinstance(raw, bytes):
                     continue
-                for event in parse_event(json.loads(raw), self._accumulator):
+                for event in parse_event(json.loads(raw), self._accumulator,
+                                         self._include_raw):
                     yield event
         except websockets.exceptions.ConnectionClosedOK:
             pass

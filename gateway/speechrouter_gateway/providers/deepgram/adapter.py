@@ -76,7 +76,9 @@ def build_url(config: STTConfig, base: str = WS_BASE) -> str:
     return f"{base}?{urllib.parse.urlencode(params)}"
 
 
-def parse_message(raw: str, last_utterance_end: float) -> tuple[list[STTEvent], float]:
+def parse_message(
+    raw: str, last_utterance_end: float, include_raw: bool = False
+) -> tuple[list[STTEvent], float]:
     """Pure translation of one Deepgram text frame into normalized events.
 
     Returns (events, updated last_utterance_end). Kept side-effect free so
@@ -114,6 +116,7 @@ def parse_message(raw: str, last_utterance_end: float) -> tuple[list[STTEvent], 
                     start=start,
                     end=start + duration,
                     lang=languages[0] if languages else None,
+                    provider_raw=msg if include_raw else None,
                 )
             )
         if msg.get("speech_final"):
@@ -163,8 +166,10 @@ class DeepgramSTTStream(STTStreamProvider):
         self._last_send = 0.0
         self._finished = False
         self._closed = False
+        self._include_raw = False
 
     async def connect(self, config: STTConfig) -> None:
+        self._include_raw = config.include_raw
         url = build_url(config, self._ws_base)
         try:
             self._ws = await ws_connect(
@@ -196,7 +201,9 @@ class DeepgramSTTStream(STTStreamProvider):
             async for raw in self._ws:
                 if isinstance(raw, bytes):
                     continue  # Deepgram sends no meaningful binary frames
-                parsed, last_utterance_end = parse_message(raw, last_utterance_end)
+                parsed, last_utterance_end = parse_message(
+                    raw, last_utterance_end, self._include_raw
+                )
                 for event in parsed:
                     yield event
         except websockets.exceptions.ConnectionClosedOK:

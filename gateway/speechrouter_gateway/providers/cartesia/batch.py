@@ -18,7 +18,7 @@ CAPABILITIES = Capabilities(
 )
 
 
-def parse_response(payload: dict) -> Transcript:
+def parse_response(payload: dict, include_raw: bool = False) -> Transcript:
     words = [
         Word(w=w["word"], start=float(w["start"]), end=float(w["end"]))
         for w in payload.get("words") or []
@@ -33,6 +33,7 @@ def parse_response(payload: dict) -> Transcript:
         start=0.0,
         end=float(duration) if duration is not None else (words[-1].end if words else None),
         lang=payload.get("language"),
+        provider_raw=payload if include_raw else None,
     )
 
 
@@ -81,4 +82,4 @@ class CartesiaSTTBatch(STTBatchProvider):
                 provider=self.name,
                 code=str(response.status_code),
             )
-        return parse_response(response.json())
+        return parse_response(response.json(), config.include_raw)

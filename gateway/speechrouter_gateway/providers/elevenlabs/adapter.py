@@ -83,13 +83,14 @@ def build_url(config: STTConfig, base: str = WS_BASE) -> str:
     return f"{base}?{urllib.parse.urlencode(params)}"
 
 
-def parse_message(raw: str) -> list[STTEvent]:
+def parse_message(raw: str, include_raw: bool = False) -> list[STTEvent]:
     msg = json.loads(raw)
     kind = msg.get("message_type", "")
     if kind == "partial_transcript":
         text = msg.get("text", "")
         return (
-            [Transcript(type="transcript", is_final=False, text=text)] if text.strip() else []
+            [Transcript(type="transcript", is_final=False, text=text,
+                        provider_raw=msg if include_raw else None)] if text.strip() else []
         )
     if kind in ("committed_transcript", "final_transcript",
                 "committed_transcript_with_timestamps", "final_transcript_with_timestamps"):
@@ -116,6 +117,7 @@ def parse_message(raw: str) -> list[STTEvent]:
                 start=words[0].start if words else None,
                 end=words[-1].end if words else None,
                 lang=msg.get("language_code"),
+                provider_raw=msg if include_raw else None,
             )
         ]
     if kind in {"error", "auth_error", "quota_exceeded", "commit_throttled", "unaccepted_terms",
@@ -149,8 +151,10 @@ class ElevenLabsSTTStream(STTStreamProvider):
         self._sample_rate = 16000
         self._finished = False
         self._closed = False
+        self._include_raw = False
 
     async def connect(self, config: STTConfig) -> None:
+        self._include_raw = config.include_raw
         self._sample_rate = config.sample_rate
         try:
             self._ws = await ws_connect(
@@ -194,7 +198,7 @@ class ElevenLabsSTTStream(STTStreamProvider):
                     raw = await self._ws.recv()
                 if isinstance(raw, bytes):
                     continue
-                for event in parse_message(raw):
+                for event in parse_message(raw, self._include_raw):
                     yield event
         except websockets.exceptions.ConnectionClosedOK:
             pass

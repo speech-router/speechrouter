@@ -31,6 +31,7 @@ async def main() -> int:
     parser.add_argument("--api-key", default="sk_local_dev")
     parser.add_argument("--fallbacks", default="")
     parser.add_argument("--realtime", action="store_true")
+    parser.add_argument("--include-raw", action="store_true")
     parser.add_argument("--diarization", action="store_true")
     args = parser.parse_args()
 
@@ -52,6 +53,8 @@ async def main() -> int:
         query += f"&fallbacks={args.fallbacks}"
     if args.diarization:
         query += "&diarization=true"
+    if args.include_raw:
+        query += "&include_raw=true"
     url = f"{args.url}/v1/listen?{query}"
 
     started = time.monotonic()
@@ -70,7 +73,8 @@ async def main() -> int:
                 kind = event["type"]
                 if kind == "transcript":
                     marker = "F" if event["is_final"] else "…"
-                    print(f"[{marker}] {event['text']}")
+                    raw_note = " [+raw]" if event.get("provider_raw") else ""
+                    print(f"[{marker}]{raw_note} {event['text']}")
                 elif kind == "done":
                     print(f"done: {event['usage']}")
                     return

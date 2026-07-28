@@ -116,7 +116,7 @@ def results_to_words(results: list[dict]) -> list[Word]:
     return words
 
 
-def parse_message(raw: str) -> tuple[str, list[STTEvent] | int]:
+def parse_message(raw: str, include_raw: bool = False) -> tuple[str, list[STTEvent] | int]:
     """Returns (kind, payload): ("events", [...]) | ("ack", seq_no) |
     ("started", []) | ("end", []) — Error raises."""
     msg = json.loads(raw)
@@ -142,6 +142,7 @@ def parse_message(raw: str) -> tuple[str, list[STTEvent] | int]:
                 words=words or None,
                 start=metadata.get("start_time"),
                 end=metadata.get("end_time"),
+                provider_raw=msg if include_raw else None,
             )
         ]
     if message == "EndOfUtterance":
@@ -178,8 +179,10 @@ class SpeechmaticsSTTStream(STTStreamProvider):
         self._ack_cond = asyncio.Condition()
         self._finished = False
         self._closed = False
+        self._include_raw = False
 
     async def connect(self, config: STTConfig) -> None:
+        self._include_raw = config.include_raw
         try:
             self._ws = await ws_connect(
                 self._ws_base,
@@ -224,7 +227,7 @@ class SpeechmaticsSTTStream(STTStreamProvider):
             async for raw in self._ws:
                 if isinstance(raw, bytes):
                     continue
-                kind, payload = parse_message(raw)
+                kind, payload = parse_message(raw, self._include_raw)
                 if kind == "ack":
                     async with self._ack_cond:
                         self._acked = max(self._acked, int(payload))  # type: ignore[arg-type]

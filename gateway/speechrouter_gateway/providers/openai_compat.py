@@ -21,7 +21,7 @@ def filename_for(content_type: str) -> str:
     return f"audio.{_EXT_BY_TYPE.get(content_type.split(';')[0].strip(), 'wav')}"
 
 
-def parse_openai_response(payload: dict) -> Transcript:
+def parse_openai_response(payload: dict, include_raw: bool = False) -> Transcript:
     words = [
         Word(
             w=w.get("word") or w.get("text", ""),
@@ -45,6 +45,7 @@ def parse_openai_response(payload: dict) -> Transcript:
             words[-1].end if words else (segments[-1].get("end") if segments else None)
         ),
         lang=payload.get("language"),
+        provider_raw=payload if include_raw else None,
     )
 
 
@@ -106,4 +107,4 @@ class OpenAICompatBatch(STTBatchProvider):
                 provider=self.name,
                 code=str(response.status_code),
             )
-        return parse_openai_response(response.json())
+        return parse_openai_response(response.json(), config.include_raw)

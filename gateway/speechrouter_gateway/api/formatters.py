@@ -30,7 +30,7 @@ def to_verbose_json(transcript: Transcript, model_slug: str) -> dict:
             for w in words
         ],
         "model": model_slug,
-    }
+    } | ({"provider_raw": transcript.provider_raw} if transcript.provider_raw else {})
 
 
 def _cues(words: list[Word]) -> list[tuple[float, float, str]]:

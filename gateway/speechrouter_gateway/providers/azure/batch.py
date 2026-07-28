@@ -48,7 +48,7 @@ def _speaker(value) -> int | None:
     return value if isinstance(value, int) else None
 
 
-def parse_response(payload: dict) -> Transcript:
+def parse_response(payload: dict, include_raw: bool = False) -> Transcript:
     phrases = payload.get("phrases", [])
     words: list[Word] = []
     for phrase in phrases:
@@ -80,6 +80,7 @@ def parse_response(payload: dict) -> Transcript:
             words[-1].end if words else None
         ),
         lang=next(iter(locales)) if len(locales) == 1 else None,
+        provider_raw=payload if include_raw else None,
     )
 
 
@@ -125,4 +126,4 @@ class AzureFastTranscription(STTBatchProvider):
                 provider=self.name,
                 code=str(response.status_code),
             )
-        return parse_response(response.json())
+        return parse_response(response.json(), config.include_raw)

@@ -38,7 +38,7 @@ def build_job(file_id: str, config: STTConfig) -> dict:
     return job
 
 
-def parse_transcript(payload: dict) -> Transcript:
+def parse_transcript(payload: dict, include_raw: bool = False) -> Transcript:
     tokens = [t for t in payload.get("tokens", []) if t.get("text", "").strip() not in
               {"<end>", "<fin>"}]
     words = _tokens_to_words(tokens)
@@ -51,6 +51,7 @@ def parse_transcript(payload: dict) -> Transcript:
         words=words or None,
         start=0.0,
         end=end,
+        provider_raw=payload if include_raw else None,
     )
 
 
@@ -91,7 +92,7 @@ class SonioxSTTBatch(STTBatchProvider):
                 transcript = await self._check(
                     await client.get(f"/v1/transcriptions/{job_id}/transcript"), "transcript"
                 )
-                return parse_transcript(transcript)
+                return parse_transcript(transcript, config.include_raw)
             finally:
                 # Soniox never auto-deletes; leaked artifacts hit hard quotas.
                 for method, path in (

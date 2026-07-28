@@ -97,6 +97,8 @@ class _TokenState:
     """Pure token algebra: finals append (with monotonic dedup), non-finals
     replace; markers trigger flushes. Fixture-testable without a socket."""
 
+    include_raw: bool = False
+    last_raw: dict | None = None
     pending_finals: list[dict] = field(default_factory=list)
     non_finals: list[dict] = field(default_factory=list)
     max_final_end_ms: float = 0.0
@@ -111,6 +113,7 @@ class _TokenState:
                 code=error_type,
             )
 
+        self.last_raw = payload if self.include_raw else None
         tokens = payload.get("tokens", [])
         events: list[STTEvent] = []
         if not tokens and not payload.get("finished"):
@@ -171,6 +174,7 @@ class _TokenState:
             start=start,
             end=end,
             lang=next(iter(languages)) if len(languages) == 1 else None,
+            provider_raw=self.last_raw,
         )
 
 
@@ -232,6 +236,7 @@ class SonioxSTTStream(STTStreamProvider):
         self._state = _TokenState()
 
     async def connect(self, config: STTConfig) -> None:
+        self._state = _TokenState(include_raw=config.include_raw)
         try:
             self._ws = await ws_connect(
                 self._ws_url,

@@ -34,6 +34,7 @@ class StreamRequest:
     interim_results: bool = True
     diarization: bool = False
     keyterms: tuple[str, ...] = ()
+    include_raw: bool = False
     provider_params: dict = field(default_factory=dict)
 
 
@@ -77,6 +78,7 @@ def resolve_batch(
         interim_results=False,
         diarization=request.diarization,
         keyterms=request.keyterms,
+        include_raw=request.include_raw,
         provider_params=request.provider_params,
     )
     return ResolvedBatch(slug=slug, config=config, build=partial(registered.build, settings))
@@ -119,6 +121,7 @@ def resolve_stream(
         interim_results=request.interim_results,
         diarization=request.diarization,
         keyterms=request.keyterms,
+        include_raw=request.include_raw,
         provider_params=request.provider_params,
     )
     return ResolvedAttempt(slug=slug, config=config, build=partial(registered.build, settings))

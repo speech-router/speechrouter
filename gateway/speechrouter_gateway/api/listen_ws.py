@@ -66,6 +66,7 @@ def _parse_request(websocket: WebSocket) -> tuple[str, list[str], StreamRequest]
         interim_results=params.get("interim_results", "true").lower() != "false",
         diarization=params.get("diarization", "false").lower() == "true",
         keyterms=terms,
+        include_raw=params.get("include_raw", "false").lower() == "true",
         provider_params=provider_params,
     )
     return slug, fallbacks, request

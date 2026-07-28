@@ -94,6 +94,7 @@ class STTConfig:
     interim_results: bool = True
     diarization: bool = False
     keyterms: tuple[str, ...] = ()
+    include_raw: bool = False  # attach raw provider payloads to transcripts
     provider_params: dict = field(default_factory=dict)  # passthrough escape hatch
 
 

@@ -62,7 +62,7 @@ def build_url(config: STTConfig, base: str = WS_BASE) -> str:
     return f"{base}?{urllib.parse.urlencode(params)}"
 
 
-def parse_message(raw: str, audio_clock: float) -> list[STTEvent]:
+def parse_message(raw: str, audio_clock: float, include_raw: bool = False) -> list[STTEvent]:
     """audio_clock = seconds of audio the adapter has sent so far."""
     msg = json.loads(raw)
     msg_type = msg.get("type")
@@ -79,13 +79,15 @@ def parse_message(raw: str, audio_clock: float) -> list[STTEvent]:
     if msg_type == "turn.update":
         text = msg.get("transcript", "")
         return (
-            [Transcript(type="transcript", is_final=False, text=text)] if text.strip() else []
+            [Transcript(type="transcript", is_final=False, text=text,
+                        provider_raw=msg if include_raw else None)] if text.strip() else []
         )
     if msg_type == "turn.end":
         text = msg.get("transcript", "")
         events: list[STTEvent] = []
         if text.strip():
-            events.append(Transcript(type="transcript", is_final=True, text=text))
+            events.append(Transcript(type="transcript", is_final=True, text=text,
+                                     provider_raw=msg if include_raw else None))
         events.append(UtteranceEnd(type="utterance_end", at=round(audio_clock, 3)))
         return events
     # connected / turn.eager_end / turn.resume: dropped in v1
@@ -104,8 +106,10 @@ class CartesiaTurnsStream(STTStreamProvider):
         self._audio_clock = 0.0
         self._finished = False
         self._closed = False
+        self._include_raw = False
 
     async def connect(self, config: STTConfig) -> None:
+        self._include_raw = config.include_raw
         if config.diarization:
             raise ProviderStreamError(
                 "cartesia turns does not support diarization",
@@ -142,7 +146,7 @@ class CartesiaTurnsStream(STTStreamProvider):
             async for raw in self._ws:
                 if isinstance(raw, bytes):
                     continue
-                for event in parse_message(raw, self._audio_clock):
+                for event in parse_message(raw, self._audio_clock, self._include_raw):
                     yield event
         except websockets.exceptions.ConnectionClosedOK:
             pass

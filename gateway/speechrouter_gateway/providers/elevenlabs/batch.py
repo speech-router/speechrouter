@@ -21,7 +21,7 @@ CAPABILITIES = Capabilities(
 )
 
 
-def parse_response(payload: dict) -> Transcript:
+def parse_response(payload: dict, include_raw: bool = False) -> Transcript:
     words = [
         Word(
             w=w["text"],
@@ -40,6 +40,7 @@ def parse_response(payload: dict) -> Transcript:
         start=0.0,
         end=words[-1].end if words else None,
         lang=payload.get("language_code"),
+        provider_raw=payload if include_raw else None,
     )
 
 
@@ -89,4 +90,4 @@ class ElevenLabsSTTBatch(STTBatchProvider):
                 provider=self.name,
                 code=str(response.status_code),
             )
-        return parse_response(response.json())
+        return parse_response(response.json(), config.include_raw)

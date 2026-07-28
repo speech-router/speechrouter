@@ -68,9 +68,15 @@ def _seconds(offset: Any) -> float | None:
     return round(cast(float, total()), 3)
 
 
-def parse_response(response: Any, offset: float) -> list[STTEvent]:
+def parse_response(response: Any, offset: float, include_raw: bool = False) -> list[STTEvent]:
     """Duck-typed so tests can drive it without the SDK installed."""
     events: list[STTEvent] = []
+    raw: dict | None = None
+    if include_raw:
+        try:
+            raw = type(response).to_dict(response)  # proto-plus
+        except Exception:  # noqa: BLE001 - raw attach is best-effort
+            raw = None
     event_type = str(getattr(response, "speech_event_type", "") or "")
     if "SPEECH_ACTIVITY_BEGIN" in event_type:
         at = _seconds(getattr(response, "speech_event_offset", None)) or 0.0
@@ -105,6 +111,7 @@ def parse_response(response: Any, offset: float) -> list[STTEvent]:
                 words=words or None,
                 end=round(offset + end, 3) if end is not None else None,
                 lang=getattr(result, "language_code", None) or None,
+                provider_raw=raw,
             )
         )
     return events
@@ -226,7 +233,8 @@ class GoogleSTTStream(STTStreamProvider):
             try:
                 responses = await self._client.streaming_recognize(requests=request_iter())
                 async for response in responses:
-                    for event in parse_response(response, rotation_offset):
+                    for event in parse_response(response, rotation_offset,
+                                                self._config.include_raw):
                         yield event
             except (gexc.ServiceUnavailable, gexc.DeadlineExceeded, gexc.Aborted,
                     gexc.ResourceExhausted, gexc.InternalServerError) as exc:

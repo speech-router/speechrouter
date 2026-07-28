@@ -89,7 +89,7 @@ def build_url(config: STTConfig, base: str = WS_BASE) -> str:
     return f"{base}?{urllib.parse.urlencode(params)}"
 
 
-def parse_message(raw: str) -> list[STTEvent]:
+def parse_message(raw: str, include_raw: bool = False) -> list[STTEvent]:
     """Pure translation of one v3 frame. Raises ProviderStreamError on Error
     messages. Termination is handled by the caller (returns None sentinel via
     empty list + connection close)."""
@@ -129,6 +129,7 @@ def parse_message(raw: str) -> list[STTEvent]:
                 start=start,
                 end=end,
                 lang=msg.get("language_code"),
+                provider_raw=msg if include_raw else None,
             )
         )
         if is_final and end is not None:
@@ -168,10 +169,12 @@ class AssemblyAISTTStream(STTStreamProvider):
         self._min_chunk_bytes = 0
         self._finished = False
         self._closed = False
+        self._include_raw = False
         self._terminated = asyncio.Event()
 
     async def connect(self, config: STTConfig) -> None:
         # 50ms coalescing floor: provider closes 3007 on smaller chunks.
+        self._include_raw = config.include_raw
         bytes_per_ms = config.sample_rate * 2 * config.channels / 1000
         self._min_chunk_bytes = int(bytes_per_ms * MIN_CHUNK_MS)
         try:
@@ -208,7 +211,7 @@ class AssemblyAISTTStream(STTStreamProvider):
                 if '"Termination"' in raw:
                     self._terminated.set()
                     return
-                for event in parse_message(raw):
+                for event in parse_message(raw, self._include_raw):
                     yield event
         except websockets.exceptions.ConnectionClosedOK:
             pass

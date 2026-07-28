@@ -61,7 +61,9 @@ def speaker_to_int(speaker_id: str | None) -> int | None:
     return int(digits) if digits else None
 
 
-def parse_detailed_json(raw: str, speaker_id: str | None = None) -> Transcript | None:
+def parse_detailed_json(
+    raw: str, speaker_id: str | None = None, include_raw: bool = False
+) -> Transcript | None:
     """Detailed-format final result JSON -> final Transcript with words."""
     try:
         payload = json.loads(raw)
@@ -95,6 +97,7 @@ def parse_detailed_json(raw: str, speaker_id: str | None = None) -> Transcript |
         words=words or None,
         start=start,
         end=end,
+        provider_raw=payload if include_raw else None,
     )
 
 
@@ -129,8 +132,10 @@ class AzureSTTStream(STTStreamProvider):
         self._recognizer = None
         self._finished = False
         self._closed = False
+        self._include_raw = False
 
     async def connect(self, config: STTConfig) -> None:
+        self._include_raw = config.include_raw
         speechsdk = _import_sdk()
         self._loop = asyncio.get_running_loop()
         try:
@@ -201,7 +206,7 @@ class AzureSTTStream(STTStreamProvider):
 
     def _on_final(self, evt: Any) -> None:
         speaker = getattr(evt.result, "speaker_id", None)
-        transcript = parse_detailed_json(evt.result.json, speaker)
+        transcript = parse_detailed_json(evt.result.json, speaker, self._include_raw)
         if transcript is not None:
             self._put(transcript)
 

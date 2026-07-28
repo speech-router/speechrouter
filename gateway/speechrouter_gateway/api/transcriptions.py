@@ -60,6 +60,7 @@ async def transcribe(
     language: str | None = Form(None),
     response_format: str = Form("json"),
     diarization: bool = Form(False),
+    include_raw: bool = Form(False),
     keyterms: str | None = Form(None),
     provider_params: str | None = Form(None),
 ):
@@ -87,6 +88,7 @@ async def transcribe(
     stream_request = StreamRequest(
         language=language,
         diarization=diarization,
+        include_raw=include_raw,
         keyterms=tuple(t.strip() for t in (keyterms or "").split(",") if t.strip()),
         provider_params=extra,
     )

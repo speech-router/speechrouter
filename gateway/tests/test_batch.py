@@ -137,7 +137,11 @@ def client(monkeypatch):
     ]
     with TestClient(app) as c:
         app.state.catalog = Catalog(entries)
-        app.state.settings = app.state.settings.model_copy(update={"keys": "sk_test"})
+        from speechrouter_gateway.config import KeyStoreKind
+        # pin local keystore: the developer's gateway/.env may be in cloud mode
+        app.state.settings = app.state.settings.model_copy(
+            update={"keys": "sk_test", "keystore": KeyStoreKind.local}
+        )
         from speechrouter_gateway.auth import build_keystore
         app.state.keystore = build_keystore(app.state.settings)
         yield c
