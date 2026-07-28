@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
 
     # Session guards
+    max_concurrent_streams: int = 20  # per org (cloud) / key (local); 0 = unlimited
     max_session_seconds: int = 4 * 60 * 60
     idle_timeout_seconds: int = 60
     ring_buffer_seconds: int = 10

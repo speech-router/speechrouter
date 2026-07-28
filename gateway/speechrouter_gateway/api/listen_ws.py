@@ -106,6 +106,15 @@ async def listen(websocket: WebSocket) -> None:
         await _reject(transport, websocket, exc.code, exc.message)
         return
 
+    scope = record.org_id or record.key_id
+    if not state.concurrency.acquire(scope):
+        await _reject(
+            transport, websocket, Code.concurrency_exceeded,
+            f"concurrent stream limit ({state.settings.max_concurrent_streams}) reached "
+            "for this organization",
+        )
+        return
+
     session = STTSession(
         transport=transport,
         attempts=attempts,
@@ -113,7 +122,10 @@ async def listen(websocket: WebSocket) -> None:
         key_id=record.key_id,
         settings=state.settings,
     )
-    await session.run()
+    try:
+        await session.run()
+    finally:
+        state.concurrency.release(scope)
     try:
         await websocket.close()
     except Exception:  # noqa: BLE001 - already closed is fine
