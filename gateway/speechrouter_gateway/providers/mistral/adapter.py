@@ -33,6 +33,7 @@ from ..base import (
     STTStreamProvider,
 )
 from ..registry import ProviderNotConfigured, register_stt_stream
+from ..wsconnect import ws_connect
 
 WS_BASE = "wss://api.mistral.ai/v1/audio/transcriptions/realtime"
 MAX_DECODED_BYTES = 262144
@@ -149,7 +150,7 @@ class MistralRealtimeSTT(STTStreamProvider):
     async def connect(self, config: STTConfig) -> None:
         url = f"{self._ws_base}?model={config.model}"
         try:
-            self._ws = await websockets.connect(
+            self._ws = await ws_connect(
                 url,
                 additional_headers={"Authorization": f"Bearer {self._api_key}"},
             )

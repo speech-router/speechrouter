@@ -34,6 +34,7 @@ from ..base import (
     STTStreamProvider,
 )
 from ..registry import ProviderNotConfigured, register_stt_stream
+from ..wsconnect import ws_connect
 
 WS_BASE = "wss://global.rt.speechmatics.com/v2/"
 ACK_WINDOW = 64  # max unacked AddAudio frames before send_audio blocks
@@ -180,7 +181,7 @@ class SpeechmaticsSTTStream(STTStreamProvider):
 
     async def connect(self, config: STTConfig) -> None:
         try:
-            self._ws = await websockets.connect(
+            self._ws = await ws_connect(
                 self._ws_base,
                 additional_headers={"Authorization": f"Bearer {self._api_key}"},
                 # default ping_interval kept intentionally: 3-min no-traffic kill

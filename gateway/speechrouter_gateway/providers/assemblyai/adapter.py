@@ -32,6 +32,7 @@ from ..base import (
     STTStreamProvider,
 )
 from ..registry import ProviderNotConfigured, register_stt_stream
+from ..wsconnect import ws_connect
 
 WS_BASE = "wss://streaming.assemblyai.com/v3/ws"
 MIN_CHUNK_MS = 50
@@ -174,7 +175,7 @@ class AssemblyAISTTStream(STTStreamProvider):
         bytes_per_ms = config.sample_rate * 2 * config.channels / 1000
         self._min_chunk_bytes = int(bytes_per_ms * MIN_CHUNK_MS)
         try:
-            self._ws = await websockets.connect(
+            self._ws = await ws_connect(
                 build_url(config, self._ws_base),
                 additional_headers={"Authorization": self._api_key},  # no Bearer
             )

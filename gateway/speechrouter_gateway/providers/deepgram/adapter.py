@@ -31,6 +31,7 @@ from ..base import (
 )
 from ..dispatch import ModelDispatchStream
 from ..registry import ProviderNotConfigured, register_stt_stream
+from ..wsconnect import ws_connect
 
 WS_BASE = "wss://api.deepgram.com/v1/listen"
 KEEPALIVE_INTERVAL = 5.0
@@ -166,7 +167,7 @@ class DeepgramSTTStream(STTStreamProvider):
     async def connect(self, config: STTConfig) -> None:
         url = build_url(config, self._ws_base)
         try:
-            self._ws = await websockets.connect(
+            self._ws = await ws_connect(
                 url,
                 additional_headers={"Authorization": f"Token {self._api_key}"},
                 ping_interval=None,  # Deepgram liveness is KeepAlive-based

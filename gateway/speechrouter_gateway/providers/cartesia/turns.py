@@ -29,6 +29,7 @@ from ..base import (
     STTEvent,
     STTStreamProvider,
 )
+from ..wsconnect import ws_connect
 from .adapter import _ENCODING_MAP, CARTESIA_VERSION
 
 WS_BASE = "wss://api.cartesia.ai/stt/turns/websocket"
@@ -113,7 +114,7 @@ class CartesiaTurnsStream(STTStreamProvider):
         per_sample = {"linear16": 2, "linear32": 4, "mulaw": 1, "alaw": 1}[config.encoding]
         self._byte_rate = config.sample_rate * per_sample * config.channels
         try:
-            self._ws = await websockets.connect(
+            self._ws = await ws_connect(
                 build_url(config, self._ws_base),
                 additional_headers={"X-API-Key": self._api_key},
             )

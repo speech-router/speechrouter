@@ -29,6 +29,7 @@ from ..base import (
 )
 from ..dispatch import ModelDispatchStream
 from ..registry import ProviderNotConfigured, register_stt_stream
+from ..wsconnect import ws_connect
 
 WS_BASE = "wss://api.cartesia.ai/stt/websocket"
 CARTESIA_VERSION = "2026-03-01"
@@ -140,7 +141,7 @@ class CartesiaSTTStream(STTStreamProvider):
 
     async def connect(self, config: STTConfig) -> None:
         try:
-            self._ws = await websockets.connect(
+            self._ws = await ws_connect(
                 build_url(config, self._ws_base),
                 additional_headers={"X-API-Key": self._api_key},
             )

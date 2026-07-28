@@ -30,6 +30,7 @@ from ..base import (
     STTEvent,
     STTStreamProvider,
 )
+from ..wsconnect import ws_connect
 
 WS_BASE = "wss://api.deepgram.com/v2/listen"
 
@@ -134,7 +135,7 @@ class DeepgramFluxStream(STTStreamProvider):
                 recoverable=False, provider=self.name,
             )
         try:
-            self._ws = await websockets.connect(
+            self._ws = await ws_connect(
                 build_url(config, self._ws_base),
                 additional_headers={"Authorization": f"Token {self._api_key}"},
                 # No JSON KeepAlive on Flux: rely on WS protocol pings.

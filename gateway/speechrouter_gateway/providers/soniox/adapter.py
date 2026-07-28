@@ -34,6 +34,7 @@ from ..base import (
     STTStreamProvider,
 )
 from ..registry import ProviderNotConfigured, register_stt_stream
+from ..wsconnect import ws_connect
 
 WS_URL = "wss://stt-rt.soniox.com/transcribe-websocket"
 KEEPALIVE_INTERVAL = 10.0  # brief: required at least every 20s
@@ -232,7 +233,7 @@ class SonioxSTTStream(STTStreamProvider):
 
     async def connect(self, config: STTConfig) -> None:
         try:
-            self._ws = await websockets.connect(
+            self._ws = await ws_connect(
                 self._ws_url,
                 ping_interval=None,  # Soniox liveness is its own keepalive JSON
             )

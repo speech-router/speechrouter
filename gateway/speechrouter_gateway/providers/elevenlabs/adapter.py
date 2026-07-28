@@ -31,6 +31,7 @@ from ..base import (
     STTStreamProvider,
 )
 from ..registry import ProviderNotConfigured, register_stt_stream
+from ..wsconnect import ws_connect
 
 WS_BASE = "wss://api.elevenlabs.io/v1/speech-to-text/realtime"
 DRAIN_TIMEOUT = 5.0
@@ -152,7 +153,7 @@ class ElevenLabsSTTStream(STTStreamProvider):
     async def connect(self, config: STTConfig) -> None:
         self._sample_rate = config.sample_rate
         try:
-            self._ws = await websockets.connect(
+            self._ws = await ws_connect(
                 build_url(config, self._ws_base),
                 additional_headers={"xi-api-key": self._api_key},
             )

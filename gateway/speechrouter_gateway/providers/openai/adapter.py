@@ -33,6 +33,7 @@ from ..base import (
     STTStreamProvider,
 )
 from ..registry import ProviderNotConfigured, register_stt_stream
+from ..wsconnect import ws_connect
 
 WS_URL = "wss://api.openai.com/v1/realtime?intent=transcription"
 DRAIN_TIMEOUT = 5.0
@@ -129,7 +130,7 @@ class OpenAIRealtimeSTT(STTStreamProvider):
 
     async def connect(self, config: STTConfig) -> None:
         try:
-            self._ws = await websockets.connect(
+            self._ws = await ws_connect(
                 self._ws_url,
                 additional_headers={"Authorization": f"Bearer {self._api_key}"},
             )

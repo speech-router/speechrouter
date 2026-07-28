@@ -34,6 +34,7 @@ from ..base import (
     STTStreamProvider,
 )
 from ..registry import ProviderNotConfigured, register_stt_stream
+from ..wsconnect import ws_connect
 from .eventstream import EventStreamError, build_audio_event, decode_message
 from .signer import presigned_url
 
@@ -148,7 +149,7 @@ class AWSTranscribeStream(STTStreamProvider):
             show_speaker_label=config.diarization,
         )
         try:
-            self._ws = await websockets.connect(url, ping_interval=None, ping_timeout=None)
+            self._ws = await ws_connect(url, ping_interval=None, ping_timeout=None)
         except Exception as exc:
             raise ProviderStreamError(
                 f"aws connect failed: {exc}", recoverable=True, provider=self.name
