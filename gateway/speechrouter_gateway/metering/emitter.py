@@ -18,6 +18,7 @@ class UsageEvent:
     characters: int = 0
     provider_switches: int = 0
     status: str = "completed"  # completed | client_disconnect | provider_error | error
+    byok: bool = False  # org-supplied provider key; billed at the routing fee only
     ts: float = field(default_factory=time.time)
 
 

@@ -23,6 +23,10 @@ class CloudKeyStore(KeyStore):
     def __init__(self, redis_url: str, client: aioredis.Redis | None = None):
         self._redis = client or aioredis.from_url(redis_url, decode_responses=True)
 
+    @property
+    def redis(self) -> aioredis.Redis:
+        return self._redis
+
     async def lookup(self, presented_key: str) -> KeyRecord | None:
         if not presented_key:
             return None

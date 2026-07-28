@@ -13,6 +13,7 @@ import httpx
 from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import JSONResponse, PlainTextResponse
 
+from ..auth.byok import apply_byok
 from ..logging import logger
 from ..metering import UsageEvent
 from ..protocol.events import Code
@@ -92,8 +93,12 @@ async def transcribe(
         keyterms=tuple(t.strip() for t in (keyterms or "").split(",") if t.strip()),
         provider_params=extra,
     )
+    settings, byok_used = await apply_byok(
+        state.settings, getattr(state.keystore, "redis", None), record.org_id,
+        {model.split("/", 1)[0]},
+    )
     try:
-        resolved = resolve_batch(model, stream_request, state.settings, state.catalog)
+        resolved = resolve_batch(model, stream_request, settings, state.catalog)
     except ResolveError as exc:
         return _error(exc.code, exc.message)
 
@@ -143,6 +148,7 @@ async def transcribe(
                 model=model,
                 kind="stt_batch",
                 audio_seconds=round(audio_seconds, 3),
+                byok=byok_used,
                 status=status,
             )
         )

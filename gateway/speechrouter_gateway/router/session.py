@@ -73,12 +73,14 @@ class STTSession:
         emitter: UsageEmitter,
         key_id: str,
         settings: Settings,
+        byok: bool = False,
     ):
         assert attempts, "resolver guarantees at least one attempt"
         self._transport = transport
         self._attempts = attempts
         self._emitter = emitter
         self._key_id = key_id
+        self._byok = byok
         self._settings = settings
         primary = attempts[0].config
         self._ring = AudioRing(
@@ -321,6 +323,7 @@ class STTSession:
                     audio_seconds=round(self._ring.audio_seconds, 3),
                     provider_switches=self._switches,
                     status=self._status,
+                    byok=self._byok,
                 )
             )
 

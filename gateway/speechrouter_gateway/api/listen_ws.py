@@ -5,6 +5,7 @@ import json
 from fastapi import APIRouter, WebSocket
 from pydantic import BaseModel
 
+from ..auth.byok import apply_byok
 from ..logging import logger
 from ..protocol import Error
 from ..protocol.events import Code
@@ -97,9 +98,13 @@ async def listen(websocket: WebSocket) -> None:
     if not slug:
         await _reject(transport, websocket, Code.invalid_request, "model query param is required")
         return
+    providers = {s.split("/", 1)[0] for s in [slug, *fallbacks]}
+    settings, byok_used = await apply_byok(
+        state.settings, getattr(state.keystore, "redis", None), record.org_id, providers
+    )
     try:
         attempts = [
-            resolve_stream(s, request, state.settings, state.catalog)
+            resolve_stream(s, request, settings, state.catalog)
             for s in [slug, *fallbacks]
         ]
     except ResolveError as exc:
@@ -120,6 +125,7 @@ async def listen(websocket: WebSocket) -> None:
         attempts=attempts,
         emitter=state.emitter,
         key_id=record.key_id,
+        byok=byok_used,
         settings=state.settings,
     )
     try:

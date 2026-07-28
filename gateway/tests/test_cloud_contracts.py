@@ -56,3 +56,41 @@ async def test_emitter_writes_stream_and_swallows_failures():
 
     fake.fail = True
     await emitter.emit(event)  # must not raise
+
+
+async def test_apply_byok_overrides_settings_and_flags():
+    from speechrouter_gateway.auth.byok import BYOK_PREFIX, apply_byok
+    from speechrouter_gateway.config import Settings
+
+    settings = Settings(deepgram_api_key="house-key", _env_file=None)
+    fake = FakeRedis()
+    fake.kv[f"{BYOK_PREFIX}7:deepgram"] = "org-own-key"
+
+    # Org 7 brought a Deepgram key: swapped in, flagged, original untouched.
+    patched, used = await apply_byok(settings, fake, "7", {"deepgram"})
+    assert used and patched.deepgram_api_key == "org-own-key"
+    assert settings.deepgram_api_key == "house-key"
+
+    # No key stored for this provider -> house keys, not flagged.
+    _, used = await apply_byok(settings, fake, "7", {"soniox"})
+    assert not used
+
+    # Multi-field providers are not BYOK-able; anonymous/local mode passes through.
+    _, used = await apply_byok(settings, fake, "7", {"aws"})
+    assert not used
+    _, used = await apply_byok(settings, fake, None, {"deepgram"})
+    assert not used
+
+    # Redis outage falls back to house keys instead of failing the stream.
+    fake.fail = True
+    patched, used = await apply_byok(settings, fake, "7", {"deepgram"})
+    assert not used and patched.deepgram_api_key == "house-key"
+
+
+async def test_usage_event_carries_byok_flag():
+    fake = FakeRedis()
+    emitter = RedisUsageEmitter("redis://unused", client=fake)  # type: ignore[arg-type]
+    await emitter.emit(UsageEvent(session_id="s2", key_id="42", model="deepgram/nova-3",
+                                  kind="stt_stream", audio_seconds=1.0, byok=True))
+    payload = json.loads(fake.streams[USAGE_STREAM][0]["payload"])
+    assert payload["byok"] is True
