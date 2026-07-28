@@ -1,10 +1,13 @@
 """Shared WebSocket dialer for all provider adapters.
 
-asyncio tries resolved addresses sequentially by default: on networks with a
-broken IPv6 route, the v6 attempt must fully time out before v4 is tried,
-which intermittently blows the opening handshake (seen live: Soniox/Flux
-"timed out during opening handshake" while the next attempt succeeds).
-happy_eyeballs_delay races v6/v4 in parallel; open_timeout gets headroom.
+Two concerns:
+- open_timeout headroom (15s): live testing showed intermittent
+  "timed out during opening handshake" on cold dials.
+- Happy Eyeballs (RFC 8305): stdlib asyncio dials resolved addresses
+  sequentially, so a broken IPv6 route stalls the whole handshake.
+  asyncio.create_connection supports happy_eyeballs_delay — but uvloop
+  (uvicorn's default loop) does NOT accept that kwarg, so it is applied
+  only when the running loop supports it.
 """
 
 import websockets
@@ -12,5 +15,8 @@ import websockets
 
 async def ws_connect(url: str, **kwargs) -> websockets.ClientConnection:
     kwargs.setdefault("open_timeout", 15)
-    kwargs.setdefault("happy_eyeballs_delay", 0.25)
-    return await websockets.connect(url, **kwargs)
+    try:
+        return await websockets.connect(url, happy_eyeballs_delay=0.25, **kwargs)
+    except TypeError:
+        # uvloop's create_connection() rejects happy_eyeballs_delay.
+        return await websockets.connect(url, **kwargs)
