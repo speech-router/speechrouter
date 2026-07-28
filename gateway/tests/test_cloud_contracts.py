@@ -1,0 +1,58 @@
+"""Cloud keystore + redis emitter against an in-memory fake Redis."""
+
+import hashlib
+import json
+
+from speechrouter_gateway.auth.cloud_store import KEY_PREFIX, CloudKeyStore
+from speechrouter_gateway.metering.emitter import UsageEvent
+from speechrouter_gateway.metering.redis_emitter import USAGE_STREAM, RedisUsageEmitter
+
+
+class FakeRedis:
+    def __init__(self):
+        self.kv: dict[str, str] = {}
+        self.streams: dict[str, list[dict]] = {}
+        self.fail = False
+
+    async def get(self, key):
+        if self.fail:
+            raise ConnectionError("redis down")
+        return self.kv.get(key)
+
+    async def xadd(self, stream, fields, **_kw):
+        if self.fail:
+            raise ConnectionError("redis down")
+        self.streams.setdefault(stream, []).append(fields)
+
+
+async def test_lookup_hits_and_misses():
+    fake = FakeRedis()
+    plaintext = "sk_sr_abc123"
+    digest = hashlib.sha256(plaintext.encode()).hexdigest()
+    fake.kv[f"{KEY_PREFIX}{digest}"] = json.dumps({"key_id": "42", "org_id": "7"})
+    store = CloudKeyStore("redis://unused", client=fake)  # type: ignore[arg-type]
+
+    record = await store.lookup(plaintext)
+    assert record is not None and record.key_id == "42" and record.org_id == "7"
+    assert await store.lookup("sk_sr_wrong") is None
+    assert await store.lookup("") is None
+
+
+async def test_lookup_survives_redis_outage():
+    fake = FakeRedis()
+    fake.fail = True
+    store = CloudKeyStore("redis://unused", client=fake)  # type: ignore[arg-type]
+    assert await store.lookup("sk_sr_abc") is None  # deny, don't crash
+
+
+async def test_emitter_writes_stream_and_swallows_failures():
+    fake = FakeRedis()
+    emitter = RedisUsageEmitter("redis://unused", client=fake)  # type: ignore[arg-type]
+    event = UsageEvent(session_id="s1", key_id="42", model="deepgram/nova-3",
+                       kind="stt_stream", audio_seconds=8.5)
+    await emitter.emit(event)
+    payload = json.loads(fake.streams[USAGE_STREAM][0]["payload"])
+    assert payload["session_id"] == "s1" and payload["audio_seconds"] == 8.5
+
+    fake.fail = True
+    await emitter.emit(event)  # must not raise

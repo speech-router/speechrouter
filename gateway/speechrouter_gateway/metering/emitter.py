@@ -40,4 +40,6 @@ def build_emitter(cfg: Settings) -> UsageEmitter:
         case UsageEmitterKind.log:
             return LogUsageEmitter()
         case UsageEmitterKind.redis:
-            raise NotImplementedError("redis emitter lands with the control plane")
+            from .redis_emitter import RedisUsageEmitter  # noqa: PLC0415 - optional path
+
+            return RedisUsageEmitter(cfg.redis_url)

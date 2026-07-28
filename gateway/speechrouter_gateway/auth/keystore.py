@@ -54,4 +54,6 @@ def build_keystore(cfg: Settings) -> KeyStore:
         case KeyStoreKind.local:
             return LocalKeyStore(cfg.keys)
         case KeyStoreKind.cloud:
-            raise NotImplementedError("cloud keystore lands with the control plane")
+            from .cloud_store import CloudKeyStore  # noqa: PLC0415 - optional path
+
+            return CloudKeyStore(cfg.redis_url)
