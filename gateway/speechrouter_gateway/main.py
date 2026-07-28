@@ -3,6 +3,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from .api.listen_ws import router as listen_router
 from .api.models import router as models_router
@@ -37,6 +38,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="SpeechRouter", lifespan=lifespan)
+# Browsers (playground, dashboards) call the REST surface directly; the API
+# is key-authenticated, so open CORS is the correct posture for a gateway.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.include_router(models_router)
 app.include_router(listen_router)
 app.include_router(transcriptions_router)
