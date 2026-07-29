@@ -1,5 +1,6 @@
 """WSS /v1/listen — streaming STT."""
 
+import asyncio
 import json
 
 from fastapi import APIRouter, WebSocket
@@ -132,6 +133,18 @@ async def listen(websocket: WebSocket) -> None:
         await session.run()
     finally:
         state.concurrency.release(scope)
+    # Linger: closing immediately after `done` can reset the TCP connection
+    # before the final frames flush through proxies (observed as client-side
+    # 1006 with `done` lost). Let the client read `done` and close first;
+    # the timeout backstops clients that never close.
+    try:
+        async with asyncio.timeout(3):
+            while True:
+                message = await websocket.receive()
+                if message["type"] == "websocket.disconnect":
+                    break
+    except (TimeoutError, RuntimeError):
+        pass
     try:
         await websocket.close()
     except Exception:  # noqa: BLE001 - already closed is fine

@@ -1,11 +1,77 @@
 {
   "name": "speechrouter",
-  "version": "0.0.1",
-  "description": "One API for every speech model — official SDK for speechrouter.ai (coming soon; the OpenAI SDK works today for batch)",
+  "version": "0.1.0",
+  "description": "One API for every speech model \u2014 official TypeScript SDK for speechrouter.ai. Streaming STT with mid-stream failover, batch transcription. Browser, Node, React Native.",
   "license": "Apache-2.0",
   "homepage": "https://speechrouter.ai",
-  "repository": { "type": "git", "url": "git+https://github.com/speech-router/speechrouter.git" },
-  "keywords": ["speech-to-text", "stt", "transcription", "deepgram", "whisper", "streaming", "websocket"],
-  "main": "index.js",
-  "files": ["index.js", "README.md"]
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/speech-router/speechrouter.git",
+    "directory": "packages/sdk-js"
+  },
+  "keywords": [
+    "speech-to-text",
+    "stt",
+    "transcription",
+    "streaming",
+    "websocket",
+    "deepgram",
+    "whisper",
+    "react-native"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./mic": {
+      "import": {
+        "types": "./dist/mic.d.ts",
+        "default": "./dist/mic.js"
+      },
+      "require": {
+        "types": "./dist/mic.d.cts",
+        "default": "./dist/mic.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "ws": ">=8"
+  },
+  "peerDependenciesMeta": {
+    "ws": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/ws": "^8.18.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0",
+    "ws": "^8.18.0"
+  }
 }
