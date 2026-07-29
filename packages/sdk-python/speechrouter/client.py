@@ -116,6 +116,16 @@ class SpeechRouter:
             return response.json()
         return response.text
 
+    async def create_token(self, ttl_seconds: int = 60) -> dict[str, Any]:
+        """Mint a short-lived token for client-side use (browsers, mobile).
+
+        Call from your backend with the real key; hand the returned token to
+        the client, which uses it as its api_key. TTL limits connecting, not
+        session length. Returns {"token", "expires_at", "ttl_seconds"}.
+        """
+        response = await self._request("POST", "/v1/tokens", json={"ttl_seconds": ttl_seconds})
+        return response.json()
+
     async def list_models(self) -> list[dict[str, Any]]:
         """The live model catalog — slugs, capabilities, pricing."""
         response = await self._request("GET", "/v1/models")

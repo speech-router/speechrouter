@@ -87,3 +87,16 @@ describe('constructor', () => {
     expect(() => new SpeechRouter({ apiKey: '' })).toThrow(SpeechRouterError)
   })
 })
+
+describe('createToken', () => {
+  it('posts ttl and returns the token payload', async () => {
+    const { impl, calls } = fetchStub(() =>
+      json({ token: 'st_abc', expires_at: '2026-01-01T00:00:00Z', ttl_seconds: 120 }),
+    )
+    const sr = new SpeechRouter({ apiKey: 'sk_sr_x', baseUrl: 'https://gw.test', fetch: impl })
+    const out = await sr.createToken({ ttlSeconds: 120 })
+    expect(out.token).toBe('st_abc')
+    expect(calls[0]!.url).toBe('https://gw.test/v1/tokens')
+    expect(JSON.parse(calls[0]!.init.body as string)).toEqual({ ttl_seconds: 120 })
+  })
+})

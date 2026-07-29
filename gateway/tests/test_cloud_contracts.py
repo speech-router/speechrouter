@@ -11,6 +11,7 @@ from speechrouter_gateway.metering.redis_emitter import USAGE_STREAM, RedisUsage
 class FakeRedis:
     def __init__(self):
         self.kv: dict[str, str] = {}
+        self.ttls: dict[str, int] = {}
         self.streams: dict[str, list[dict]] = {}
         self.fail = False
 
@@ -18,6 +19,13 @@ class FakeRedis:
         if self.fail:
             raise ConnectionError("redis down")
         return self.kv.get(key)
+
+    async def set(self, key, value, ex=None):
+        if self.fail:
+            raise ConnectionError("redis down")
+        self.kv[key] = value
+        if ex is not None:
+            self.ttls[key] = ex
 
     async def xadd(self, stream, fields, **_kw):
         if self.fail:

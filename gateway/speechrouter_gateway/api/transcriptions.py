@@ -14,6 +14,7 @@ from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import JSONResponse, PlainTextResponse
 
 from ..auth.byok import apply_byok, org_blocked
+from ..auth.tokens import resolve_credentials
 from ..logging import logger
 from ..metering import UsageEvent
 from ..protocol.events import Code
@@ -68,7 +69,7 @@ async def transcribe(
     state = request.app.state
     auth = request.headers.get("authorization", "")
     key = auth[7:].strip() if auth.lower().startswith("bearer ") else ""
-    record = await state.keystore.lookup(key)
+    record = await resolve_credentials(state, key)
     if record is None:
         return _error(Code.auth_failed, "invalid or missing API key")
 

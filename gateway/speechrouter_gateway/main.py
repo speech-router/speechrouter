@@ -7,8 +7,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .api.listen_ws import router as listen_router
 from .api.models import router as models_router
+from .api.tokens import router as tokens_router
 from .api.transcriptions import router as transcriptions_router
 from .auth import build_keystore
+from .auth.tokens import LocalTokenStore, RedisTokenStore
 from .config import KeyStoreKind, settings
 from .logging import logger, setup_logging
 from .metering import build_emitter
@@ -22,6 +24,11 @@ async def lifespan(app: FastAPI):
     cfg = settings()
     app.state.settings = cfg
     app.state.keystore = build_keystore(cfg)
+    app.state.token_store = (
+        RedisTokenStore(app.state.keystore.redis)  # type: ignore[attr-defined]
+        if cfg.keystore == KeyStoreKind.cloud
+        else LocalTokenStore()
+    )
     app.state.emitter = build_emitter(cfg)
     app.state.catalog = Catalog.load()
     app.state.concurrency = ConcurrencyGuard(limit=cfg.max_concurrent_streams)
@@ -51,6 +58,7 @@ app.add_middleware(
 app.include_router(models_router)
 app.include_router(listen_router)
 app.include_router(transcriptions_router)
+app.include_router(tokens_router)
 
 
 @app.get("/up")

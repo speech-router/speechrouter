@@ -135,3 +135,17 @@ async def test_transcribe_and_errors(monkeypatch):
 
     with pytest.raises(SpeechRouterError):
         await sr.transcribe(model="deepgram/nova-3")  # no file, no url
+
+
+async def test_create_token(monkeypatch):
+    import httpx
+
+    async def fake_request(self, method, url, **kwargs):
+        assert url.endswith("/v1/tokens") and kwargs["json"] == {"ttl_seconds": 90}
+        return httpx.Response(200, json={"token": "st_x", "ttl_seconds": 90},
+                              request=httpx.Request(method, url))
+
+    monkeypatch.setattr(httpx.AsyncClient, "request", fake_request)
+    sr = SpeechRouter(api_key="k", base_url="https://gw.test")
+    out = await sr.create_token(ttl_seconds=90)
+    assert out["token"] == "st_x"

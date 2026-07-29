@@ -1,6 +1,6 @@
 [project]
 name = "speechrouter"
-version = "0.1.0"
+version = "0.2.0"
 description = "One API for every speech model — official Python SDK for speechrouter.ai. Streaming STT with mid-stream failover, batch transcription."
 readme = "README.md"
 license = "Apache-2.0"

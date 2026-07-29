@@ -95,6 +95,25 @@ export class SpeechRouter {
     return response.text()
   }
 
+  /**
+   * Mint a short-lived token for client-side use (browsers, mobile).
+   * Call this from YOUR BACKEND with your real key, hand the token to the
+   * client, and construct its SpeechRouter with `apiKey: token`. TTL only
+   * limits how long the token can open connections — an opened stream runs
+   * to completion regardless.
+   */
+  async createToken(opts: { ttlSeconds?: number } = {}): Promise<{
+    token: string
+    expires_at: string
+    ttl_seconds: number
+  }> {
+    const response = await this.request('/v1/tokens', {
+      method: 'POST',
+      body: JSON.stringify(opts.ttlSeconds ? { ttl_seconds: opts.ttlSeconds } : {}),
+    })
+    return response.json()
+  }
+
   /** The live model catalog — slugs, capabilities, pricing. */
   async listModels(): Promise<Model[]> {
     const response = await this.request('/v1/models', { method: 'GET' })

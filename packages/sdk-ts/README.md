@@ -236,11 +236,22 @@ The gateway is Apache-2.0 and runs anywhere Docker runs. Point the SDK at yours:
 new SpeechRouter({ apiKey, baseUrl: "http://localhost:8080" });
 ```
 
-## A note on keys in browsers
+## Browsers & mobile: short-lived tokens
 
-An API key shipped to a page is public. For production browser apps, mint
-keys from your backend and hand the page a short-lived one, or proxy the
-socket. (Scoped browser keys are on the roadmap.)
+An API key shipped to a page is public — never do it. Instead, your backend
+mints a short-lived token and hands it to the client:
+
+```ts
+// backend (key stays here)
+const { token } = await sr.createToken({ ttlSeconds: 60 });
+
+// client (browser / React Native)
+const client = new SpeechRouter({ apiKey: token });
+const stream = client.listen({ model: "deepgram/nova-3" });
+```
+
+The TTL only limits how long the token can *open* connections — a stream
+that's already running continues past expiry. Default 60s, max 300s.
 
 ---
 
