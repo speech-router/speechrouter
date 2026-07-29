@@ -1,6 +1,6 @@
 {
   "name": "speechrouter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "One API for every speech model \u2014 official TypeScript SDK for speechrouter.ai. Streaming STT with mid-stream failover, batch transcription. Browser, Node, React Native.",
   "license": "Apache-2.0",
   "homepage": "https://speechrouter.ai",
