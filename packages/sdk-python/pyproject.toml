@@ -1,15 +1,26 @@
 [project]
 name = "speechrouter"
-version = "0.0.1"
-description = "One API for every speech model — official SDK for speechrouter.ai (coming soon; the OpenAI SDK works today for batch)"
+version = "0.1.0"
+description = "One API for every speech model — official Python SDK for speechrouter.ai. Streaming STT with mid-stream failover, batch transcription."
 readme = "README.md"
 license = "Apache-2.0"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["speech-to-text", "stt", "transcription", "streaming", "websocket"]
+dependencies = [
+    "httpx>=0.27",
+    "websockets>=13",
+]
 
 [project.urls]
 Homepage = "https://speechrouter.ai"
 Repository = "https://github.com/speech-router/speechrouter"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.8",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -17,3 +28,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["speechrouter"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
