@@ -14,7 +14,7 @@ export interface ListenOptions {
   /** Ordered failover lane, e.g. ["soniox/stt-rt-v5"]. */
   fallbacks?: string[]
   /** PCM encoding of the audio you will send. Default "linear16". */
-  encoding?: string
+  encoding?: 'linear16' | 'mulaw' | 'alaw' | (string & {})
   /** Sample rate of the audio you will send. Default 16000. */
   sampleRate?: number
   /** Channel count. Default 1. */
@@ -32,10 +32,11 @@ export interface ListenOptions {
   /** Abort the dial if the socket is not open in this many ms. Default 10000. */
   connectTimeoutMs?: number
   /**
-   * Keep the session alive through silences by sending keepalive frames.
-   * true = every 8000 ms, a number = that interval, false = off (default
-   * true). Note: an open session bills wall-clock time on session-billed
-   * providers — close streams you are done with.
+   * Keep the session alive through pauses by sending keepalive frames.
+   * true = every 8000 ms, a number = that interval. Default OFF: an open
+   * session bills wall-clock time on session-billed providers, and a live
+   * microphone already sends (silent) frames continuously. Turn on only
+   * when you intentionally stop sending audio but want the session held.
    */
   keepAlive?: boolean | number
 }
@@ -61,7 +62,7 @@ const CLIENT_CODES = new Set([
   'timeout',
 ])
 
-function toQuery(opts: ListenOptions, apiKey: string): string {
+function toQuery(opts: ListenOptions): string {
   const q = new URLSearchParams()
   q.set('model', opts.model)
   if (opts.fallbacks?.length) q.set('fallbacks', opts.fallbacks.join(','))
@@ -75,12 +76,11 @@ function toQuery(opts: ListenOptions, apiKey: string): string {
   if (opts.includeRaw) q.set('include_raw', 'true')
   if (opts.providerParams && Object.keys(opts.providerParams).length)
     q.set('provider_params', JSON.stringify(opts.providerParams))
-  q.set('api_key', apiKey)
   return q.toString()
 }
 
-export function buildListenUrl(wsBase: string, opts: ListenOptions, apiKey: string): string {
-  return `${wsBase}/v1/listen?${toQuery(opts, apiKey)}`
+export function buildListenUrl(wsBase: string, opts: ListenOptions): string {
+  return `${wsBase}/v1/listen?${toQuery(opts)}`
 }
 
 /**
@@ -91,6 +91,7 @@ export class ListenStream {
   private ws: WSLike | null = null
   private listeners = new Map<keyof ListenEventMap, Set<Listener<any>>>()
   private sendQueue: (ArrayBufferLike | ArrayBufferView)[] = []
+  private pendingFinalize = false
   private iterQueue: ListenEvent[] = []
   private iterWaiter: ((r: IteratorResult<ListenEvent>) => void) | null = null
   private keepAliveTimer: ReturnType<typeof setInterval> | null = null
@@ -105,7 +106,11 @@ export class ListenStream {
   /** Set once the gateway confirms the session. */
   session: SessionOpenEvent | null = null
 
-  constructor(private url: string, private opts: ListenOptions) {
+  constructor(
+    private url: string,
+    private opts: ListenOptions,
+    private apiKey: string,
+  ) {
     this.donePromise = new Promise((resolve, reject) => {
       this.resolveDone = resolve
       this.rejectDone = reject
@@ -133,7 +138,13 @@ export class ListenStream {
   }
 
   private emit<K extends keyof ListenEventMap>(type: K, event: ListenEventMap[K]): void {
-    this.listeners.get(type)?.forEach((fn) => fn(event))
+    this.listeners.get(type)?.forEach((fn) => {
+      try {
+        fn(event)
+      } catch (err) {
+        console.error('speechrouter: listener threw', err)
+      }
+    })
   }
 
   /** Consume the session as an async stream of wire events. */
@@ -158,7 +169,9 @@ export class ListenStream {
     let WS
     try {
       WS = await resolveWebSocket()
-      this.ws = new WS(this.url)
+      // Credentials ride Sec-WebSocket-Protocol ("bearer, <key>") so they
+      // never appear in URLs, access logs, or proxy traces.
+      this.ws = new WS(this.url, ['bearer', this.apiKey])
     } catch (err) {
       this.fail(
         new SpeechRouterError(err instanceof Error ? err.message : 'could not open socket', {
@@ -188,6 +201,10 @@ export class ListenStream {
       this.state = 'open'
       for (const chunk of this.sendQueue) ws.send(chunk)
       this.sendQueue = []
+      if (this.pendingFinalize) {
+        this.state = 'finalizing'
+        this.sendJson({ type: 'finalize' })
+      }
       this.startKeepAlive()
     })
 
@@ -263,7 +280,7 @@ export class ListenStream {
   }
 
   private startKeepAlive(): void {
-    const setting = this.opts.keepAlive ?? true
+    const setting = this.opts.keepAlive ?? false
     if (setting === false) return
     const interval = typeof setting === 'number' ? setting : 8000
     this.keepAliveTimer = setInterval(() => {
@@ -314,17 +331,17 @@ export class ListenStream {
 
   /* ---- outbound ------------------------------------------------------ */
 
-  /** Send a chunk of PCM audio. Chunks sent before the socket opens are queued. */
-  sendAudio(chunk: ArrayBufferLike | ArrayBufferView): void {
-    if (this.state === 'closed' || this.state === 'finalizing')
-      throw new SpeechRouterError('cannot send audio: stream is ' + this.state, {
-        code: 'connection_closed',
-      })
+  /** Send a chunk of PCM audio. Chunks sent before the socket opens are
+   * queued; chunks after finalize/close are silently dropped (returns false)
+   * so mic callbacks never need a try/catch. */
+  sendAudio(chunk: ArrayBufferLike | ArrayBufferView): boolean {
+    if (this.state === 'closed' || this.state === 'finalizing') return false
     if (this.state === 'connecting') {
       this.sendQueue.push(chunk)
-      return
+      return true
     }
     this.ws!.send(chunk)
+    return true
   }
 
   /** Bytes accepted but not yet on the wire — use to pace large sends. */
@@ -336,11 +353,14 @@ export class ListenStream {
     if (this.state === 'open' || this.state === 'finalizing') this.ws!.send(JSON.stringify(msg))
   }
 
-  /** Ask the gateway to flush pending audio into a final transcript. */
+  /** Ask the gateway to flush pending audio into a final transcript.
+   * Queued like audio if the socket hasn't opened yet. */
   finalize(): void {
     if (this.state === 'open') {
       this.state = 'finalizing'
       this.sendJson({ type: 'finalize' })
+    } else if (this.state === 'connecting') {
+      this.pendingFinalize = true
     }
   }
 
@@ -355,15 +375,17 @@ export class ListenStream {
    */
   async stop(timeoutMs = 30_000): Promise<DoneEvent> {
     this.finalize()
-    const timeout = new Promise<never>((_, reject) =>
-      setTimeout(
+    let timer!: ReturnType<typeof setTimeout>
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(
         () => reject(new SpeechRouterError('gave up waiting for done', { code: 'timeout' })),
         timeoutMs,
-      ),
-    )
+      )
+    })
     try {
       return await Promise.race([this.donePromise, timeout])
     } finally {
+      clearTimeout(timer) // Promise.race never cancels the loser
       this.close()
     }
   }

@@ -15,6 +15,8 @@ export interface MicrophoneOptions {
   noiseSuppression?: boolean
   /** Called with the RMS level (0..1) of each captured block — drive a meter. */
   onLevel?: (rms: number) => void
+  /** Called if the capture track ends outside your control (device unplugged). */
+  onEnd?: () => void
 }
 
 export interface Microphone {
@@ -41,6 +43,9 @@ export async function openMicrophone(
     },
   })
   const ctx = new AudioContext()
+  // Autoplay policy can hand out a suspended context: the classic
+  // "mic silently dead, no error" failure.
+  if (ctx.state === 'suspended') await ctx.resume()
   const source = ctx.createMediaStreamSource(media)
   const processor = ctx.createScriptProcessor(4096, 1, 1)
   const ratio = ctx.sampleRate / target
@@ -68,6 +73,8 @@ export async function openMicrophone(
     }
     if (stream.state === 'open' || stream.state === 'connecting') stream.sendAudio(pcm.buffer)
   }
+
+  media.getTracks()[0]?.addEventListener('ended', () => opts.onEnd?.())
 
   source.connect(processor)
   processor.connect(ctx.destination)

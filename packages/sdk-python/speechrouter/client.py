@@ -52,7 +52,6 @@ class SpeechRouter:
             "encoding": encoding,
             "sample_rate": str(sample_rate),
             "channels": str(channels),
-            "api_key": self._api_key,
         }
         if fallbacks:
             query["fallbacks"] = ",".join(fallbacks)
@@ -69,7 +68,9 @@ class SpeechRouter:
         if provider_params:
             query["provider_params"] = json.dumps(provider_params)
         url = f"{self._ws_base}/v1/listen?{urlencode(query)}"
-        return ListenStream(url, connect_timeout=connect_timeout, keepalive=keepalive)
+        return ListenStream(
+            url, api_key=self._api_key, connect_timeout=connect_timeout, keepalive=keepalive
+        )
 
     async def transcribe(
         self,
@@ -145,13 +146,15 @@ class SpeechRouter:
         if response.is_success:
             return response
         code, message = "internal_error", f"HTTP {response.status_code}"
+        recoverable = response.status_code >= 500 or response.status_code == 429
         try:
             error = response.json().get("error", {})
             code = error.get("code", code)
             message = error.get("message", message)
+            if isinstance(error.get("recoverable"), bool):
+                recoverable = error["recoverable"]
         except Exception:  # noqa: BLE001, S110 - non-JSON error body keeps the status line
             pass
         raise SpeechRouterError(
-            message, code=code, status=response.status_code,
-            recoverable=response.status_code >= 500,
+            message, code=code, status=response.status_code, recoverable=recoverable
         )

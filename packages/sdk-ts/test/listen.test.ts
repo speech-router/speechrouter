@@ -7,6 +7,7 @@ import { SpeechRouterError } from '../src/errors'
 let server: WebSocketServer
 let port: number
 let lastUrl: string | undefined
+let lastAuth: string | undefined
 let lastSocket: ServerSocket | undefined
 let received: (Buffer | string)[]
 
@@ -22,11 +23,13 @@ const sessionOpen = JSON.stringify({
 
 beforeEach(async () => {
   received = []
-  server = new WebSocketServer({ port: 0 })
+  // RFC 6455: clients offering subprotocols require the server to echo one.
+  server = new WebSocketServer({ port: 0, handleProtocols: () => 'bearer' })
   await new Promise<void>((resolve) => server.once('listening', resolve))
   port = (server.address() as { port: number }).port
   server.on('connection', (socket, request) => {
     lastUrl = request.url
+    lastAuth = request.headers['sec-websocket-protocol']
     lastSocket = socket
     socket.on('message', (data, isBinary) => {
       received.push(isBinary ? (data as Buffer) : data.toString())
@@ -63,7 +66,9 @@ describe('listen url', () => {
     expect(q.get('keyterms')).toBe('metoprolol,SpeechRouter')
     expect(q.get('include_raw')).toBe('true')
     expect(JSON.parse(q.get('provider_params')!)).toEqual({ smart_format: false })
-    expect(q.get('api_key')).toBe('sk_sr_test')
+    // credentials ride Sec-WebSocket-Protocol, never the URL
+    expect(q.get('api_key')).toBeNull()
+    expect(lastAuth).toBe('bearer, sk_sr_test')
   })
 })
 
@@ -112,7 +117,30 @@ describe('session lifecycle', () => {
     const done = await stream.stop()
     expect(done.usage.audio_seconds).toBe(2)
     expect(stream.state).toBe('closed')
-    expect(() => stream.sendAudio(new Uint8Array(2))).toThrow(SpeechRouterError)
+    expect(stream.sendAudio(new Uint8Array(2))).toBe(false) // soft drop, no throw
+  })
+
+  it('stop() during connect queues finalize and still completes', async () => {
+    const stream = client().listen({ model: 'deepgram/nova-3', keepAlive: false })
+    stream.sendAudio(new Int16Array([7, 7]).buffer)
+    const stopped = stream.stop(2000) // socket not open yet
+    await new Promise<void>((resolve) => {
+      const iv = setInterval(() => lastSocket && (clearInterval(iv), resolve()), 5)
+    })
+    lastSocket!.send(sessionOpen)
+    // the queued finalize may have landed before this listener attaches
+    const respond = () =>
+      lastSocket!.send(JSON.stringify({ type: 'done', usage: { audio_seconds: 0.1 } }))
+    const already = received.some(
+      (m) => typeof m === 'string' && JSON.parse(m).type === 'finalize',
+    )
+    if (already) respond()
+    else
+      lastSocket!.on('message', (data, isBinary) => {
+        if (!isBinary && JSON.parse(data.toString()).type === 'finalize') respond()
+      })
+    const done = await stopped
+    expect(done.usage.audio_seconds).toBe(0.1)
   })
 
   it('maps gateway error events onto SpeechRouterError and rejects done()', async () => {

@@ -113,6 +113,16 @@ export type ListenEvent =
 
 /* ---- catalog + batch ------------------------------------------------- */
 
+export interface ModelCapabilities {
+  interim_results?: boolean
+  word_timestamps?: boolean
+  diarization?: boolean
+  endpointing?: boolean
+  keyword_boosting?: boolean
+  languages?: string[]
+  [key: string]: unknown
+}
+
 export interface Model {
   slug: string
   provider: string
@@ -120,7 +130,7 @@ export interface Model {
   kind: string
   modes?: string[]
   pricing?: { per_second_usd?: number; [key: string]: unknown }
-  capabilities?: Record<string, unknown>
+  capabilities?: ModelCapabilities
   hipaa_eligible?: boolean
   [key: string]: unknown
 }

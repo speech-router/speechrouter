@@ -23,8 +23,17 @@ class ListenStream:
                 ...
     """
 
-    def __init__(self, url: str, *, connect_timeout: float = 10.0, keepalive: float | None = 8.0):
+    def __init__(
+        self,
+        url: str,
+        *,
+        api_key: str | None = None,
+        connect_timeout: float = 10.0,
+        keepalive: float | None = 8.0,
+    ):
         self._url = url
+        self._api_key = api_key
+        self._pending_finalize = False
         self._connect_timeout = connect_timeout
         self._keepalive = keepalive
         self._ws: Any = None
@@ -44,8 +53,12 @@ class ListenStream:
 
     async def connect(self) -> None:
         try:
+            # Credentials ride Sec-WebSocket-Protocol ("bearer, <key>") so
+            # they never appear in URLs, access logs, or proxy traces.
+            subprotocols = ["bearer", self._api_key] if self._api_key else None
             self._ws = await asyncio.wait_for(
-                websockets.connect(self._url, max_size=2**23), self._connect_timeout
+                websockets.connect(self._url, max_size=2**23, subprotocols=subprotocols),
+                self._connect_timeout,
             )
         except TimeoutError as e:
             self._settle_error(SpeechRouterError("connect timed out", code="timeout"))
@@ -55,6 +68,9 @@ class ListenStream:
             self._settle_error(err)
             raise err from e
         self.state = "open"
+        if self._pending_finalize:
+            self.state = "finalizing"
+            await self._ws.send(json.dumps({"type": "finalize"}))
         self._pump = asyncio.create_task(self._read_loop())
         if self._keepalive:
             self._ka_task = asyncio.create_task(self._keepalive_loop())
@@ -129,10 +145,13 @@ class ListenStream:
         await self._ws.send(chunk)
 
     async def finalize(self) -> None:
-        """Ask the gateway to flush pending audio into a final transcript."""
+        """Ask the gateway to flush pending audio into a final transcript.
+        Queued like audio if the socket hasn't opened yet."""
         if self.state == "open":
             self.state = "finalizing"
             await self._ws.send(json.dumps({"type": "finalize"}))
+        elif self.state == "connecting":
+            self._pending_finalize = True
 
     async def done(self) -> Done:
         """Wait for the gateway's usage summary (sent when the session ends)."""

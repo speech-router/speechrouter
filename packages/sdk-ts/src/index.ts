@@ -1,9 +1,10 @@
 export { SpeechRouter } from './client'
-export type { SpeechRouterOptions, TranscribeOptions, FileInput } from './client'
+export type { SpeechRouterOptions, TranscribeOptions, TranscribeFormats, FileInput } from './client'
 export { ListenStream, buildListenUrl } from './listen'
 export type { ListenOptions, ListenEventMap } from './listen'
 export { SpeechRouterError } from './errors'
 export type {
+  ModelCapabilities,
   ListenEvent,
   SessionOpenEvent,
   TranscriptEvent,

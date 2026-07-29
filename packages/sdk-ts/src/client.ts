@@ -1,5 +1,14 @@
 import { SpeechRouterError } from './errors'
 import type { ErrorCode, Model, Transcription, VerboseTranscription } from './events'
+
+/** responseFormat → return type map for transcribe(). */
+export type TranscribeFormats = {
+  json: Transcription
+  verbose_json: VerboseTranscription
+  srt: string
+  vtt: string
+  text: string
+}
 import { buildListenUrl, ListenStream, type ListenOptions } from './listen'
 
 export interface SpeechRouterOptions {
@@ -10,6 +19,8 @@ export interface SpeechRouterOptions {
   baseUrl?: string
   /** Custom fetch (tests, polyfills). Defaults to globalThis.fetch. */
   fetch?: typeof fetch
+  /** Extra headers on every REST request (tracing, proxies). */
+  headers?: Record<string, string>
 }
 
 /** File input accepted by transcribe(): browser File/Blob, raw bytes, or a
@@ -32,6 +43,8 @@ export interface TranscribeOptions {
   keyterms?: string[]
   includeRaw?: boolean
   providerParams?: Record<string, unknown>
+  /** Abort the request (e.g. AbortSignal.timeout(30_000)). */
+  signal?: AbortSignal
 }
 
 const DEFAULT_BASE = 'https://api.speechrouter.ai'
@@ -41,6 +54,7 @@ export class SpeechRouter {
   private base: string
   private wsBase: string
   private fetchImpl: typeof fetch
+  private extraHeaders: Record<string, string>
 
   constructor(opts: SpeechRouterOptions) {
     if (!opts.apiKey) throw new SpeechRouterError('apiKey is required', { code: 'auth_failed' })
@@ -48,26 +62,21 @@ export class SpeechRouter {
     this.base = (opts.baseUrl ?? DEFAULT_BASE).replace(/\/+$/, '')
     this.wsBase = this.base.replace(/^http/, 'ws')
     this.fetchImpl = opts.fetch ?? globalThis.fetch?.bind(globalThis)
+    this.extraHeaders = opts.headers ?? {}
     if (!this.fetchImpl)
       throw new SpeechRouterError('no fetch available in this runtime', { code: 'internal_error' })
   }
 
   /** Open a live transcription session over WebSocket. */
   listen(opts: ListenOptions): ListenStream {
-    return new ListenStream(buildListenUrl(this.wsBase, opts, this.apiKey), opts)
+    return new ListenStream(buildListenUrl(this.wsBase, opts), opts, this.apiKey)
   }
 
-  /** Transcribe a complete file. Returns `{ text }`. */
-  async transcribe(opts: TranscribeOptions): Promise<Transcription>
-  async transcribe(
-    opts: TranscribeOptions & { responseFormat: 'verbose_json' },
-  ): Promise<VerboseTranscription>
-  async transcribe(
-    opts: TranscribeOptions & { responseFormat: 'srt' | 'vtt' | 'text' },
-  ): Promise<string>
-  async transcribe(
-    opts: TranscribeOptions & { responseFormat?: string },
-  ): Promise<Transcription | VerboseTranscription | string> {
+  /** Transcribe a complete file. Return type follows `responseFormat`:
+   * json → { text }, verbose_json → VerboseTranscription, srt/vtt/text → string. */
+  async transcribe<F extends keyof TranscribeFormats = 'json'>(
+    opts: TranscribeOptions & { responseFormat?: F },
+  ): Promise<TranscribeFormats[F]> {
     const form = new FormData()
     form.set('model', opts.model)
     if (opts.responseFormat) form.set('response_format', opts.responseFormat)
@@ -89,10 +98,11 @@ export class SpeechRouter {
     const response = await this.request('/v1/audio/transcriptions', {
       method: 'POST',
       body: form,
+      ...(opts.signal ? { signal: opts.signal } : {}),
     })
     const contentType = response.headers.get('content-type') ?? ''
     if (contentType.includes('application/json')) return response.json()
-    return response.text()
+    return response.text() as Promise<TranscribeFormats[F]>
   }
 
   /**
@@ -115,8 +125,11 @@ export class SpeechRouter {
   }
 
   /** The live model catalog — slugs, capabilities, pricing. */
-  async listModels(): Promise<Model[]> {
-    const response = await this.request('/v1/models', { method: 'GET' })
+  async listModels(opts: { signal?: AbortSignal } = {}): Promise<Model[]> {
+    const response = await this.request('/v1/models', {
+      method: 'GET',
+      ...(opts.signal ? { signal: opts.signal } : {}),
+    })
     const payload = (await response.json()) as { data?: Model[] }
     return payload.data ?? []
   }
@@ -143,7 +156,11 @@ export class SpeechRouter {
     try {
       response = await this.fetchImpl(`${this.base}${path}`, {
         ...init,
-        headers: { Authorization: `Bearer ${this.apiKey}` },
+        headers: {
+          ...this.extraHeaders,
+          ...(init.headers as Record<string, string> | undefined),
+          Authorization: `Bearer ${this.apiKey}`,
+        },
       })
     } catch (err) {
       throw new SpeechRouterError(
@@ -155,19 +172,17 @@ export class SpeechRouter {
 
     let code: ErrorCode = 'internal_error'
     let message = `HTTP ${response.status}`
+    let recoverable = response.status >= 500 || response.status === 429
     try {
       const body = (await response.json()) as {
-        error?: { code?: ErrorCode; message?: string }
+        error?: { code?: ErrorCode; message?: string; recoverable?: boolean }
       }
       if (body.error?.code) code = body.error.code
       if (body.error?.message) message = body.error.message
+      if (typeof body.error?.recoverable === 'boolean') recoverable = body.error.recoverable
     } catch {
       /* non-JSON error body; keep the status line */
     }
-    throw new SpeechRouterError(message, {
-      code,
-      status: response.status,
-      recoverable: response.status >= 500,
-    })
+    throw new SpeechRouterError(message, { code, status: response.status, recoverable })
   }
 }

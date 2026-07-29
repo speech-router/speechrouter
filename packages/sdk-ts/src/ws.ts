@@ -11,7 +11,7 @@ export interface WSLike {
   addEventListener(type: string, listener: (event: any) => void): void
 }
 
-export type WSConstructor = new (url: string) => WSLike
+export type WSConstructor = new (url: string, protocols?: string | string[]) => WSLike
 
 export async function resolveWebSocket(): Promise<WSConstructor> {
   const g = globalThis as Record<string, unknown>
@@ -21,7 +21,7 @@ export async function resolveWebSocket(): Promise<WSConstructor> {
     return (mod.WebSocket ?? mod.default) as WSConstructor
   } catch {
     throw new Error(
-      'No WebSocket implementation found. Use Node >= 22, or install the optional peer dependency: npm install ws',
+      'No WebSocket implementation found. On Node 18-21 the ws package is required: npm install ws. Node >= 22 and browsers need nothing.',
     )
   }
 }

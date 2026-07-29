@@ -85,13 +85,25 @@ async def _reject(transport: StarletteTransport, websocket: WebSocket, code: Cod
     await websocket.close(code=1008)
 
 
+def _subprotocol_auth(websocket: WebSocket) -> str | None:
+    """Credentials via `Sec-WebSocket-Protocol: bearer, <key>` — keeps keys
+    out of URLs (query strings leak into access logs, proxies, and APM)."""
+    header = websocket.headers.get("sec-websocket-protocol", "")
+    parts = [p.strip() for p in header.split(",") if p.strip()]
+    if len(parts) == 2 and parts[0] == "bearer":
+        return parts[1]
+    return None
+
+
 @router.websocket("/v1/listen")
 async def listen(websocket: WebSocket) -> None:
-    await websocket.accept()
+    subprotocol_key = _subprotocol_auth(websocket)
+    # RFC 6455: if the client offered subprotocols, the accept must echo one.
+    await websocket.accept(subprotocol="bearer" if subprotocol_key else None)
     transport = StarletteTransport(websocket)
     state = websocket.app.state
 
-    record = await resolve_credentials(state, _extract_key(websocket))
+    record = await resolve_credentials(state, subprotocol_key or _extract_key(websocket))
     if record is None:
         await _reject(transport, websocket, Code.auth_failed, "invalid or missing API key")
         return
