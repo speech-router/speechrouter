@@ -1,0 +1,11 @@
+{
+  "name": "speechrouter",
+  "version": "0.0.1",
+  "description": "One API for every speech model — official SDK for speechrouter.ai (coming soon; the OpenAI SDK works today for batch)",
+  "license": "Apache-2.0",
+  "homepage": "https://speechrouter.ai",
+  "repository": { "type": "git", "url": "git+https://github.com/speech-router/speechrouter.git" },
+  "keywords": ["speech-to-text", "stt", "transcription", "deepgram", "whisper", "streaming", "websocket"],
+  "main": "index.js",
+  "files": ["index.js", "README.md"]
+}
