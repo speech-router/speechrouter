@@ -14,6 +14,7 @@ yet. A Redis hiccup falls back to house keys — availability over discounts.
 from typing import Any
 
 BYOK_PREFIX = "speechrouter:byok:"
+BLOCKED_PREFIX = "speechrouter:blocked:"
 
 PROVIDER_KEY_FIELDS = {
     "deepgram": "deepgram_api_key",
@@ -26,6 +27,18 @@ PROVIDER_KEY_FIELDS = {
     "cartesia": "cartesia_api_key",
     "elevenlabs": "elevenlabs_api_key",
 }
+
+
+async def org_blocked(redis: Any, org_id: str | None) -> bool:
+    """Cloud writes speechrouter:blocked:<org> when the balance hits zero.
+    New sessions are rejected; in-flight streams are allowed to finish.
+    A Redis hiccup fails OPEN — availability over enforcement."""
+    if redis is None or not org_id:
+        return False
+    try:
+        return await redis.get(f"{BLOCKED_PREFIX}{org_id}") is not None
+    except Exception:
+        return False
 
 
 async def apply_byok(settings: Any, redis: Any, org_id: str | None, providers: set[str]):

@@ -13,7 +13,7 @@ import httpx
 from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import JSONResponse, PlainTextResponse
 
-from ..auth.byok import apply_byok
+from ..auth.byok import apply_byok, org_blocked
 from ..logging import logger
 from ..metering import UsageEvent
 from ..protocol.events import Code
@@ -93,6 +93,12 @@ async def transcribe(
         keyterms=tuple(t.strip() for t in (keyterms or "").split(",") if t.strip()),
         provider_params=extra,
     )
+    if await org_blocked(getattr(state.keystore, "redis", None), record.org_id):
+        return _error(
+            Code.insufficient_credits,
+            "credit balance is empty — top up at speechrouter.ai/settings/billing",
+        )
+
     settings, byok_used = await apply_byok(
         state.settings, getattr(state.keystore, "redis", None), record.org_id,
         {model.split("/", 1)[0]},

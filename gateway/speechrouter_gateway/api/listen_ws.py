@@ -6,7 +6,7 @@ import json
 from fastapi import APIRouter, WebSocket
 from pydantic import BaseModel
 
-from ..auth.byok import apply_byok
+from ..auth.byok import apply_byok, org_blocked
 from ..logging import logger
 from ..protocol import Error
 from ..protocol.events import Code
@@ -93,6 +93,13 @@ async def listen(websocket: WebSocket) -> None:
     record = await state.keystore.lookup(_extract_key(websocket))
     if record is None:
         await _reject(transport, websocket, Code.auth_failed, "invalid or missing API key")
+        return
+
+    if await org_blocked(getattr(state.keystore, "redis", None), record.org_id):
+        await _reject(
+            transport, websocket, Code.insufficient_credits,
+            "credit balance is empty — top up at speechrouter.ai/settings/billing",
+        )
         return
 
     slug, fallbacks, request = _parse_request(websocket)

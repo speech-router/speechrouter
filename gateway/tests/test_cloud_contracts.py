@@ -94,3 +94,15 @@ async def test_usage_event_carries_byok_flag():
                                   kind="stt_stream", audio_seconds=1.0, byok=True))
     payload = json.loads(fake.streams[USAGE_STREAM][0]["payload"])
     assert payload["byok"] is True
+
+
+async def test_org_blocked_flag():
+    from speechrouter_gateway.auth.byok import BLOCKED_PREFIX, org_blocked
+
+    fake = FakeRedis()
+    assert not await org_blocked(fake, "7")          # no flag -> allowed
+    fake.kv[f"{BLOCKED_PREFIX}7"] = "1"
+    assert await org_blocked(fake, "7")              # broke -> blocked
+    assert not await org_blocked(fake, None)         # local mode -> never
+    fake.fail = True
+    assert not await org_blocked(fake, "7")          # redis down -> fail open
