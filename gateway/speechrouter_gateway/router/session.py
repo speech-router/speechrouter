@@ -23,6 +23,7 @@ from typing import Protocol
 
 from pydantic import BaseModel
 
+from ..alerting import report_provider_failure
 from ..audio import AudioRing, bytes_per_second
 from ..config import Settings
 from ..logging import logger
@@ -145,6 +146,9 @@ class STTSession:
         except ProviderStreamError as exc:
             self._status = "provider_error"
             code = Code.all_providers_failed if self._switches else Code.provider_error
+            report_provider_failure(
+                exc.provider, self._attempts[0].slug, str(exc), code=code.value
+            )
             await self._try_send_error(code, str(exc), provider=exc.provider)
         except Exception:
             self._status = "error"
@@ -168,9 +172,8 @@ class STTSession:
                 await adapter.connect(attempt.config)
             except ProviderStreamError as exc:
                 last_error = exc
-                logger.warning(
-                    "provider connect failed",
-                    extra={"session": self._session_id, "provider": attempt.slug, "err": str(exc)},
+                report_provider_failure(
+                    exc.provider, attempt.slug, str(exc), code="connect_failed"
                 )
                 continue
             if previous_slug is not None:
