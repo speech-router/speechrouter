@@ -13,6 +13,8 @@ from ..protocol import Error
 from ..protocol.events import Code
 from ..router.resolver import ResolveError, StreamRequest, resolve_stream
 from ..router.session import SessionClosed, STTSession
+from .dg_compat import _CLOSE_CODES as DG_CLOSE_CODES
+from .dg_compat import DGTransport, dg_ws_credentials, translate_params
 
 router = APIRouter()
 
@@ -97,27 +99,50 @@ def _subprotocol_auth(websocket: WebSocket) -> str | None:
 
 @router.websocket("/v1/listen")
 async def listen(websocket: WebSocket) -> None:
-    subprotocol_key = _subprotocol_auth(websocket)
+    # Dialect detection: Deepgram SDKs authenticate with the Token scheme
+    # (header or ['token', key] subprotocol); everyone else speaks native.
+    dg_key = dg_ws_credentials(websocket)
+    subprotocol_key = None if dg_key else _subprotocol_auth(websocket)
+    offered = websocket.headers.get("sec-websocket-protocol", "")
+    subproto = None
+    if dg_key and "token" in offered:
+        subproto = "token"
+    elif subprotocol_key:
+        subproto = "bearer"
     # RFC 6455: if the client offered subprotocols, the accept must echo one.
-    await websocket.accept(subprotocol="bearer" if subprotocol_key else None)
-    transport = StarletteTransport(websocket)
+    await websocket.accept(subprotocol=subproto)
     state = websocket.app.state
 
-    record = await resolve_credentials(state, subprotocol_key or _extract_key(websocket))
+    if dg_key:
+        slug, fallbacks, request = translate_params(websocket.query_params)
+        transport = DGTransport(websocket, slug)
+
+        async def reject(code: Code, message: str) -> None:
+            try:
+                await websocket.close(code=DG_CLOSE_CODES.get(code, 1011), reason=message[:120])
+            except Exception:  # noqa: BLE001 - already closed is fine
+                pass
+    else:
+        slug, fallbacks, request = _parse_request(websocket)
+        transport = StarletteTransport(websocket)
+
+        async def reject(code: Code, message: str) -> None:
+            await _reject(transport, websocket, code, message)
+
+    record = await resolve_credentials(state, dg_key or subprotocol_key or _extract_key(websocket))
     if record is None:
-        await _reject(transport, websocket, Code.auth_failed, "invalid or missing API key")
+        await reject(Code.auth_failed, "invalid or missing API key")
         return
 
     if await org_blocked(getattr(state.keystore, "redis", None), record.org_id):
-        await _reject(
-            transport, websocket, Code.insufficient_credits,
+        await reject(
+            Code.insufficient_credits,
             "credit balance is empty — top up at speechrouter.ai/settings/billing",
         )
         return
 
-    slug, fallbacks, request = _parse_request(websocket)
     if not slug:
-        await _reject(transport, websocket, Code.invalid_request, "model query param is required")
+        await reject(Code.invalid_request, "model query param is required")
         return
     providers = {s.split("/", 1)[0] for s in [slug, *fallbacks]}
     settings, byok_used = await apply_byok(
@@ -129,13 +154,13 @@ async def listen(websocket: WebSocket) -> None:
             for s in [slug, *fallbacks]
         ]
     except ResolveError as exc:
-        await _reject(transport, websocket, exc.code, exc.message)
+        await reject(exc.code, exc.message)
         return
 
     scope = record.org_id or record.key_id
     if not state.concurrency.acquire(scope):
-        await _reject(
-            transport, websocket, Code.concurrency_exceeded,
+        await reject(
+            Code.concurrency_exceeded,
             f"concurrent stream limit ({state.settings.max_concurrent_streams}) reached "
             "for this organization",
         )
