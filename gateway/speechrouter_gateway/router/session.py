@@ -313,6 +313,17 @@ class STTSession:
             )
 
     async def _emit_usage(self) -> None:
+        logger.info(
+            "stt session finished",
+            extra={
+                "session": self._session_id,
+                "model": self._attempts[0].slug,
+                "audio_seconds": round(self._ring.audio_seconds, 3),
+                "status": self._status,
+                "provider_switches": self._switches,
+                "byok": self._byok,
+            },
+        )
         with contextlib.suppress(Exception):
             await self._emitter.emit(
                 UsageEvent(

@@ -6,6 +6,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from ..auth.tokens import DEFAULT_TTL, MAX_TTL, MIN_TTL, is_token
+from ..logging import logger
 
 router = APIRouter()
 
@@ -44,6 +45,10 @@ async def mint_token(request: Request) -> JSONResponse:
         )
 
     token, expires_at = await state.token_store.mint(record, ttl)
+    logger.info(
+        "client token minted",
+        extra={"key_id": record.key_id, "org_id": record.org_id, "ttl_seconds": ttl},
+    )
     return JSONResponse(
         {
             "token": token,
