@@ -174,3 +174,88 @@ async def transcribe(
     if response_format == "vtt":
         return PlainTextResponse(formatters.to_vtt(transcript))
     return PlainTextResponse(transcript.text)
+
+
+@router.post("/v1/listen")
+async def dg_prerecorded(request: Request):
+    """Deepgram-compatible prerecorded endpoint: binary audio body or
+    {"url": ...}, DG query params, Token auth, DG response shape."""
+    from .dg_compat import dg_batch_response, dg_http_credentials, translate_params
+
+    state = request.app.state
+    key = dg_http_credentials(request)
+    if not key:
+        return _error(Code.auth_failed, "Authorization: Token <api key> required")
+    record = await resolve_credentials(state, key)
+    if record is None:
+        return _error(Code.auth_failed, "invalid or revoked API key")
+    if await org_blocked(getattr(state.keystore, "redis", None), record.org_id):
+        return _error(Code.insufficient_credits, "credit balance is empty")
+
+    slug, _fallbacks, stream_request = translate_params(request.query_params)
+    if not slug:
+        return _error(Code.invalid_request, "model query param is required")
+
+    content_type = request.headers.get("content-type", "application/octet-stream")
+    audio = b""
+    if content_type.startswith("application/json"):
+        try:
+            body = await request.json()
+        except Exception:  # noqa: BLE001 - malformed body
+            return _error(Code.invalid_request, "invalid JSON body")
+        source_url = body.get("url") if isinstance(body, dict) else None
+        if not source_url:
+            return _error(Code.invalid_request, "JSON body must contain `url`")
+        try:
+            async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
+                response = await client.get(source_url)
+                response.raise_for_status()
+                audio = response.content
+                content_type = response.headers.get("content-type", "application/octet-stream")
+        except httpx.HTTPError as exc:
+            return _error(Code.invalid_request, f"could not fetch url: {exc}")
+    else:
+        audio = await request.body()
+    if not audio:
+        return _error(Code.invalid_request, "empty audio payload")
+    if len(audio) > MAX_UPLOAD_BYTES:
+        return _error(Code.payload_too_large, "file exceeds 250MB limit")
+
+    settings, byok_used = await apply_byok(
+        state.settings, getattr(state.keystore, "redis", None), record.org_id,
+        {slug.split("/", 1)[0]},
+    )
+    try:
+        resolved = resolve_batch(slug, stream_request, settings, state.catalog)
+    except ResolveError as exc:
+        return _error(exc.code, exc.message)
+
+    adapter = resolved.build()
+    request_id = f"dg_{uuid.uuid4().hex[:16]}"
+    status = "completed"
+    transcript = None
+    try:
+        transcript = await adapter.transcribe(audio, content_type, resolved.config)
+    except ProviderStreamError as exc:
+        status = "provider_error"
+        return _error(
+            Code.provider_timeout if exc.code == "timeout" else Code.provider_error, str(exc)
+        )
+    except Exception:
+        status = "error"
+        logger.error("dg prerecorded crashed", exc_info=True, extra={"model": slug})
+        return _error(Code.internal_error, "internal error")
+    finally:
+        seconds = transcript.end if (transcript is not None and transcript.end) else 0.0
+        await state.emitter.emit(
+            UsageEvent(
+                session_id=request_id,
+                key_id=record.key_id,
+                model=slug,
+                kind="stt_batch",
+                audio_seconds=round(seconds or 0.0, 3),
+                byok=byok_used,
+                status=status,
+            )
+        )
+    return JSONResponse(dg_batch_response(transcript, slug, request_id))

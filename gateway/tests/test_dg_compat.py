@@ -110,3 +110,17 @@ def test_full_dg_session_over_websocket(monkeypatch):
     assert result["is_final"] is True and result["speech_final"] is True
     assert result["channel"]["alternatives"][0]["transcript"]
     assert kinds[-1] == "Metadata"
+
+
+def test_dg_prerecorded_route_registered():
+    """Guards against the route silently missing: POST /v1/listen must
+    match (auth error, not 404)."""
+    from starlette.testclient import TestClient
+
+    from speechrouter_gateway import main as main_module
+
+    with TestClient(main_module.app) as client:
+        r = client.post("/v1/listen?model=nova-3", content=b"x",
+                        headers={"Authorization": "Token bad", "Content-Type": "audio/wav"})
+        assert r.status_code != 404
+        assert r.json()["error"]["code"] == "auth_failed"
