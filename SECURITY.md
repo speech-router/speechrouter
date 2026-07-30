@@ -1,6 +1,6 @@
 # Security policy
 
-Please report vulnerabilities privately to **security@speechrouter.ai** —
+Please report vulnerabilities privately to **info@speechrouter.ai** —
 not via public issues. Include reproduction steps and the commit or version
 affected. We'll acknowledge within 48 hours.
 
