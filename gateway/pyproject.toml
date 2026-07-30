@@ -13,6 +13,8 @@ dependencies = [
     "pydantic>=2.11",
     "pydantic-settings>=2.10",
     "python-multipart>=0.0.32",
+    "sentry-sdk>=2.66.1",
+    "logtail-python>=0.4.0",
 ]
 
 [project.optional-dependencies]

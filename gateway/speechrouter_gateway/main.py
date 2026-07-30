@@ -24,6 +24,21 @@ from .router.limits import ConcurrencyGuard
 async def lifespan(app: FastAPI):
     setup_logging()
     cfg = settings()
+    if cfg.sentry_dsn:
+        import sentry_sdk  # noqa: PLC0415 - optional at runtime
+
+        sentry_sdk.init(dsn=cfg.sentry_dsn, traces_sample_rate=0.1, send_default_pii=False)
+    if cfg.logtail_source_token:
+        import logging  # noqa: PLC0415
+
+        from logtail import LogtailHandler  # noqa: PLC0415 - optional at runtime
+
+        host = cfg.logtail_host
+        if host and not host.startswith("http"):
+            host = f"https://{host}"
+        logging.getLogger().addHandler(
+            LogtailHandler(source_token=cfg.logtail_source_token, host=host)
+        )
     app.state.settings = cfg
     app.state.keystore = build_keystore(cfg)
     app.state.token_store = (
