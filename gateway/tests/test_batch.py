@@ -191,3 +191,14 @@ def test_endpoint_provider_error_maps_to_502(client):
                     files={"file": ("a.wav", b"x", "audio/wav")})
     assert r.status_code == 502
     assert r.json()["error"]["code"] == "provider_error"
+
+
+def test_validation_errors_wear_the_envelope(client):
+    # missing required `model` -> our envelope, never FastAPI's raw detail
+    response = client.post("/v1/audio/transcriptions",
+                                 headers={"Authorization": "Bearer sk_local_dev"})
+    assert response.status_code == 400
+    body = response.json()
+    assert "detail" not in body
+    assert body["error"]["code"] == "invalid_request"
+    assert "model" in body["error"]["message"]

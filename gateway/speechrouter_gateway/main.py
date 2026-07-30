@@ -2,8 +2,10 @@
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from .api.listen_ws import router as listen_router
 from .api.models import router as models_router
@@ -59,6 +61,22 @@ app.include_router(models_router)
 app.include_router(listen_router)
 app.include_router(transcriptions_router)
 app.include_router(tokens_router)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_envelope(request: Request, exc: RequestValidationError) -> JSONResponse:
+    """Framework validation errors wear the same envelope as every other
+    error — nobody should ever see raw {"detail": [...]}."""
+    errors = exc.errors()
+    first = errors[0] if errors else {}
+    loc = ".".join(str(part) for part in first.get("loc", []) if part not in ("body", "query"))
+    msg = first.get("msg", "invalid request")
+    message = f"{loc}: {msg}" if loc else msg
+    return JSONResponse(
+        status_code=400,
+        content={"error": {"code": "invalid_request", "message": message,
+                           "type": "invalid_request_error"}},
+    )
 
 
 @app.get("/up")
