@@ -22,3 +22,5 @@ export type {
   Transcription,
   VerboseTranscription,
 } from './events'
+export type { ProviderParamsMap } from './providerParams'
+export type * from './providerParams'

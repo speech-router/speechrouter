@@ -1,0 +1,85 @@
+{
+  "forwarding": {
+    "streaming": "session config fields",
+    "batch": "job fields"
+  },
+  "params": [
+    {
+      "name": "language_hints_strict",
+      "type": "boolean",
+      "default": false,
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "Restrict recognition to the hinted languages"
+    },
+    {
+      "name": "enable_language_identification",
+      "type": "boolean",
+      "default": false,
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "Tag tokens with the detected language"
+    },
+    {
+      "name": "max_endpoint_delay_ms",
+      "type": "integer",
+      "min": 500,
+      "max": 3000,
+      "default": 2000,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Upper bound on endpoint latency"
+    },
+    {
+      "name": "endpoint_sensitivity",
+      "type": "number",
+      "min": -1,
+      "max": 1,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Endpoint eagerness; docs suggest 0.3 for voice agents"
+    },
+    {
+      "name": "endpoint_latency_adjustment_level",
+      "type": "integer",
+      "min": 0,
+      "max": 3,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Latency/accuracy trade for endpoint detection (2 = voice-agent preset)"
+    },
+    {
+      "name": "context",
+      "type": "object",
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "Domain context: general text, terms, translation_terms (\u22648k tokens)"
+    },
+    {
+      "name": "translation",
+      "type": "object",
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Live translation config (one_way or two_way)"
+    },
+    {
+      "name": "client_reference_id",
+      "type": "string",
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "Your correlation id, echoed in Soniox logs"
+    }
+  ]
+}

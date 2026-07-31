@@ -1,0 +1,49 @@
+# SpeechRouter
+
+> One API for every speech model: 12 STT providers (Deepgram, Soniox,
+> AssemblyAI, OpenAI, Speechmatics, Azure, AWS, Google, Groq, Mistral,
+> ElevenLabs, Cartesia) behind one key, one schema, one bill. Mid-stream
+> failover. Vendor list prices, 0% markup. Open source (Apache-2.0).
+
+Base URL: https://api.speechrouter.ai — streaming: wss .../v1/listen ·
+batch: POST /v1/audio/transcriptions · catalog: GET /v1/models (no auth).
+SDKs: `npm install speechrouter` / `pip install speechrouter`.
+
+## Start here
+- [Introduction](https://docs.speechrouter.ai/intro/)
+- [Quickstart](https://docs.speechrouter.ai/quickstart/)
+- [Authentication & client tokens](https://docs.speechrouter.ai/authentication/)
+
+## Guides
+- [Streaming transcription](https://docs.speechrouter.ai/guides/streaming/)
+- [Batch transcription](https://docs.speechrouter.ai/guides/batch/)
+- [Failover](https://docs.speechrouter.ai/guides/failover/)
+- [Diarization](https://docs.speechrouter.ai/guides/diarization/)
+- [Keyterm boosting](https://docs.speechrouter.ai/guides/keyterms/)
+- [Audio formats](https://docs.speechrouter.ai/guides/audio/)
+- [Deepgram compatibility](https://docs.speechrouter.ai/guides/deepgram-compat/)
+- [Bring your own keys](https://docs.speechrouter.ai/guides/byok/)
+- [Pricing & billing](https://docs.speechrouter.ai/guides/pricing/)
+- [Self-hosting](https://docs.speechrouter.ai/guides/self-hosting/)
+- [Which model should I use?](https://docs.speechrouter.ai/choosing-a-model/)
+
+## Recipes
+- [Build a voice agent](https://docs.speechrouter.ai/recipes/voice-agent/)
+- [Transcribe phone calls](https://docs.speechrouter.ai/recipes/telephony/)
+- [Generate subtitles](https://docs.speechrouter.ai/recipes/subtitles/)
+- [Live captions in the browser](https://docs.speechrouter.ai/recipes/browser-captions/)
+
+## Migration
+- [From AssemblyAI](https://docs.speechrouter.ai/migrate/from-assemblyai/)
+- [From OpenAI / Whisper](https://docs.speechrouter.ai/migrate/from-openai/)
+- [From Deepgram](https://docs.speechrouter.ai/guides/deepgram-compat/)
+
+## Reference
+- [REST API](https://docs.speechrouter.ai/reference/rest/)
+- [WebSocket events](https://docs.speechrouter.ai/reference/events/)
+- [Errors & close codes](https://docs.speechrouter.ai/reference/errors/)
+- [Limits](https://docs.speechrouter.ai/reference/limits/)
+- [OpenAPI spec](https://github.com/speech-router/speechrouter/blob/main/packages/spec/openapi.yaml)
+
+## Providers (models, list prices, options)
+- [Overview](https://docs.speechrouter.ai/providers/) — per-provider pages at /providers/{name}/

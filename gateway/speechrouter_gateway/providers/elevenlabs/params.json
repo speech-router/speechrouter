@@ -1,0 +1,120 @@
+{
+  "forwarding": {
+    "streaming": "session fields",
+    "batch": "form fields"
+  },
+  "params": [
+    {
+      "name": "commit_strategy",
+      "type": "string",
+      "enum": [
+        "manual",
+        "vad"
+      ],
+      "modes": [
+        "streaming"
+      ],
+      "doc": "When transcripts commit: on silence (vad) or on demand"
+    },
+    {
+      "name": "vad_threshold",
+      "type": "number",
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Voice-activity sensitivity for vad commits"
+    },
+    {
+      "name": "vad_silence_threshold_secs",
+      "type": "number",
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Silence that triggers a vad commit"
+    },
+    {
+      "name": "secondary_languages",
+      "type": "array",
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Additional expected languages"
+    },
+    {
+      "name": "no_verbatim",
+      "type": "boolean",
+      "default": false,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Clean up disfluencies"
+    },
+    {
+      "name": "filter_background_audio",
+      "type": "boolean",
+      "default": false,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Suppress non-speech audio"
+    },
+    {
+      "name": "enable_logging",
+      "type": "boolean",
+      "default": true,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "false = zero-retention mode at ElevenLabs"
+    },
+    {
+      "name": "num_speakers",
+      "type": "integer",
+      "max": 32,
+      "modes": [
+        "batch"
+      ],
+      "doc": "Expected speaker count for diarization"
+    },
+    {
+      "name": "timestamps_granularity",
+      "type": "string",
+      "enum": [
+        "none",
+        "word",
+        "character"
+      ],
+      "modes": [
+        "batch"
+      ],
+      "doc": "Timestamp detail level"
+    },
+    {
+      "name": "tag_audio_events",
+      "type": "boolean",
+      "default": false,
+      "modes": [
+        "batch"
+      ],
+      "doc": "Mark laughter, applause, and other audio events"
+    },
+    {
+      "name": "entity_detection",
+      "type": "boolean",
+      "default": false,
+      "modes": [
+        "batch"
+      ],
+      "doc": "Detect 65 entity types (extra vendor charge)"
+    },
+    {
+      "name": "detect_speaker_roles",
+      "type": "boolean",
+      "default": false,
+      "modes": [
+        "batch"
+      ],
+      "doc": "Label agent/customer roles"
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "forwarding": {
+    "streaming": "WebSocket query parameters",
+    "batch": "form fields"
+  },
+  "params": [
+    {
+      "name": "turn_start_threshold",
+      "type": "number",
+      "default": 0.8,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "ink-2: confidence to open a turn"
+    },
+    {
+      "name": "turn_eager_end_threshold",
+      "type": "number",
+      "default": 0.4,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "ink-2: early end-of-turn signal for LLM head-start"
+    },
+    {
+      "name": "turn_end_threshold",
+      "type": "number",
+      "default": 0.2,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "ink-2: confidence to close a turn"
+    },
+    {
+      "name": "turn_end_timeout_ms",
+      "type": "integer",
+      "default": 5600,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "ink-2: force turn end after this silence"
+    },
+    {
+      "name": "min_volume",
+      "type": "number",
+      "modes": [
+        "streaming"
+      ],
+      "doc": "ink-whisper: ignore audio below this volume"
+    },
+    {
+      "name": "max_silence_duration_secs",
+      "type": "number",
+      "modes": [
+        "streaming"
+      ],
+      "doc": "ink-whisper: silence tolerated before finalizing"
+    }
+  ]
+}

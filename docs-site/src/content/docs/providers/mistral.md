@@ -14,6 +14,18 @@ knobs pass through untouched via `provider_params`.
 | `mistral/voxtral-mini-latest` | batch | $0.003/min | <span class="sr-yes">✓</span> | <span class="sr-yes">✓</span> |
 | `mistral/voxtral-mini-transcribe-realtime-2602` | streaming | $0.006/min | <span class="sr-no">—</span> | <span class="sr-no">—</span> |
 
+## Provider options
+
+Reach past the unified surface with [`provider_params`](/guides/streaming/#query-parameters)
+— forwarded streaming → session.update fields (subset); batch → form fields. Typed in the SDKs as
+`{provider}Params` interfaces (`providerParams` option / `provider_params=` kwarg).
+
+| Param | Type | Default | Applies to | What it does |
+| --- | --- | --- | --- | --- |
+| `context_bias` | array | — | batch | Up to 100 bias terms (English-optimized) |
+| `timestamp_granularities` | `word` · `segment` | — | batch | Timestamp detail level |
+| `target_streaming_delay_ms` | integer | `800` | streaming | Latency target for realtime partials |
+
 ## Try it
 
 ```bash

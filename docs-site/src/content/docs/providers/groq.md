@@ -14,6 +14,18 @@ knobs pass through untouched via `provider_params`.
 | `groq/whisper-large-v3` | batch | $0.111/hr (min $0.00031/req) | <span class="sr-no">—</span> | <span class="sr-yes">✓</span> |
 | `groq/whisper-large-v3-turbo` | batch | $0.03996/hr (min $0.00011/req) | <span class="sr-no">—</span> | <span class="sr-yes">✓</span> |
 
+## Provider options
+
+Reach past the unified surface with [`provider_params`](/guides/streaming/#query-parameters)
+— forwarded batch → form fields. Typed in the SDKs as
+`{provider}Params` interfaces (`providerParams` option / `provider_params=` kwarg).
+
+| Param | Type | Default | Applies to | What it does |
+| --- | --- | --- | --- | --- |
+| `prompt` | string | — | batch | Context/spelling hints (≤224 tokens) |
+| `temperature` | number | — | batch | Sampling temperature |
+| `timestamp_granularities[]` | `word` · `segment` | — | batch | With verbose output |
+
 ## Try it
 
 ```bash

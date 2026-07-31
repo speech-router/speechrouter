@@ -13,6 +13,12 @@ knobs pass through untouched via `provider_params`.
 | --- | --- | --- | --- | --- |
 | `aws/transcribe` | streaming | $0.01/min (min $0.0025/req) | <span class="sr-yes">✓</span> | <span class="sr-yes">✓</span> |
 
+## Provider options
+
+:::note
+The streaming URL is SigV4-signed at connect time, so arbitrary extra query params cannot be forwarded. Language, diarization, and encoding are set via the standard SpeechRouter params.
+:::
+
 ## Try it
 
 ```text

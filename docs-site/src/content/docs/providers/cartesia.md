@@ -15,6 +15,21 @@ knobs pass through untouched via `provider_params`.
 | `cartesia/ink-whisper` | streaming · batch | $0.00216/min | <span class="sr-no">—</span> | <span class="sr-yes">✓</span> |
 | `cartesia/ink-2-turns` | streaming | $0.00648/min | <span class="sr-no">—</span> | <span class="sr-no">—</span> |
 
+## Provider options
+
+Reach past the unified surface with [`provider_params`](/guides/streaming/#query-parameters)
+— forwarded streaming → WebSocket query parameters; batch → form fields. Typed in the SDKs as
+`{provider}Params` interfaces (`providerParams` option / `provider_params=` kwarg).
+
+| Param | Type | Default | Applies to | What it does |
+| --- | --- | --- | --- | --- |
+| `turn_start_threshold` | number | `0.8` | streaming | ink-2: confidence to open a turn |
+| `turn_eager_end_threshold` | number | `0.4` | streaming | ink-2: early end-of-turn signal for LLM head-start |
+| `turn_end_threshold` | number | `0.2` | streaming | ink-2: confidence to close a turn |
+| `turn_end_timeout_ms` | integer | `5600` | streaming | ink-2: force turn end after this silence |
+| `min_volume` | number | — | streaming | ink-whisper: ignore audio below this volume |
+| `max_silence_duration_secs` | number | — | streaming | ink-whisper: silence tolerated before finalizing |
+
 ## Try it
 
 ```bash

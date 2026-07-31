@@ -1,0 +1,76 @@
+{
+  "forwarding": {
+    "streaming": "transcription_config fields",
+    "batch": "transcription_config fields"
+  },
+  "params": [
+    {
+      "name": "max_delay",
+      "type": "number",
+      "min": 0.7,
+      "max": 4,
+      "default": 4,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Max seconds before a final is emitted"
+    },
+    {
+      "name": "max_delay_mode",
+      "type": "string",
+      "enum": [
+        "flexible",
+        "fixed"
+      ],
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Whether max_delay may stretch to finish entities"
+    },
+    {
+      "name": "speaker_diarization_config",
+      "type": "object",
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "{max_speakers, speaker_sensitivity, prefer_current_speaker}"
+    },
+    {
+      "name": "additional_vocab",
+      "type": "array",
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "[{content, sounds_like[]}] \u2014 up to 1000 entries with pronunciations"
+    },
+    {
+      "name": "enable_entities",
+      "type": "boolean",
+      "default": true,
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "Emit typed entities (numbers, dates) in results"
+    },
+    {
+      "name": "punctuation_overrides",
+      "type": "object",
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "Tune permitted marks and sensitivity"
+    },
+    {
+      "name": "conversation_config",
+      "type": "object",
+      "modes": [
+        "streaming"
+      ],
+      "doc": "{end_of_utterance_silence_trigger: 0\u20132s} \u2014 must be < max_delay"
+    }
+  ]
+}

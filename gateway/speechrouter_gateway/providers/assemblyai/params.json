@@ -1,0 +1,122 @@
+{
+  "forwarding": {
+    "streaming": "WebSocket query parameters",
+    "batch": "job fields"
+  },
+  "params": [
+    {
+      "name": "end_of_turn_confidence_threshold",
+      "type": "number",
+      "min": 0,
+      "max": 1,
+      "default": 0.4,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Confidence needed to declare end of turn"
+    },
+    {
+      "name": "min_turn_silence",
+      "type": "integer",
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Minimum silence (ms) before a turn can end"
+    },
+    {
+      "name": "max_turn_silence",
+      "type": "integer",
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Silence (ms) that forces end of turn"
+    },
+    {
+      "name": "vad_threshold",
+      "type": "number",
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Voice-activity detection sensitivity"
+    },
+    {
+      "name": "continuous_partials",
+      "type": "boolean",
+      "default": false,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Emit partials continuously instead of on change"
+    },
+    {
+      "name": "max_speakers",
+      "type": "integer",
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Cap for streaming diarization"
+    },
+    {
+      "name": "language_detection",
+      "type": "boolean",
+      "default": false,
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "Auto-detect the spoken language"
+    },
+    {
+      "name": "domain",
+      "type": "string",
+      "enum": [
+        "medical-v1"
+      ],
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Domain-tuned recognition"
+    },
+    {
+      "name": "prompt",
+      "type": "string",
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Free-text context to bias recognition"
+    },
+    {
+      "name": "redact_pii",
+      "type": "boolean",
+      "default": false,
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "Redact personally identifiable information"
+    },
+    {
+      "name": "inactivity_timeout",
+      "type": "integer",
+      "min": 5,
+      "max": 3600,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Close the vendor session after this many silent seconds"
+    },
+    {
+      "name": "mode",
+      "type": "string",
+      "enum": [
+        "max_accuracy",
+        "balanced",
+        "min_latency"
+      ],
+      "modes": [
+        "streaming"
+      ],
+      "doc": "universal-3-5-pro: latency/accuracy preset"
+    }
+  ]
+}

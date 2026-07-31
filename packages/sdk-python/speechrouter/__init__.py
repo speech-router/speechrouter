@@ -37,3 +37,5 @@ __all__ = [
     "UtteranceEnd",
     "Word",
 ]
+
+from . import provider_params as provider_params

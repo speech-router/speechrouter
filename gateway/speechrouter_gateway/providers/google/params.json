@@ -1,0 +1,8 @@
+{
+  "forwarding": {
+    "streaming": null,
+    "batch": null
+  },
+  "note": "Google streaming is gRPC with a typed config \u2014 provider_params are not forwarded. Standard SpeechRouter params cover language, diarization, and timestamps.",
+  "params": []
+}

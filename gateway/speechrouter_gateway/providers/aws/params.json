@@ -1,0 +1,8 @@
+{
+  "forwarding": {
+    "streaming": null,
+    "batch": null
+  },
+  "note": "The streaming URL is SigV4-signed at connect time, so arbitrary extra query params cannot be forwarded. Language, diarization, and encoding are set via the standard SpeechRouter params.",
+  "params": []
+}

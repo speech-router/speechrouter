@@ -15,6 +15,12 @@ knobs pass through untouched via `provider_params`.
 | `google/chirp_3` | streaming | $0.016/min | <span class="sr-no">—</span> | <span class="sr-no">—</span> |
 | `google/latest_long` | streaming | $0.016/min | <span class="sr-no">—</span> | <span class="sr-yes">✓</span> |
 
+## Provider options
+
+:::note
+Google streaming is gRPC with a typed config — provider_params are not forwarded. Standard SpeechRouter params cover language, diarization, and timestamps.
+:::
+
 ## Try it
 
 ```text

@@ -32,6 +32,35 @@ const BLURBS = {
   cartesia: 'Ink — low-latency STT built for realtime agents.',
 };
 
+const esc = (t) => String(t).replace(/\|/g, '\\|');
+
+const paramsSection = (dir) => {
+  let spec;
+  try { spec = JSON.parse(readFileSync(join(dir, 'params.json'), 'utf8')); }
+  catch { return ''; }
+  const fwd = spec.forwarding ?? {};
+  const fwdBits = Object.entries(fwd).filter(([, v]) => v)
+    .map(([mode, how]) => `${mode} → ${how}`);
+  const note = spec.note ? `\n:::note\n${spec.note}\n:::\n` : '';
+  if (!spec.params?.length) return `\n## Provider options\n${note}`;
+  const rows = spec.params.map((p) => {
+    const type = p.enum ? p.enum.map((v) => `\`${v}\``).join(' · ') : p.type;
+    const dflt = p.default !== undefined ? `\`${JSON.stringify(p.default)}\`` : '—';
+    const modes = (p.modes ?? []).join(' · ');
+    return `| \`${esc(p.name)}\` | ${esc(type)} | ${dflt} | ${modes} | ${esc(p.doc)} |`;
+  }).join('\n');
+  return `\n## Provider options
+
+Reach past the unified surface with [\`provider_params\`](/guides/streaming/#query-parameters)
+— forwarded ${fwdBits.join('; ')}. Typed in the SDKs as
+\`${'{'}provider${'}'}Params\` interfaces (\`providerParams\` option / \`provider_params=\` kwarg).
+${note}
+| Param | Type | Default | Applies to | What it does |
+| --- | --- | --- | --- | --- |
+${rows}
+`;
+};
+
 const price = (p) => {
   if (!p) return '—';
   if (p.per_audio_second_usd != null) return `$${p.per_audio_second_usd}/sec`;
@@ -100,7 +129,7 @@ knobs pass through untouched via \`provider_params\`.
 | Model | Modes | List price | Diarization | Word timings |
 | --- | --- | --- | --- | --- |
 ${rows}
-${sessionNote}
+${sessionNote}${paramsSection(join(providersDir, name))}
 ## Try it
 
 ${sample(models)}

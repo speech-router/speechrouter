@@ -1,0 +1,85 @@
+{
+  "forwarding": {
+    "streaming": "session fields",
+    "batch": "form fields"
+  },
+  "params": [
+    {
+      "name": "prompt",
+      "type": "string",
+      "modes": [
+        "batch"
+      ],
+      "doc": "Context/spelling hints for the transcription"
+    },
+    {
+      "name": "temperature",
+      "type": "number",
+      "min": 0,
+      "max": 1,
+      "modes": [
+        "batch"
+      ],
+      "doc": "Sampling temperature"
+    },
+    {
+      "name": "timestamp_granularities[]",
+      "type": "string",
+      "enum": [
+        "word",
+        "segment"
+      ],
+      "modes": [
+        "batch"
+      ],
+      "doc": "whisper-1 with verbose output only"
+    },
+    {
+      "name": "chunking_strategy",
+      "type": "string",
+      "modes": [
+        "batch"
+      ],
+      "doc": "Required by the diarize model for audio over 30s (\"auto\")"
+    },
+    {
+      "name": "known_speaker_names[]",
+      "type": "array",
+      "modes": [
+        "batch"
+      ],
+      "doc": "Diarize model: enroll up to 4 named speakers"
+    },
+    {
+      "name": "known_speaker_references[]",
+      "type": "array",
+      "modes": [
+        "batch"
+      ],
+      "doc": "Reference audio for enrolled speakers"
+    },
+    {
+      "name": "delay",
+      "type": "string",
+      "enum": [
+        "minimal",
+        "low",
+        "medium",
+        "high",
+        "xhigh"
+      ],
+      "modes": [
+        "streaming"
+      ],
+      "doc": "gpt-realtime-whisper: latency/quality knob"
+    },
+    {
+      "name": "turn_detection",
+      "type": "object",
+      "modes": [
+        "streaming"
+      ],
+      "doc": "server_vad {threshold, silence_duration_ms} or semantic_vad {eagerness}"
+    }
+  ]
+}

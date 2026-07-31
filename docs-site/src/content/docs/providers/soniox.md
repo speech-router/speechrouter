@@ -18,6 +18,23 @@ knobs pass through untouched via `provider_params`.
 Models priced per **session-hour** meter wall-clock connection time — an open socket bills even while silent, exactly as the vendor bills us.
 :::
 
+## Provider options
+
+Reach past the unified surface with [`provider_params`](/guides/streaming/#query-parameters)
+— forwarded streaming → session config fields; batch → job fields. Typed in the SDKs as
+`{provider}Params` interfaces (`providerParams` option / `provider_params=` kwarg).
+
+| Param | Type | Default | Applies to | What it does |
+| --- | --- | --- | --- | --- |
+| `language_hints_strict` | boolean | `false` | streaming · batch | Restrict recognition to the hinted languages |
+| `enable_language_identification` | boolean | `false` | streaming · batch | Tag tokens with the detected language |
+| `max_endpoint_delay_ms` | integer | `2000` | streaming | Upper bound on endpoint latency |
+| `endpoint_sensitivity` | number | — | streaming | Endpoint eagerness; docs suggest 0.3 for voice agents |
+| `endpoint_latency_adjustment_level` | integer | — | streaming | Latency/accuracy trade for endpoint detection (2 = voice-agent preset) |
+| `context` | object | — | streaming · batch | Domain context: general text, terms, translation_terms (≤8k tokens) |
+| `translation` | object | — | streaming | Live translation config (one_way or two_way) |
+| `client_reference_id` | string | — | streaming · batch | Your correlation id, echoed in Soniox logs |
+
 ## Try it
 
 ```bash

@@ -1,0 +1,113 @@
+{
+  "forwarding": {
+    "streaming": "WebSocket query parameters",
+    "batch": "query parameters"
+  },
+  "params": [
+    {
+      "name": "smart_format",
+      "type": "boolean",
+      "default": false,
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "Format numbers, dates, currency in the transcript"
+    },
+    {
+      "name": "punctuate",
+      "type": "boolean",
+      "default": false,
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "Add punctuation and capitalization"
+    },
+    {
+      "name": "endpointing",
+      "type": "integer",
+      "default": 10,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Silence (ms) before the endpointer fires"
+    },
+    {
+      "name": "utterance_end_ms",
+      "type": "integer",
+      "min": 1000,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Gap (ms) that triggers UtteranceEnd; needs interim results on"
+    },
+    {
+      "name": "vad_events",
+      "type": "boolean",
+      "default": false,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Emit speech-started events from the voice-activity detector"
+    },
+    {
+      "name": "diarize_model",
+      "type": "string",
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "Diarization model variant (replaces the deprecated diarize flag)"
+    },
+    {
+      "name": "multichannel",
+      "type": "boolean",
+      "default": false,
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "Transcribe each audio channel independently"
+    },
+    {
+      "name": "keywords",
+      "type": "string",
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "word:boost pairs \u2014 nova-2 family only (nova-3 uses keyterms)"
+    },
+    {
+      "name": "eot_threshold",
+      "type": "number",
+      "min": 0.5,
+      "max": 0.9,
+      "default": 0.7,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Flux models: end-of-turn confidence threshold"
+    },
+    {
+      "name": "eager_eot_threshold",
+      "type": "number",
+      "min": 0.3,
+      "max": 0.9,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Flux models: earlier, lower-confidence end-of-turn signal"
+    },
+    {
+      "name": "eot_timeout_ms",
+      "type": "integer",
+      "default": 5000,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Flux models: force end-of-turn after this silence"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "forwarding": {
+    "streaming": null,
+    "batch": "fast-transcription definition fields"
+  },
+  "note": "Realtime runs through the Azure Speech SDK \u2014 session knobs are gateway-managed, provider_params are not forwarded on streaming models.",
+  "params": [
+    {
+      "name": "locales",
+      "type": "array",
+      "modes": [
+        "batch"
+      ],
+      "doc": "Candidate locales for language identification"
+    },
+    {
+      "name": "diarization",
+      "type": "object",
+      "modes": [
+        "batch"
+      ],
+      "doc": "{maxSpeakers: 2\u201335} \u2014 mono audio only"
+    },
+    {
+      "name": "channels",
+      "type": "array",
+      "modes": [
+        "batch"
+      ],
+      "doc": "Channel indices to transcribe (\u22642)"
+    }
+  ]
+}

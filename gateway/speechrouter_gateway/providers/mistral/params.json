@@ -1,0 +1,37 @@
+{
+  "forwarding": {
+    "streaming": "session.update fields (subset)",
+    "batch": "form fields"
+  },
+  "params": [
+    {
+      "name": "context_bias",
+      "type": "array",
+      "modes": [
+        "batch"
+      ],
+      "doc": "Up to 100 bias terms (English-optimized)"
+    },
+    {
+      "name": "timestamp_granularities",
+      "type": "string",
+      "enum": [
+        "word",
+        "segment"
+      ],
+      "modes": [
+        "batch"
+      ],
+      "doc": "Timestamp detail level"
+    },
+    {
+      "name": "target_streaming_delay_ms",
+      "type": "integer",
+      "default": 800,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Latency target for realtime partials"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "forwarding": {
+    "batch": "form fields"
+  },
+  "params": [
+    {
+      "name": "prompt",
+      "type": "string",
+      "modes": [
+        "batch"
+      ],
+      "doc": "Context/spelling hints (\u2264224 tokens)"
+    },
+    {
+      "name": "temperature",
+      "type": "number",
+      "min": 0,
+      "max": 1,
+      "modes": [
+        "batch"
+      ],
+      "doc": "Sampling temperature"
+    },
+    {
+      "name": "timestamp_granularities[]",
+      "type": "string",
+      "enum": [
+        "word",
+        "segment"
+      ],
+      "modes": [
+        "batch"
+      ],
+      "doc": "With verbose output"
+    }
+  ]
+}

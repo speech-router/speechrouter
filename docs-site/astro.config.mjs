@@ -51,6 +51,7 @@ export default defineConfig({
             { label: 'Introduction', slug: 'intro' },
             { label: 'Quickstart', slug: 'quickstart' },
             { label: 'Authentication', slug: 'authentication' },
+            { label: 'Which model?', slug: 'choosing-a-model' },
           ],
         },
         {
@@ -69,6 +70,15 @@ export default defineConfig({
           ],
         },
         {
+          label: 'Recipes',
+          items: [
+            { label: 'Build a voice agent', slug: 'recipes/voice-agent' },
+            { label: 'Transcribe phone calls', slug: 'recipes/telephony' },
+            { label: 'Generate subtitles', slug: 'recipes/subtitles' },
+            { label: 'Live browser captions', slug: 'recipes/browser-captions' },
+          ],
+        },
+        {
           label: 'Providers',
           items: [{ autogenerate: { directory: 'providers' } }],
         },
@@ -79,6 +89,14 @@ export default defineConfig({
             { label: 'WebSocket events', slug: 'reference/events' },
             { label: 'Errors & close codes', slug: 'reference/errors' },
             { label: 'Limits', slug: 'reference/limits' },
+          ],
+        },
+        {
+          label: 'Migrate',
+          items: [
+            { label: 'From Deepgram', slug: 'guides/deepgram-compat' },
+            { label: 'From AssemblyAI', slug: 'migrate/from-assemblyai' },
+            { label: 'From OpenAI / Whisper', slug: 'migrate/from-openai' },
           ],
         },
         {
