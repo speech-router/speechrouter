@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "SpeechRouter data plane: unified realtime STT/TTS gateway"
 requires-python = ">=3.13"
 license = "Apache-2.0"
+authors = [{ name = "EE Dojo, Inc.", email = "info@speechrouter.ai" }]
 dependencies = [
     "fastapi>=0.116",
     "uvicorn[standard]>=0.35",
