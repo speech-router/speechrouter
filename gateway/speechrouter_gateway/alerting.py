@@ -31,3 +31,21 @@ def report_provider_failure(
                 )
     except Exception:  # noqa: BLE001, S110 - alerting must never break the data path
         pass
+
+
+# What customers see when an UPSTREAM provider fails. The raw vendor error
+# (which can expose our account state — "insufficient balance", key ids) goes
+# to Sentry/logs above; the wire gets a clean, actionable message.
+_CUSTOMER_MESSAGES = {
+    "timeout": "the provider timed out — please retry",
+    "all_providers_failed":
+        "every provider in this request failed — our team has been alerted; please retry shortly",
+}
+_CUSTOMER_DEFAULT = (
+    "the provider is temporarily unavailable — our team has been alerted; "
+    "retry, or add fallbacks for automatic failover"
+)
+
+
+def customer_facing(code: str | None) -> str:
+    return _CUSTOMER_MESSAGES.get(code or "", _CUSTOMER_DEFAULT)

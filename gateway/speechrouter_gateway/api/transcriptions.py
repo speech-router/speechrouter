@@ -13,7 +13,7 @@ import httpx
 from fastapi import APIRouter, File, Form, Request, UploadFile
 from fastapi.responses import JSONResponse, PlainTextResponse
 
-from ..alerting import report_provider_failure
+from ..alerting import customer_facing, report_provider_failure
 from ..auth.byok import apply_byok, org_blocked
 from ..auth.tokens import resolve_credentials
 from ..logging import logger
@@ -140,7 +140,8 @@ async def transcribe(
         status = "provider_error"
         report_provider_failure(exc.provider, model, str(exc), code=exc.code)
         return _error(
-            Code.provider_timeout if exc.code == "timeout" else Code.provider_error, str(exc)
+            Code.provider_timeout if exc.code == "timeout" else Code.provider_error,
+            str(exc) if byok_used else customer_facing(exc.code),
         )
     except Exception:
         status = "error"
@@ -242,7 +243,8 @@ async def dg_prerecorded(request: Request):
         status = "provider_error"
         report_provider_failure(exc.provider, slug, str(exc), code=exc.code)
         return _error(
-            Code.provider_timeout if exc.code == "timeout" else Code.provider_error, str(exc)
+            Code.provider_timeout if exc.code == "timeout" else Code.provider_error,
+            str(exc) if byok_used else customer_facing(exc.code),
         )
     except Exception:
         status = "error"

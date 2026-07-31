@@ -23,7 +23,7 @@ from typing import Protocol
 
 from pydantic import BaseModel
 
-from ..alerting import report_provider_failure
+from ..alerting import customer_facing, report_provider_failure
 from ..audio import AudioRing, bytes_per_second
 from ..config import Settings
 from ..logging import logger
@@ -149,7 +149,10 @@ class STTSession:
             report_provider_failure(
                 exc.provider, self._attempts[0].slug, str(exc), code=code.value
             )
-            await self._try_send_error(code, str(exc), provider=exc.provider)
+            # BYOK sessions ride the org's own provider account — the raw
+            # error is theirs to see. House-key failures stay ours.
+            message = str(exc) if self._byok else customer_facing(code.value)
+            await self._try_send_error(code, message, provider=exc.provider)
         except Exception:
             self._status = "error"
             logger.error("session crashed", exc_info=True, extra={"session": self._session_id})
