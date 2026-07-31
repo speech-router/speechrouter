@@ -86,3 +86,21 @@ def test_melia_selects_model_not_operating_point():
     cfg = build_job_config(make("enhanced"))["transcription_config"]
     assert cfg["operating_point"] == "enhanced"
     assert "model" not in cfg
+
+
+def test_diarize_model_resolves_with_diarization():
+    from speechrouter_gateway.config import Settings
+    from speechrouter_gateway.providers.openai.batch import OpenAISTTBatch
+    from speechrouter_gateway.router.catalog import Catalog
+    from speechrouter_gateway.router.resolver import StreamRequest, resolve_batch
+
+    resolved = resolve_batch(
+        "openai/gpt-4o-transcribe-diarize",
+        StreamRequest(diarization=True),
+        Settings(openai_api_key="x"),
+        Catalog.load(),
+    )
+    assert resolved.config.diarization
+    assert OpenAISTTBatch("x").extra_form(resolved.config) == {
+        "response_format": "diarized_json"
+    }

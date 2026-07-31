@@ -16,6 +16,7 @@ _DIARIZE_MODELS = {"gpt-4o-transcribe-diarize"}
 CAPABILITIES = Capabilities(
     batch=True,
     word_timestamps=True,  # whisper-1 only; per-model truth in models.json
+    diarization=True,  # gpt-4o-transcribe-diarize only; ditto
     languages=frozenset({"auto"}),
 )
 
