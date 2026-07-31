@@ -3,20 +3,42 @@ title: SpeechRouter
 description: One API for every speech model — 12 providers, mid-stream failover, vendor list prices at 0% markup.
 template: splash
 hero:
-  title: Every speech model. One API.
-  tagline: Route speech-to-text across 12 providers with one key, one schema, and mid-stream failover. Switch vendors by editing a slug. Pay vendor list price — we add nothing.
-  actions:
-    - text: Quickstart
-      link: /quickstart/
-      icon: right-arrow
-      variant: primary
-    - text: Browse the models
-      link: /providers/
-      variant: minimal
+  title: ''
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 import stats from '../../data/stats.json';
+
+<div class="sr-hero not-content">
+  <div class="sr-hero-copy">
+    <h1>Every speech model.<br/>One&nbsp;API.</h1>
+    <p>
+      Route speech-to-text across {stats.providers} providers with one key, one
+      schema, and mid-stream failover. Switch vendors by editing a slug. Pay
+      vendor list price — we add nothing.
+    </p>
+    <div class="sr-hero-actions">
+      <a class="sr-btn" href="/quickstart/">Quickstart →</a>
+      <a class="sr-btn-quiet" href="/providers/">Browse the models</a>
+    </div>
+  </div>
+  <div class="sr-terminal" aria-hidden="true">
+    <div class="sr-terminal-bar">
+      <span class="sr-dot"></span><span class="sr-dot"></span><span class="sr-dot"></span>
+      <span class="sr-terminal-title">wss://api.speechrouter.ai/v1/listen</span>
+    </div>
+    <div class="sr-terminal-body" id="sr-term">
+      <div class="sr-line sys">&#123; "type": "session.open", "model": "soniox/stt-rt-v5" &#125;</div>
+      <div class="sr-line" id="sr-live"><span class="sr-caret"></span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sr-marquee not-content" aria-hidden="true">
+  <div class="sr-marquee-track">
+    {[...stats.slugs, ...stats.slugs].map((s) => <span class="sr-slug">{s}</span>)}
+  </div>
+</div>
 
 <div class="sr-stats not-content">
   <div class="sr-stat"><div class="v">{stats.providers}</div><div class="k">providers</div></div>
@@ -57,3 +79,14 @@ of the [live models](/providers/) — nothing else in your code moves.
     code — the gateway speaks the Deepgram dialect natively.
   </Card>
 </CardGrid>
+
+<footer class="sr-footer not-content">
+  <span>© 2026 EE Dojo, Inc. · Apache-2.0</span>
+  <nav>
+    <a href="https://speechrouter.ai">console</a>
+    <a href="https://github.com/speech-router/speechrouter">github</a>
+    <a href="https://api.speechrouter.ai/v1/models">/v1/models</a>
+  </nav>
+</footer>
+
+<script is:inline src="/term.js"></script>

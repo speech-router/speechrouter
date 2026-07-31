@@ -11,6 +11,13 @@ knobs pass through untouched via `provider_params`.
 
 | Model | Modes | List price | Diarization | Word timings |
 | --- | --- | --- | --- | --- |
-| `aws/transcribe` | streaming | $0.01/min (min $0.0025/req) | ✓ | ✓ |
+| `aws/transcribe` | streaming | $0.01/min (min $0.0025/req) | <span class="sr-yes">✓</span> | <span class="sr-yes">✓</span> |
+
+## Try it
+
+```text
+wss://api.speechrouter.ai/v1/listen?model=aws/transcribe
+```
+Streaming-only — connect with the [SDKs](/sdks/javascript/) or see [Streaming](/guides/streaming/).
 
 <sub>Generated from the gateway catalog — the billing engine's own source of truth.</sub>

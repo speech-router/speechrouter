@@ -11,8 +11,17 @@ knobs pass through untouched via `provider_params`.
 
 | Model | Modes | List price | Diarization | Word timings |
 | --- | --- | --- | --- | --- |
-| `speechmatics/enhanced` | streaming · batch | $1.04/hr | ✓ | ✓ |
-| `speechmatics/standard` | streaming · batch | $0.7992/hr | ✓ | ✓ |
-| `speechmatics/melia-1` | batch | $0.129/hr | ✓ | ✓ |
+| `speechmatics/enhanced` | streaming · batch | $1.04/hr | <span class="sr-yes">✓</span> | <span class="sr-yes">✓</span> |
+| `speechmatics/standard` | streaming · batch | $0.7992/hr | <span class="sr-yes">✓</span> | <span class="sr-yes">✓</span> |
+| `speechmatics/melia-1` | batch | $0.129/hr | <span class="sr-yes">✓</span> | <span class="sr-yes">✓</span> |
+
+## Try it
+
+```bash
+curl -s https://api.speechrouter.ai/v1/audio/transcriptions \
+  -H "Authorization: Bearer $SPEECHROUTER_API_KEY" \
+  -F model=speechmatics/enhanced \
+  -F file=@audio.wav
+```
 
 <sub>Generated from the gateway catalog — the billing engine's own source of truth.</sub>

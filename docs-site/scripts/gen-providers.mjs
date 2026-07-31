@@ -41,7 +41,22 @@ const price = (p) => {
   return '—';
 };
 
-const yes = '✓', no = '—';
+const yes = '<span class="sr-yes">✓</span>', no = '<span class="sr-no">—</span>';
+
+const sample = (models) => {
+  const batch = models.find((m) => (m.modes ?? []).includes('batch'));
+  if (batch) return `\`\`\`bash
+curl -s https://api.speechrouter.ai/v1/audio/transcriptions \\
+  -H "Authorization: Bearer $SPEECHROUTER_API_KEY" \\
+  -F model=${batch.slug} \\
+  -F file=@audio.wav
+\`\`\``;
+  const stream = models[0];
+  return `\`\`\`text
+wss://api.speechrouter.ai/v1/listen?model=${stream.slug}
+\`\`\`
+Streaming-only — connect with the [SDKs](/sdks/javascript/) or see [Streaming](/guides/streaming/).`;
+};
 const providers = readdirSync(providersDir, { withFileTypes: true })
   .filter((d) => d.isDirectory() && !d.name.startsWith('_'))
   .map((d) => d.name)
@@ -52,11 +67,13 @@ const providers = readdirSync(providersDir, { withFileTypes: true })
   .sort((a, b) => (a === 'soniox' ? -1 : b === 'soniox' ? 1 : a.localeCompare(b)));
 
 let total = 0;
+const allSlugs = [];
 for (const name of providers) {
   const models = JSON.parse(readFileSync(join(providersDir, name, 'models.json'), 'utf8'))
     .filter((m) => m.kind === 'stt');
   if (!models.length) continue;
   total += models.length;
+  allSlugs.push(...models.map((m) => m.slug));
 
   const rows = models.map((m) => {
     const c = m.capabilities ?? {};
@@ -84,6 +101,10 @@ knobs pass through untouched via \`provider_params\`.
 | --- | --- | --- | --- | --- |
 ${rows}
 ${sessionNote}
+## Try it
+
+${sample(models)}
+
 <sub>Generated from the gateway catalog — the billing engine's own source of truth.</sub>
 `);
 }
@@ -104,6 +125,6 @@ The live, machine-readable version: [\`GET /v1/models\`](/reference/rest/#get-v1
 
 mkdirSync(join(here, '../src/data'), { recursive: true });
 writeFileSync(join(here, '../src/data/stats.json'),
-  JSON.stringify({ providers: providers.length, models: total }));
+  JSON.stringify({ providers: providers.length, models: total, slugs: allSlugs }));
 
 console.log(`generated ${providers.length} provider pages, ${total} models`);

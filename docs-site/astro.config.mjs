@@ -7,6 +7,8 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'SpeechRouter',
+      favicon: '/favicon.svg',
+      logo: { src: './src/assets/logo.svg', alt: '' },
       description:
         'One API for every speech model — 12 providers, mid-stream failover, vendor list prices at 0% markup.',
       social: [
