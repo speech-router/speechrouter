@@ -38,7 +38,7 @@ repeated at the seam.
 
 - 🎛 **30+ models, 12 providers** — Deepgram (incl. Flux), Soniox, AssemblyAI, Speechmatics, OpenAI, Groq, Mistral, Cartesia (incl. ink-2 turns), ElevenLabs, Azure, AWS, Google
 - 🔌 **One normalized schema** — text, word timings, confidence, speakers, language; `include_raw=true` for the untouched vendor payload
-- 💸 **One bill** — per-second pricing, prepaid credits, no vendor contracts; or **BYOK** with your own provider keys at a 5% routing fee
+- 💸 **One bill** — per-second pricing, prepaid credits, no vendor contracts; or **BYOK** with your own provider keys for free — pure pass-through, 0% markup
 - 🔁 **Same params everywhere** — diarization, interims, keyterm boosting, endpointing, translated per provider; `provider_params` passes anything vendor-specific through
 - 🏠 **Apache-2.0, self-hostable** — this repo is the exact gateway the cloud runs
 
