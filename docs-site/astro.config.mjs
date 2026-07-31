@@ -59,9 +59,13 @@ export default defineConfig({
             { label: 'Streaming transcription', slug: 'guides/streaming' },
             { label: 'Batch transcription', slug: 'guides/batch' },
             { label: 'Failover', slug: 'guides/failover' },
+            { label: 'Diarization', slug: 'guides/diarization' },
+            { label: 'Keyterm boosting', slug: 'guides/keyterms' },
+            { label: 'Audio formats', slug: 'guides/audio' },
             { label: 'Deepgram compatibility', slug: 'guides/deepgram-compat' },
             { label: 'Bring your own keys', slug: 'guides/byok' },
             { label: 'Pricing & billing', slug: 'guides/pricing' },
+            { label: 'Self-hosting', slug: 'guides/self-hosting' },
           ],
         },
         {
@@ -74,6 +78,7 @@ export default defineConfig({
             { label: 'REST API', slug: 'reference/rest' },
             { label: 'WebSocket events', slug: 'reference/events' },
             { label: 'Errors & close codes', slug: 'reference/errors' },
+            { label: 'Limits', slug: 'reference/limits' },
           ],
         },
         {
