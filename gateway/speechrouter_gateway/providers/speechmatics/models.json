@@ -66,5 +66,29 @@
       ]
     },
     "hipaa_eligible": true
+  },
+  {
+    "slug": "speechmatics/melia-1",
+    "provider": "speechmatics",
+    "name": "Speechmatics Melia-1",
+    "kind": "stt",
+    "modes": [
+      "batch"
+    ],
+    "pricing": {
+      "per_audio_hour_usd": 0.129
+    },
+    "capabilities": {
+      "word_timestamps": true,
+      "diarization": true,
+      "languages": [
+        "auto",
+        "multi"
+      ],
+      "encodings": [
+        "linear16",
+        "mulaw"
+      ]
+    }
   }
 ]

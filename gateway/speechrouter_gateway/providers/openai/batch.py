@@ -11,6 +11,7 @@ from ..openai_compat import OpenAICompatBatch
 from ..registry import ProviderNotConfigured, register_stt_batch
 
 _VERBOSE_MODELS = {"whisper-1"}
+_DIARIZE_MODELS = {"gpt-4o-transcribe-diarize"}
 
 CAPABILITIES = Capabilities(
     batch=True,
@@ -33,3 +34,9 @@ class OpenAISTTBatch(OpenAICompatBatch):
 
     def wants_verbose(self, config: STTConfig) -> bool:
         return config.model in _VERBOSE_MODELS
+
+    def extra_form(self, config: STTConfig) -> dict[str, str]:
+        # diarized_json is the only response format that carries speakers
+        if config.model in _DIARIZE_MODELS and config.diarization:
+            return {"response_format": "diarized_json"}
+        return {}

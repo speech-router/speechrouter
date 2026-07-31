@@ -83,5 +83,24 @@
         "auto"
       ]
     }
+  },
+  {
+    "slug": "openai/gpt-4o-transcribe-diarize",
+    "provider": "openai",
+    "name": "OpenAI GPT-4o Transcribe Diarize",
+    "kind": "stt",
+    "modes": [
+      "batch"
+    ],
+    "pricing": {
+      "per_audio_minute_usd": 0.006
+    },
+    "capabilities": {
+      "word_timestamps": false,
+      "languages": [
+        "auto"
+      ],
+      "diarization": true
+    }
   }
 ]

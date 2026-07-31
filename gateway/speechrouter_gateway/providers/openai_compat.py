@@ -33,8 +33,25 @@ def parse_openai_response(payload: dict, include_raw: bool = False) -> Transcrip
         if w.get("start") is not None
     ]
     duration = payload.get("duration")
-    # diarized_json variants carry speakers on segments, not words
+    # diarized_json variants carry speakers on segments, not words: surface
+    # each speaker turn as one segment-level Word (letters -> ints) so the
+    # wire schema's words[].speaker carries diarization for these models too.
     segments = payload.get("segments") or []
+    if not words:
+        words = [
+            Word(
+                w=seg.get("text", "").strip(),
+                start=float(seg["start"]),
+                end=float(seg["end"]),
+                speaker=(ord(sp.upper()) - ord("A"))
+                if isinstance(sp := seg.get("speaker"), str)
+                and len(sp) == 1 and sp.isalpha()
+                else sp if isinstance(sp, int) else None,
+            )
+            for seg in segments
+            if seg.get("start") is not None and seg.get("text", "").strip()
+        ] or None
+        words = words or []
     return Transcript(
         type="transcript",
         is_final=True,

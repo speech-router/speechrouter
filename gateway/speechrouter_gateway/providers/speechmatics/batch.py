@@ -18,7 +18,12 @@ POLL_BUDGET_SECONDS = 1800.0
 
 
 def build_job_config(config: STTConfig) -> dict:
-    transcription: dict = {"language": config.language or "en", "operating_point": config.model}
+    if config.model == "melia-1":
+        # Melia selects via `model` (not operating_point) and defaults to
+        # `multi` — it language-detects on its own, hints optional.
+        transcription: dict = {"model": "melia-1", "language": config.language or "multi"}
+    else:
+        transcription = {"language": config.language or "en", "operating_point": config.model}
     if config.diarization:
         transcription["diarization"] = "speaker"
     if config.keyterms:

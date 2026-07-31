@@ -51,5 +51,25 @@
         "auto"
       ]
     }
+  },
+  {
+    "slug": "elevenlabs/scribe_v1",
+    "provider": "elevenlabs",
+    "name": "ElevenLabs Scribe v1",
+    "kind": "stt",
+    "modes": [
+      "batch"
+    ],
+    "pricing": {
+      "per_audio_hour_usd": 0.21996
+    },
+    "capabilities": {
+      "word_timestamps": true,
+      "diarization": true,
+      "keyword_boosting": true,
+      "languages": [
+        "auto"
+      ]
+    }
   }
 ]

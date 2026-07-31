@@ -51,3 +51,38 @@ def test_resolver_carries_billing_basis(monkeypatch):
     assert soniox.billing_basis == BillingBasis.SESSION_TIME
     deepgram = resolve_stream("deepgram/nova-3", request, settings, catalog)
     assert deepgram.billing_basis == BillingBasis.AUDIO_TIME
+
+
+def test_diarized_json_segments_become_speaker_words():
+    from speechrouter_gateway.providers.openai_compat import parse_openai_response
+
+    payload = {
+        "text": "Hello there. General Kenobi.",
+        "duration": 4.2,
+        "segments": [
+            {"text": " Hello there.", "speaker": "A", "start": 0.1, "end": 1.5},
+            {"text": " General Kenobi.", "speaker": "B", "start": 2.0, "end": 4.0},
+        ],
+    }
+    t = parse_openai_response(payload)
+    assert t.text == "Hello there. General Kenobi."
+    assert [w.speaker for w in t.words] == [0, 1]
+    assert t.words[0].w == "Hello there."
+    assert t.end == 4.2
+
+
+def test_melia_selects_model_not_operating_point():
+    from speechrouter_gateway.providers.base import STTConfig
+    from speechrouter_gateway.providers.speechmatics.batch import build_job_config
+
+    def make(model):
+        return STTConfig(model=model, encoding="linear16", sample_rate=16000)
+
+    cfg = build_job_config(make("melia-1"))["transcription_config"]
+    assert cfg["model"] == "melia-1"
+    assert cfg["language"] == "multi"
+    assert "operating_point" not in cfg
+
+    cfg = build_job_config(make("enhanced"))["transcription_config"]
+    assert cfg["operating_point"] == "enhanced"
+    assert "model" not in cfg
