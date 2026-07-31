@@ -129,7 +129,16 @@ export interface Model {
   name?: string
   kind: string
   modes?: string[]
-  pricing?: { per_second_usd?: number; [key: string]: unknown }
+  pricing?: {
+    per_audio_second_usd?: number
+    per_audio_minute_usd?: number
+    per_audio_hour_usd?: number
+    per_session_hour_usd?: number
+    minimum_usd?: number
+    /** @deprecated derived by the gateway; prefer the native-unit fields */
+    per_second_usd?: number
+    [key: string]: unknown
+  }
   capabilities?: ModelCapabilities
   hipaa_eligible?: boolean
   [key: string]: unknown
