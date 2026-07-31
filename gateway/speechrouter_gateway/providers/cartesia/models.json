@@ -8,7 +8,7 @@
       "streaming"
     ],
     "pricing": {
-      "per_second_usd": 0.000108
+      "per_audio_minute_usd": 0.00648
     },
     "capabilities": {
       "word_timestamps": true,
@@ -42,7 +42,7 @@
       "batch"
     ],
     "pricing": {
-      "per_second_usd": 3.6e-05
+      "per_audio_minute_usd": 0.00216
     },
     "capabilities": {
       "word_timestamps": true,
@@ -74,7 +74,7 @@
       "streaming"
     ],
     "pricing": {
-      "per_second_usd": 0.000108
+      "per_audio_minute_usd": 0.00648
     },
     "capabilities": {
       "word_timestamps": false,

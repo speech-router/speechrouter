@@ -9,7 +9,7 @@ from functools import partial
 
 from ..config import Settings
 from ..protocol.events import Code
-from ..providers.base import STTBatchProvider, STTConfig, STTStreamProvider
+from ..providers.base import BillingBasis, STTBatchProvider, STTConfig, STTStreamProvider
 from ..providers.registry import (
     ProviderNotConfigured,
     stt_batch_provider,
@@ -43,6 +43,7 @@ class ResolvedAttempt:
     slug: str
     config: STTConfig
     build: Callable[[], STTStreamProvider]
+    billing_basis: str = BillingBasis.AUDIO_TIME
 
 
 @dataclass(frozen=True)
@@ -124,4 +125,9 @@ def resolve_stream(
         include_raw=request.include_raw,
         provider_params=request.provider_params,
     )
-    return ResolvedAttempt(slug=slug, config=config, build=partial(registered.build, settings))
+    return ResolvedAttempt(
+        slug=slug,
+        config=config,
+        build=partial(registered.build, settings),
+        billing_basis=registered.capabilities.billing_basis,
+    )

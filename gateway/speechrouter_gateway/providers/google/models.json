@@ -4,15 +4,29 @@
     "provider": "google",
     "name": "Google Chirp 2",
     "kind": "stt",
-    "modes": ["streaming"],
-    "pricing": { "per_second_usd": 0.000267 },
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_audio_minute_usd": 0.016
+    },
     "capabilities": {
       "word_timestamps": true,
       "interim_results": true,
       "endpointing": true,
-      "languages": ["auto"],
-      "encodings": ["linear16"],
-      "sample_rates": [8000, 16000, 24000, 44100, 48000]
+      "languages": [
+        "auto"
+      ],
+      "encodings": [
+        "linear16"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100,
+        48000
+      ]
     }
   },
   {
@@ -20,15 +34,29 @@
     "provider": "google",
     "name": "Google Chirp 3",
     "kind": "stt",
-    "modes": ["streaming"],
-    "pricing": { "per_second_usd": 0.000267 },
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_audio_minute_usd": 0.016
+    },
     "capabilities": {
       "word_timestamps": false,
       "interim_results": true,
       "endpointing": true,
-      "languages": ["auto"],
-      "encodings": ["linear16"],
-      "sample_rates": [8000, 16000, 24000, 44100, 48000]
+      "languages": [
+        "auto"
+      ],
+      "encodings": [
+        "linear16"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100,
+        48000
+      ]
     }
   },
   {
@@ -36,15 +64,29 @@
     "provider": "google",
     "name": "Google latest_long",
     "kind": "stt",
-    "modes": ["streaming"],
-    "pricing": { "per_second_usd": 0.000267 },
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_audio_minute_usd": 0.016
+    },
     "capabilities": {
       "word_timestamps": true,
       "interim_results": true,
       "endpointing": true,
-      "languages": ["auto"],
-      "encodings": ["linear16"],
-      "sample_rates": [8000, 16000, 24000, 44100, 48000]
+      "languages": [
+        "auto"
+      ],
+      "encodings": [
+        "linear16"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100,
+        48000
+      ]
     }
   }
 ]

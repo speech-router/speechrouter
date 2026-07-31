@@ -4,16 +4,32 @@
     "provider": "elevenlabs",
     "name": "ElevenLabs Scribe v2 Realtime",
     "kind": "stt",
-    "modes": ["streaming"],
-    "pricing": { "per_second_usd": 0.000108 },
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_audio_hour_usd": 0.3888
+    },
     "capabilities": {
       "word_timestamps": true,
       "interim_results": true,
       "endpointing": true,
       "keyword_boosting": true,
-      "languages": ["auto"],
-      "encodings": ["linear16", "mulaw"],
-      "sample_rates": [8000, 16000, 22050, 24000, 44100, 48000]
+      "languages": [
+        "auto"
+      ],
+      "encodings": [
+        "linear16",
+        "mulaw"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        44100,
+        48000
+      ]
     }
   },
   {
@@ -21,13 +37,19 @@
     "provider": "elevenlabs",
     "name": "ElevenLabs Scribe v2 (batch)",
     "kind": "stt",
-    "modes": ["batch"],
-    "pricing": { "per_second_usd": 0.0000611 },
+    "modes": [
+      "batch"
+    ],
+    "pricing": {
+      "per_audio_hour_usd": 0.21996
+    },
     "capabilities": {
       "word_timestamps": true,
       "diarization": true,
       "keyword_boosting": true,
-      "languages": ["auto"]
+      "languages": [
+        "auto"
+      ]
     }
   }
 ]

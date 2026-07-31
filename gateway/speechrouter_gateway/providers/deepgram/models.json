@@ -9,7 +9,7 @@
       "batch"
     ],
     "pricing": {
-      "per_second_usd": 8e-05
+      "per_audio_minute_usd": 0.0048
     },
     "capabilities": {
       "diarization": true,
@@ -49,7 +49,7 @@
       "batch"
     ],
     "pricing": {
-      "per_second_usd": 8e-05
+      "per_audio_minute_usd": 0.0048
     },
     "capabilities": {
       "diarization": true,
@@ -89,7 +89,7 @@
       "batch"
     ],
     "pricing": {
-      "per_second_usd": 8e-05
+      "per_audio_minute_usd": 0.0048
     },
     "capabilities": {
       "diarization": true,
@@ -128,7 +128,7 @@
       "streaming"
     ],
     "pricing": {
-      "per_second_usd": 0.000108
+      "per_audio_minute_usd": 0.00648
     },
     "capabilities": {
       "word_timestamps": true,
@@ -165,7 +165,7 @@
       "streaming"
     ],
     "pricing": {
-      "per_second_usd": 0.00013
+      "per_audio_minute_usd": 0.0078
     },
     "capabilities": {
       "word_timestamps": true,

@@ -4,17 +4,32 @@
     "provider": "speechmatics",
     "name": "Speechmatics Enhanced (Ursa 2)",
     "kind": "stt",
-    "modes": ["streaming", "batch"],
-    "pricing": { "per_second_usd": 0.000289 },
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_audio_hour_usd": 1.04
+    },
     "capabilities": {
       "diarization": true,
       "word_timestamps": true,
       "interim_results": true,
       "endpointing": true,
       "keyword_boosting": true,
-      "languages": ["auto"],
-      "encodings": ["linear16", "mulaw"],
-      "sample_rates": [8000, 16000, 44100, 48000]
+      "languages": [
+        "auto"
+      ],
+      "encodings": [
+        "linear16",
+        "mulaw"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        44100,
+        48000
+      ]
     },
     "hipaa_eligible": true
   },
@@ -23,17 +38,32 @@
     "provider": "speechmatics",
     "name": "Speechmatics Standard (Ursa 2)",
     "kind": "stt",
-    "modes": ["streaming", "batch"],
-    "pricing": { "per_second_usd": 0.000222 },
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_audio_hour_usd": 0.7992
+    },
     "capabilities": {
       "diarization": true,
       "word_timestamps": true,
       "interim_results": true,
       "endpointing": true,
       "keyword_boosting": true,
-      "languages": ["auto"],
-      "encodings": ["linear16", "mulaw"],
-      "sample_rates": [8000, 16000, 44100, 48000]
+      "languages": [
+        "auto"
+      ],
+      "encodings": [
+        "linear16",
+        "mulaw"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        44100,
+        48000
+      ]
     },
     "hipaa_eligible": true
   }

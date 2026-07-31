@@ -4,16 +4,33 @@
     "provider": "aws",
     "name": "Amazon Transcribe Streaming",
     "kind": "stt",
-    "modes": ["streaming"],
-    "pricing": { "per_second_usd": 0.000167, "minimum_usd": 0.0025 },
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_audio_minute_usd": 0.01,
+      "minimum_usd": 0.0025
+    },
     "capabilities": {
       "diarization": true,
       "word_timestamps": true,
       "interim_results": true,
       "endpointing": true,
-      "languages": ["auto"],
-      "encodings": ["linear16", "ogg-opus", "flac"],
-      "sample_rates": [8000, 16000, 24000, 44100, 48000]
+      "languages": [
+        "auto"
+      ],
+      "encodings": [
+        "linear16",
+        "ogg-opus",
+        "flac"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100,
+        48000
+      ]
     },
     "hipaa_eligible": true
   }

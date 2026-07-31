@@ -4,17 +4,34 @@
     "provider": "assemblyai",
     "name": "AssemblyAI Universal-3.5 Pro",
     "kind": "stt",
-    "modes": ["streaming"],
-    "pricing": { "per_second_usd": 0.000125 },
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_session_hour_usd": 0.45
+    },
     "capabilities": {
       "diarization": true,
       "word_timestamps": true,
       "interim_results": true,
       "endpointing": true,
       "keyword_boosting": true,
-      "languages": ["auto"],
-      "encodings": ["linear16", "mulaw", "opus", "ogg-opus"],
-      "sample_rates": [8000, 16000, 24000, 44100, 48000]
+      "languages": [
+        "auto"
+      ],
+      "encodings": [
+        "linear16",
+        "mulaw",
+        "opus",
+        "ogg-opus"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100,
+        48000
+      ]
     },
     "hipaa_eligible": true
   },
@@ -23,17 +40,34 @@
     "provider": "assemblyai",
     "name": "AssemblyAI Universal-Streaming (English)",
     "kind": "stt",
-    "modes": ["streaming"],
-    "pricing": { "per_second_usd": 0.0000417 },
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_session_hour_usd": 0.15012
+    },
     "capabilities": {
       "diarization": true,
       "word_timestamps": true,
       "interim_results": true,
       "endpointing": true,
       "keyword_boosting": true,
-      "languages": ["en"],
-      "encodings": ["linear16", "mulaw", "opus", "ogg-opus"],
-      "sample_rates": [8000, 16000, 24000, 44100, 48000]
+      "languages": [
+        "en"
+      ],
+      "encodings": [
+        "linear16",
+        "mulaw",
+        "opus",
+        "ogg-opus"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100,
+        48000
+      ]
     },
     "hipaa_eligible": true
   },
@@ -42,13 +76,19 @@
     "provider": "assemblyai",
     "name": "AssemblyAI Universal-2 (batch)",
     "kind": "stt",
-    "modes": ["batch"],
-    "pricing": { "per_second_usd": 0.0000583 },
+    "modes": [
+      "batch"
+    ],
+    "pricing": {
+      "per_audio_hour_usd": 0.20988
+    },
     "capabilities": {
       "diarization": true,
       "word_timestamps": true,
       "keyword_boosting": true,
-      "languages": ["auto"]
+      "languages": [
+        "auto"
+      ]
     },
     "hipaa_eligible": true
   }

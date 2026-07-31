@@ -4,11 +4,18 @@
     "provider": "groq",
     "name": "Whisper Large v3 (Groq)",
     "kind": "stt",
-    "modes": ["batch"],
-    "pricing": { "per_second_usd": 0.0000308, "minimum_usd": 0.00031 },
+    "modes": [
+      "batch"
+    ],
+    "pricing": {
+      "per_audio_hour_usd": 0.111,
+      "minimum_usd": 0.00031
+    },
     "capabilities": {
       "word_timestamps": true,
-      "languages": ["auto"],
+      "languages": [
+        "auto"
+      ],
       "max_audio_seconds": 0
     }
   },
@@ -17,11 +24,18 @@
     "provider": "groq",
     "name": "Whisper Large v3 Turbo (Groq)",
     "kind": "stt",
-    "modes": ["batch"],
-    "pricing": { "per_second_usd": 0.0000111, "minimum_usd": 0.00011 },
+    "modes": [
+      "batch"
+    ],
+    "pricing": {
+      "per_audio_hour_usd": 0.03996,
+      "minimum_usd": 0.00011
+    },
     "capabilities": {
       "word_timestamps": true,
-      "languages": ["auto"]
+      "languages": [
+        "auto"
+      ]
     }
   }
 ]

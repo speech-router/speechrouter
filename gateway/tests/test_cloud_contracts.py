@@ -114,3 +114,15 @@ async def test_org_blocked_flag():
     assert not await org_blocked(fake, None)         # local mode -> never
     fake.fail = True
     assert not await org_blocked(fake, "7")          # redis down -> fail open
+
+
+async def test_usage_event_carries_billing_fields():
+    fake = FakeRedis()
+    emitter = RedisUsageEmitter("redis://unused", client=fake)  # type: ignore[arg-type]
+    await emitter.emit(UsageEvent(
+        session_id="s3", key_id="1", model="soniox/stt-rt-v5", kind="stt_stream",
+        audio_seconds=10.0, billed_seconds=42.5, billing_basis="session_time",
+    ))
+    payload = json.loads(fake.streams[USAGE_STREAM][0]["payload"])
+    assert payload["billed_seconds"] == 42.5
+    assert payload["billing_basis"] == "session_time"

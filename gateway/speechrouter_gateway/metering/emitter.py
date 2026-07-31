@@ -15,6 +15,10 @@ class UsageEvent:
     model: str  # resolved slug, e.g. deepgram/nova-3
     kind: str  # stt_stream | stt_batch | tts_stream | tts_batch
     audio_seconds: float = 0.0
+    # what billing prices: wall-clock seconds for session_time providers
+    # (Soniox/AssemblyAI streaming bill WS-open time), audio seconds otherwise
+    billed_seconds: float = 0.0
+    billing_basis: str = "audio_time"  # audio_time | session_time
     characters: int = 0
     provider_switches: int = 0
     status: str = "completed"  # completed | client_disconnect | provider_error | error

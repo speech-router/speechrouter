@@ -38,7 +38,7 @@ from ..protocol import (
     UtteranceEnd,
 )
 from ..protocol.events import Code, Usage
-from ..providers.base import ProviderStreamError, STTStreamProvider
+from ..providers.base import BillingBasis, ProviderStreamError, STTStreamProvider
 from .resolver import ResolvedAttempt
 
 _EPS = 1e-6
@@ -319,12 +319,23 @@ class STTSession:
             )
 
     async def _emit_usage(self) -> None:
+        basis = self._attempts[0].billing_basis
+        audio = round(self._ring.audio_seconds, 3)
+        # session_time vendors (Soniox, AssemblyAI streaming) bill WS-open
+        # wall-clock incl. idle — pass-through pricing bills the same.
+        billed = (
+            round(time.monotonic() - self._started, 3)
+            if basis == BillingBasis.SESSION_TIME
+            else audio
+        )
         logger.info(
             "stt session finished",
             extra={
                 "session": self._session_id,
                 "model": self._attempts[0].slug,
-                "audio_seconds": round(self._ring.audio_seconds, 3),
+                "audio_seconds": audio,
+                "billed_seconds": billed,
+                "billing_basis": basis,
                 "status": self._status,
                 "provider_switches": self._switches,
                 "byok": self._byok,
@@ -337,7 +348,9 @@ class STTSession:
                     key_id=self._key_id,
                     model=self._attempts[0].slug,
                     kind="stt_stream",
-                    audio_seconds=round(self._ring.audio_seconds, 3),
+                    audio_seconds=audio,
+                    billed_seconds=billed,
+                    billing_basis=basis,
                     provider_switches=self._switches,
                     status=self._status,
                     byok=self._byok,

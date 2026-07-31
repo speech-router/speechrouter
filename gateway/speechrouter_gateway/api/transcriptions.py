@@ -158,6 +158,7 @@ async def transcribe(
                 model=model,
                 kind="stt_batch",
                 audio_seconds=round(audio_seconds, 3),
+                billed_seconds=round(audio_seconds, 3),
                 byok=byok_used,
                 status=status,
             )
@@ -259,6 +260,7 @@ async def dg_prerecorded(request: Request):
                 model=slug,
                 kind="stt_batch",
                 audio_seconds=round(seconds or 0.0, 3),
+                billed_seconds=round(seconds or 0.0, 3),
                 byok=byok_used,
                 status=status,
             )
