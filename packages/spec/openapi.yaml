@@ -1,0 +1,254 @@
+openapi: 3.1.0
+info:
+  title: SpeechRouter API
+  version: 0.3.0
+  description: |
+    One API for every speech model. REST surface of the SpeechRouter gateway;
+    live streaming uses the /v1/listen WebSocket (see the AsyncAPI-style event
+    schemas in schema.json / docs.speechrouter.ai/reference/events).
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+  contact:
+    name: EE Dojo, Inc.
+    email: info@speechrouter.ai
+servers:
+  - url: https://api.speechrouter.ai
+security:
+  - bearerAuth: []
+paths:
+  /v1/audio/transcriptions:
+    post:
+      summary: Batch transcription
+      description: >
+        Transcribe a complete file (or a URL the gateway fetches). Multipart
+        form, OpenAI-compatible. Exactly one of `file` / `url` is required.
+      operationId: createTranscription
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [model]
+              properties:
+                model:
+                  type: string
+                  description: Model slug with batch mode, e.g. openai/whisper-1
+                  examples: ["openai/whisper-1"]
+                file:
+                  type: string
+                  format: binary
+                  description: Audio file, up to 250 MB
+                url:
+                  type: string
+                  format: uri
+                  description: Public audio URL the gateway fetches (≤ 250 MB)
+                language:
+                  type: string
+                  description: Language hint (BCP-47)
+                response_format:
+                  type: string
+                  enum: [json, verbose_json, srt, vtt, text]
+                  default: json
+                diarization:
+                  type: boolean
+                  default: false
+                keyterms:
+                  type: string
+                  description: Comma-separated bias terms
+                provider_params:
+                  type: string
+                  description: JSON object string, passed through to the vendor
+                include_raw:
+                  type: boolean
+                  default: false
+      responses:
+        "200":
+          description: Transcription in the requested format
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/Transcription"
+                  - $ref: "#/components/schemas/VerboseTranscription"
+            text/plain:
+              schema:
+                type: string
+                description: srt / vtt / text formats
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "402": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+  /v1/tokens:
+    post:
+      summary: Mint a short-lived client token
+      description: >
+        Disposable browser/mobile credential inheriting the parent key's org
+        and billing. Tokens cannot mint tokens.
+      operationId: createToken
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                ttl_seconds:
+                  type: integer
+                  minimum: 10
+                  maximum: 300
+                  default: 60
+      responses:
+        "200":
+          description: The token
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [token, expires_at, ttl_seconds]
+                properties:
+                  token: { type: string, examples: ["st_..."] }
+                  expires_at: { type: string, format: date-time }
+                  ttl_seconds: { type: integer }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+  /v1/models:
+    get:
+      summary: The live model catalog
+      description: >
+        Every model with modes, capabilities, and pricing in the vendor's
+        native unit — the billing engine's own source of truth. No auth.
+      operationId: listModels
+      security: []
+      responses:
+        "200":
+          description: Catalog
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  models:
+                    type: array
+                    items: { $ref: "#/components/schemas/Model" }
+  /v1/listen:
+    post:
+      summary: Deepgram-compatible prerecorded transcription
+      description: >
+        Accepts Deepgram's prerecorded request shape and returns
+        Deepgram-shaped JSON. Selected by the `Token` auth scheme (the
+        Deepgram SDK's default). The same path upgrades to WebSocket for
+        live streaming in both dialects.
+      operationId: dgPrerecorded
+      security: [{ tokenAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url: { type: string, format: uri }
+          "audio/*":
+            schema: { type: string, format: binary }
+      responses:
+        "200":
+          description: Deepgram-shaped transcription response
+        "401": { $ref: "#/components/responses/Error" }
+  /up:
+    get:
+      summary: Health probe
+      operationId: health
+      security: []
+      responses:
+        "200": { description: Gateway is serving }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: sk_sr_ API key or st_ client token
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: "`Token <key>` — selects the Deepgram dialect"
+  responses:
+    Error:
+      description: Error envelope (OpenAI-compatible; codes are a closed set)
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error]
+            properties:
+              error:
+                type: object
+                required: [code, message, type]
+                properties:
+                  code:
+                    type: string
+                    enum: [auth_failed, key_revoked, insufficient_credits,
+                           rate_limited, concurrency_exceeded, invalid_request,
+                           model_not_found, unsupported_capability,
+                           unsupported_encoding, payload_too_large,
+                           provider_error, provider_timeout,
+                           all_providers_failed, audio_timeout,
+                           session_expired, internal_error]
+                  message: { type: string }
+                  type: { type: string }
+  schemas:
+    Transcription:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string }
+    VerboseTranscription:
+      type: object
+      required: [text]
+      properties:
+        text: { type: string }
+        language: { type: string }
+        duration: { type: number }
+        words:
+          type: array
+          items: { $ref: "#/components/schemas/Word" }
+        provider_raw:
+          type: object
+          description: Untouched vendor payload, only with include_raw=true
+    Word:
+      type: object
+      required: [word, start, end]
+      properties:
+        word: { type: string }
+        start: { type: number, description: Audio-time seconds }
+        end: { type: number }
+        confidence: { type: number }
+        speaker: { type: integer, description: Present with diarization }
+    Model:
+      type: object
+      required: [slug, provider, name, kind, modes]
+      properties:
+        slug: { type: string, examples: ["deepgram/nova-3"] }
+        provider: { type: string }
+        name: { type: string }
+        kind: { type: string, enum: [stt, tts] }
+        modes:
+          type: array
+          items: { type: string, enum: [streaming, batch] }
+        pricing:
+          type: object
+          description: Vendor list price in its native unit; exactly one rate field
+          properties:
+            per_audio_second_usd: { type: number }
+            per_audio_minute_usd: { type: number }
+            per_audio_hour_usd: { type: number }
+            per_session_hour_usd: { type: number }
+            minimum_usd: { type: number }
+            per_second_usd:
+              type: number
+              deprecated: true
+              description: Derived by the gateway for legacy consumers
+        capabilities: { type: object }

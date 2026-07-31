@@ -1,0 +1,103 @@
+---
+title: Quickstart
+description: Key to transcript in three minutes — curl, JavaScript, or Python.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## 1. Get a key
+
+Create an account at [speechrouter.ai](https://speechrouter.ai), verify your
+email (that unlocks the $2 welcome credit), and mint an API key in the console.
+Keys look like `sk_sr_…` — send them as a Bearer token.
+
+## 2. Transcribe a file
+
+<Tabs syncKey="lang">
+<TabItem label="curl">
+```bash
+curl -s https://api.speechrouter.ai/v1/audio/transcriptions \
+  -H "Authorization: Bearer $SPEECHROUTER_API_KEY" \
+  -F model=deepgram/nova-3 \
+  -F file=@meeting.wav
+```
+</TabItem>
+<TabItem label="JavaScript">
+```js
+import { SpeechRouter } from 'speechrouter'
+
+const sr = new SpeechRouter({ apiKey: process.env.SPEECHROUTER_API_KEY })
+const result = await sr.transcribe({
+  model: 'deepgram/nova-3',
+  file: new Blob([await fs.promises.readFile('meeting.wav')]),
+})
+console.log(result.text)
+```
+</TabItem>
+<TabItem label="Python">
+```python
+from speechrouter import SpeechRouter
+
+sr = SpeechRouter(api_key=os.environ["SPEECHROUTER_API_KEY"])
+with open("meeting.wav", "rb") as f:
+    result = await sr.transcribe(model="deepgram/nova-3", file=f)
+print(result["text"])
+```
+</TabItem>
+</Tabs>
+
+## 3. Stream live audio
+
+<Tabs syncKey="lang">
+<TabItem label="JavaScript">
+```js
+import { SpeechRouter } from 'speechrouter'
+
+const sr = new SpeechRouter({ apiKey: process.env.SPEECHROUTER_API_KEY })
+const stream = sr.listen({
+  model: 'soniox/stt-rt-v5',
+  fallbacks: ['deepgram/nova-3'],   // automatic mid-stream failover
+  sampleRate: 16000,
+})
+
+stream.on('transcript', (t) => {
+  if (t.is_final) console.log(t.text)
+})
+
+// feed 16-bit PCM chunks as they arrive from your mic / telephony leg
+stream.sendAudio(pcmChunk)
+```
+</TabItem>
+<TabItem label="Python">
+```python
+from speechrouter import SpeechRouter
+
+sr = SpeechRouter(api_key=os.environ["SPEECHROUTER_API_KEY"])
+async with sr.listen(model="soniox/stt-rt-v5",
+                     fallbacks=["deepgram/nova-3"]) as stream:
+    await stream.send_audio(pcm_chunk)          # 16-bit PCM
+    async for event in stream:
+        if event["type"] == "transcript" and event["is_final"]:
+            print(event["text"])
+```
+</TabItem>
+</Tabs>
+
+## 4. Switch models
+
+Every model is a slug: `provider/model`. Change the slug, keep everything else:
+
+```text
+deepgram/nova-3            fastest general English
+soniox/stt-rt-v5           60+ languages, session-billed
+openai/gpt-4o-transcribe   LLM-grade accuracy
+speechmatics/melia-1       56-language code-switching batch
+```
+
+The full, live list with prices: [`GET /v1/models`](/reference/rest/#get-v1models)
+or the [providers section](/providers/).
+
+:::tip[Browser? Never ship your API key.]
+Mint a [short-lived client token](/authentication/#short-lived-client-tokens)
+server-side and hand that to the page instead.
+:::

@@ -7,7 +7,7 @@ TS/Python SDK types are code-generated from these files; CI fails on drift.
 |---|---|
 | `events.schema.json` | WebSocket protocol: every event on `/v1/listen` and `/v1/speak` |
 | `catalog.schema.json` | Model catalog entries: capabilities, pricing, latency |
-| `openapi.yaml` | REST endpoints (OpenAI-compatible) — TODO |
+| `openapi.yaml` | REST endpoints (OpenAI-compatible) |
 
 ## Protocol decisions (settled 2026-07-27)
 

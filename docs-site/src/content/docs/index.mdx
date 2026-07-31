@@ -1,0 +1,59 @@
+---
+title: SpeechRouter
+description: One API for every speech model — 12 providers, mid-stream failover, vendor list prices at 0% markup.
+template: splash
+hero:
+  title: Every speech model. One API.
+  tagline: Route speech-to-text across 12 providers with one key, one schema, and mid-stream failover. Switch vendors by editing a slug. Pay vendor list price — we add nothing.
+  actions:
+    - text: Quickstart
+      link: /quickstart/
+      icon: right-arrow
+      variant: primary
+    - text: Browse the models
+      link: /providers/
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import stats from '../../data/stats.json';
+
+<div class="sr-stats not-content">
+  <div class="sr-stat"><div class="v">{stats.providers}</div><div class="k">providers</div></div>
+  <div class="sr-stat"><div class="v">{stats.models}</div><div class="k">priced models</div></div>
+  <div class="sr-stat"><div class="v">0%</div><div class="k">markup</div></div>
+  <div class="sr-stat"><div class="v"><span class="sr-jack"></span>live</div><div class="k">api.speechrouter.ai</div></div>
+</div>
+
+## Thirty seconds to a transcript
+
+```bash
+curl -s https://api.speechrouter.ai/v1/audio/transcriptions \
+  -H "Authorization: Bearer $SPEECHROUTER_API_KEY" \
+  -F model=deepgram/nova-3 \
+  -F file=@meeting.wav
+```
+
+Change `deepgram/nova-3` to `soniox/stt-rt-v5`, `openai/gpt-4o-transcribe`, or any
+of the [live models](/providers/) — nothing else in your code moves.
+
+<CardGrid>
+  <Card title="One schema" icon="puzzle">
+    Every provider speaks the same events: `transcript`, `speech_started`,
+    `utterance_end`, `done`. Words, timestamps, and speakers are normalized —
+    switching vendors never rewrites your parser.
+  </Card>
+  <Card title="Mid-stream failover" icon="rocket">
+    Give `listen()` a fallback lane. If a provider dies mid-session, the stream
+    fails over live — timestamps stay monotonic and a `provider_switched` event
+    tells you it happened.
+  </Card>
+  <Card title="Honest pricing" icon="approve-check">
+    Billed at vendor list price with 0% markup, in each vendor's native unit.
+    Bring your own provider keys and pay nothing at all.
+  </Card>
+  <Card title="Deepgram drop-in" icon="setting">
+    Already on the Deepgram SDK? Point it at `api.speechrouter.ai` and keep your
+    code — the gateway speaks the Deepgram dialect natively.
+  </Card>
+</CardGrid>

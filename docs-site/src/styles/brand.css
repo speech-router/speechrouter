@@ -1,0 +1,297 @@
+/* SpeechRouter docs — the console's design system, applied to Starlight.
+   Same tokens as the cloud console (application.css):
+   grounds  console #14110b < steel-900 #1b1712 < steel-800 #241e16
+   lines    steel-700 #3a332a panel borders · steel-800 inner hairlines
+   ink      steel-100 #f2ede3 · steel-300 #b6ac9b · steel-500 #8b8172
+   accent   vu #e8a33d — scarce; carries links and current-page only
+   Dark-only by design: the console has one visual world. */
+
+:root,
+:root[data-theme='dark'],
+:root[data-theme='light'] {
+  color-scheme: dark;
+
+  --sr-console: #14110b;
+  --sr-steel-900: #1b1712;
+  --sr-steel-800: #241e16;
+  --sr-steel-700: #3a332a;
+  --sr-steel-600: #52493c;
+  --sr-steel-500: #8b8172;
+  --sr-steel-300: #b6ac9b;
+  --sr-steel-100: #f2ede3;
+  --sr-vu: #e8a33d;
+  --sr-vu-bright: #f2b85a;
+  --sr-vu-dim: #b0731f;
+  --sr-signal: #3e9b6a;
+  --sr-clip: #d25353;
+
+  /* Starlight token mapping */
+  --sl-color-accent-low: #2e2415;
+  --sl-color-accent: var(--sr-vu);
+  --sl-color-accent-high: var(--sr-vu-bright);
+  --sl-color-white: var(--sr-steel-100);
+  --sl-color-gray-1: var(--sr-steel-100);
+  --sl-color-gray-2: var(--sr-steel-300);
+  --sl-color-gray-3: var(--sr-steel-500);
+  --sl-color-gray-4: var(--sr-steel-600);
+  --sl-color-gray-5: var(--sr-steel-700);
+  --sl-color-gray-6: var(--sr-steel-800);
+  --sl-color-gray-7: var(--sr-steel-900);
+  --sl-color-black: var(--sr-console);
+  --sl-color-bg: var(--sr-console);
+  --sl-color-bg-nav: rgba(20, 17, 11, 0.88);
+  --sl-color-bg-sidebar: var(--sr-console);
+  --sl-color-hairline: var(--sr-steel-800);
+  --sl-color-hairline-light: var(--sr-steel-700);
+  --sl-color-hairline-shade: var(--sr-steel-800);
+  --sl-color-text: var(--sr-steel-300);
+  --sl-color-text-accent: var(--sr-vu);
+  --sl-color-text-invert: var(--sr-console);
+
+  --sl-font: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --sl-font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --sl-color-bg-inline-code: var(--sr-steel-800);
+
+  /* status callouts stay semantic */
+  --sl-color-green: var(--sr-signal);
+  --sl-color-green-low: rgba(62, 155, 106, 0.14);
+  --sl-color-green-high: #5fbe8b;
+  --sl-color-red: var(--sr-clip);
+  --sl-color-red-low: rgba(210, 83, 83, 0.13);
+  --sl-color-red-high: #e07f7f;
+  --sl-color-orange: var(--sr-vu);
+  --sl-color-orange-low: rgba(232, 163, 61, 0.12);
+  --sl-color-orange-high: var(--sr-vu-bright);
+  --sl-color-blue: #3e8be0;
+  --sl-color-blue-low: rgba(62, 139, 224, 0.13);
+  --sl-color-blue-high: #6faaea;
+  --sl-color-purple: #c9639e;
+  --sl-color-purple-low: rgba(201, 99, 158, 0.13);
+  --sl-color-purple-high: #d98cb8;
+}
+
+::selection {
+  background: rgba(232, 163, 61, 0.28);
+}
+
+/* ————— type: headings speak in the console's own labeling (mono) ————— */
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4,
+.content-panel h1,
+h1#_top,
+.hero h1 {
+  font-family: var(--sl-font-mono);
+  letter-spacing: -0.035em;
+  color: var(--sr-steel-100);
+  text-wrap: balance;
+}
+
+.sl-markdown-content {
+  color: var(--sr-steel-300);
+  font-size: 0.96rem;
+  line-height: 1.72;
+}
+
+.sl-markdown-content strong {
+  color: var(--sr-steel-100);
+}
+
+/* content links: quiet amber underline, brightening on hover */
+.sl-markdown-content a:not(:where(.not-content *)) {
+  color: var(--sr-vu);
+  text-decoration: underline;
+  text-decoration-color: rgba(232, 163, 61, 0.35);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 120ms ease;
+}
+.sl-markdown-content a:not(:where(.not-content *)):hover {
+  text-decoration-color: var(--sr-vu);
+}
+
+/* inline code: raised chip on the panel ground */
+.sl-markdown-content code:not(:where(.not-content *, pre *)) {
+  background: var(--sr-steel-800);
+  border: 1px solid var(--sr-steel-700);
+  border-radius: 0.3rem;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.84em;
+  color: var(--sr-steel-100);
+}
+
+/* ————— chrome: header + sidebar read as hardware panels ————— */
+header.header {
+  border-bottom: 1px solid var(--sr-steel-800);
+  backdrop-filter: blur(10px);
+}
+
+.site-title {
+  font-family: var(--sl-font-mono);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--sr-steel-100);
+}
+
+/* sidebar group labels: console eyebrows */
+#starlight__sidebar .group-label > .large {
+  font-family: var(--sl-font-mono);
+  font-size: 0.64rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--sr-steel-500);
+}
+
+#starlight__sidebar a {
+  font-size: 0.84rem;
+  color: var(--sr-steel-300);
+  border-radius: 0.35rem;
+}
+#starlight__sidebar a:hover {
+  color: var(--sr-steel-100);
+  background: var(--sr-steel-900);
+}
+#starlight__sidebar a[aria-current='page'] {
+  background: var(--sr-steel-800);
+  color: var(--sr-vu);
+  font-weight: 500;
+  box-shadow: inset 2px 0 0 var(--sr-vu);
+}
+
+/* right-hand toc */
+starlight-toc a {
+  color: var(--sr-steel-500);
+}
+starlight-toc a[aria-current='true'] {
+  color: var(--sr-vu);
+}
+
+/* ————— tables: hairlines + tabular numerals, like the console ledgers ————— */
+.sl-markdown-content table {
+  font-size: 0.84rem;
+  border-collapse: collapse;
+}
+.sl-markdown-content th {
+  font-family: var(--sl-font-mono);
+  font-size: 0.66rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--sr-steel-500);
+  border-bottom: 1px solid var(--sr-steel-700);
+  text-align: left;
+}
+.sl-markdown-content td {
+  border-bottom: 1px solid var(--sr-steel-800);
+  font-variant-numeric: tabular-nums;
+}
+.sl-markdown-content tr:last-child td {
+  border-bottom: none;
+}
+
+/* ————— panels: cards + asides catch a hairline of warm top light ————— */
+.card,
+.sl-markdown-content aside {
+  background: var(--sr-steel-900);
+  border: 1px solid var(--sr-steel-700);
+  border-radius: 0.55rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 238, 214, 0.045),
+    0 10px 28px -16px rgba(0, 0, 0, 0.55);
+}
+
+.card .title {
+  font-family: var(--sl-font-mono);
+  letter-spacing: -0.02em;
+  color: var(--sr-steel-100);
+}
+
+/* expressive-code frames get the same lift */
+.expressive-code .frame {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 238, 214, 0.04),
+    0 10px 28px -16px rgba(0, 0, 0, 0.55);
+}
+
+/* ————— hero (splash) ————— */
+.hero {
+  padding-block: 2.5rem;
+}
+.hero h1 {
+  font-size: clamp(2.1rem, 5vw, 3.4rem);
+  line-height: 1.08;
+}
+.hero .tagline {
+  color: var(--sr-steel-300);
+  max-width: 42rem;
+}
+.hero .actions a.primary {
+  background: var(--sr-vu);
+  color: var(--sr-console);
+  border: none;
+  font-family: var(--sl-font-mono);
+  font-weight: 600;
+}
+.hero .actions a.primary:hover {
+  background: var(--sr-vu-bright);
+}
+.hero .actions a.minimal {
+  font-family: var(--sl-font-mono);
+  color: var(--sr-steel-300);
+}
+
+/* jack: the little LED that marks live things */
+.sr-jack {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--sr-signal);
+  box-shadow: 0 0 6px rgba(62, 155, 106, 0.7);
+  margin-right: 0.45rem;
+  vertical-align: 0.05em;
+}
+
+/* stat strip on the homepage */
+.sr-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border: 1px solid var(--sr-steel-700);
+  border-radius: 0.55rem;
+  background: var(--sr-steel-900);
+  box-shadow: inset 0 1px 0 rgba(255, 238, 214, 0.045);
+  overflow: hidden;
+  margin-top: 2rem;
+}
+.sr-stat {
+  flex: 1 1 10rem;
+  padding: 1rem 1.25rem;
+  border-right: 1px solid var(--sr-steel-800);
+}
+.sr-stat:last-child {
+  border-right: none;
+}
+.sr-stat .v {
+  font-family: var(--sl-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--sr-steel-100);
+  letter-spacing: -0.03em;
+}
+.sr-stat .k {
+  font-family: var(--sl-font-mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: var(--sr-steel-500);
+  margin-top: 0.2rem;
+}
+
+/* scrollbars in the same metal */
+* {
+  scrollbar-color: var(--sr-steel-700) transparent;
+}
