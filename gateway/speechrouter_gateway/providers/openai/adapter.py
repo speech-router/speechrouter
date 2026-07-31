@@ -62,9 +62,11 @@ def build_session_update(config: STTConfig) -> dict:
         "format": {"type": _FORMAT_MAP[config.encoding], "rate": config.sample_rate},
         "transcription": transcription,
     }
-    session: dict = {"type": "transcription", "audio": {"input": audio_input}}
+    # turn_detection moved under audio.input in the GA realtime schema
+    # (session-level placement rejected live 2026-07-31: unknown_parameter)
     if config.model not in _NATIVE_STREAMING_MODELS:
-        session["turn_detection"] = {"type": "server_vad"}
+        audio_input["turn_detection"] = {"type": "server_vad"}
+    session: dict = {"type": "transcription", "audio": {"input": audio_input}}
     for key, value in config.provider_params.items():
         session[key] = value
     return {"type": "session.update", "session": session}

@@ -55,10 +55,10 @@ def test_session_update_nested_shape_and_vad_rules():
     assert session["type"] == "transcription"
     assert session["audio"]["input"]["format"] == {"type": "audio/pcm", "rate": 24000}
     assert session["audio"]["input"]["transcription"]["model"] == "gpt-realtime-whisper"
-    assert "turn_detection" not in session  # natively streaming: omit VAD
+    assert "turn_detection" not in session["audio"]["input"]  # native streaming: omit VAD
 
     vad = build_session_update(_config("gpt-4o-transcribe"))
-    assert vad["session"]["turn_detection"] == {"type": "server_vad"}
+    assert vad["session"]["audio"]["input"]["turn_detection"] == {"type": "server_vad"}
 
 
 def test_delta_accumulation_and_completed():

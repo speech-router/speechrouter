@@ -16,7 +16,8 @@ POLL_BUDGET_SECONDS = 1800.0
 
 
 def build_job(audio_url: str, config: STTConfig) -> dict:
-    job: dict = {"audio_url": audio_url, "speech_model": config.model}
+    # speech_model was deprecated live (2026-07-31): array form now required
+    job: dict = {"audio_url": audio_url, "speech_models": [config.model]}
     if config.language:
         job["language_code"] = config.language
     else:
