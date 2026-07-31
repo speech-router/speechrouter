@@ -15,6 +15,7 @@ Protocol facts (docs/providers/openai.md, verified 2026-07-27):
   models need server_vad. VAD events map to speech_started/utterance_end.
 """
 
+import array
 import asyncio
 import base64
 import json
@@ -39,6 +40,7 @@ WS_URL = "wss://api.openai.com/v1/realtime?intent=transcription"
 DRAIN_TIMEOUT = 5.0
 
 _FORMAT_MAP = {"linear16": "audio/pcm", "mulaw": "audio/pcmu", "alaw": "audio/pcma"}
+OPENAI_RATE = 24000  # GA realtime rejects pcm below 24 kHz (live, 2026-07-31)
 _NATIVE_STREAMING_MODELS = {"gpt-realtime-whisper"}
 
 CAPABILITIES = Capabilities(
@@ -58,8 +60,11 @@ def build_session_update(config: STTConfig) -> dict:
     transcription: dict = {"model": config.model}
     if config.language:
         transcription["language"] = config.language
+    # GA realtime requires >= 24 kHz pcm; the adapter upsamples client
+    # audio to OPENAI_RATE so any inbound rate keeps working.
+    rate = OPENAI_RATE if config.encoding == "linear16" else config.sample_rate
     audio_input: dict = {
-        "format": {"type": _FORMAT_MAP[config.encoding], "rate": config.sample_rate},
+        "format": {"type": _FORMAT_MAP[config.encoding], "rate": rate},
         "transcription": transcription,
     }
     # turn_detection moved under audio.input in the GA realtime schema
@@ -134,9 +139,14 @@ class OpenAIRealtimeSTT(STTStreamProvider):
         self._finished = False
         self._closed = False
         self._include_raw = False
+        self._step = 1.0  # input samples advanced per output sample
+        self._pos = 0.0
+        self._prev: int | None = None
 
     async def connect(self, config: STTConfig) -> None:
         self._include_raw = config.include_raw
+        if config.encoding == "linear16" and config.sample_rate != OPENAI_RATE:
+            self._step = config.sample_rate / OPENAI_RATE
         try:
             self._ws = await ws_connect(
                 self._ws_url,
@@ -155,6 +165,8 @@ class OpenAIRealtimeSTT(STTStreamProvider):
             raise ProviderStreamError(
                 "send before connect", recoverable=False, provider=self.name
             )
+        if self._step != 1.0:
+            chunk = self._upsample(chunk)
         await self._ws.send(
             json.dumps(
                 {
@@ -163,6 +175,25 @@ class OpenAIRealtimeSTT(STTStreamProvider):
                 }
             )
         )
+
+    def _upsample(self, chunk: bytes) -> bytes:
+        """Linear-interpolate int16 PCM up to OPENAI_RATE with cross-chunk
+        phase continuity (16 kHz -> 24 kHz is the common 2/3-step case)."""
+        src = array.array("h")
+        src.frombytes(chunk)
+        if self._prev is not None:
+            src.insert(0, self._prev)
+        out = array.array("h")
+        pos = self._pos
+        limit = len(src) - 1
+        while pos < limit:
+            i = int(pos)
+            frac = pos - i
+            out.append(int(src[i] * (1 - frac) + src[i + 1] * frac))
+            pos += self._step
+        self._pos = pos - limit
+        self._prev = src[-1] if len(src) else self._prev
+        return out.tobytes()
 
     async def events(self) -> AsyncIterator[STTEvent]:
         if self._ws is None:

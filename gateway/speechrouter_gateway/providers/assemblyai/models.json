@@ -38,9 +38,9 @@
     "hipaa_eligible": true
   },
   {
-    "slug": "assemblyai/universal",
+    "slug": "assemblyai/universal-2",
     "provider": "assemblyai",
-    "name": "AssemblyAI Universal (batch)",
+    "name": "AssemblyAI Universal-2 (batch)",
     "kind": "stt",
     "modes": ["batch"],
     "pricing": { "per_second_usd": 0.0000583 },
