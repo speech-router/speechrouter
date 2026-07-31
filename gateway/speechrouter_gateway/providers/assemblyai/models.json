@@ -72,6 +72,48 @@
     "hipaa_eligible": true
   },
   {
+    "slug": "assemblyai/universal-streaming-multilingual",
+    "provider": "assemblyai",
+    "name": "AssemblyAI Universal-Streaming (Multilingual)",
+    "kind": "stt",
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_session_hour_usd": 0.15012
+    },
+    "capabilities": {
+      "diarization": true,
+      "word_timestamps": true,
+      "interim_results": true,
+      "endpointing": true,
+      "keyword_boosting": true,
+      "languages": [
+        "auto",
+        "en",
+        "es",
+        "fr",
+        "de",
+        "it",
+        "pt"
+      ],
+      "encodings": [
+        "linear16",
+        "mulaw",
+        "opus",
+        "ogg-opus"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100,
+        48000
+      ]
+    },
+    "hipaa_eligible": true
+  },
+  {
     "slug": "assemblyai/universal-2",
     "provider": "assemblyai",
     "name": "AssemblyAI Universal-2 (batch)",
