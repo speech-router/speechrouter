@@ -151,7 +151,16 @@ class AzureSTTStream(STTStreamProvider):
             self._stream = speechsdk.audio.PushAudioInputStream(stream_format=audio_format)
             audio_config = speechsdk.audio.AudioConfig(stream=self._stream)
 
-            if config.diarization:
+            use_transcriber = config.model == "conversation-transcription"
+            if config.diarization and not use_transcriber:
+                # ConversationTranscriber bills on a different vendor meter
+                # ($1.20/hr vs $1.00/hr) — never silently upgrade.
+                raise ProviderStreamError(
+                    "diarization on azure requires model "
+                    "azure/conversation-transcription",
+                    recoverable=False, provider=self.name, code="invalid_request",
+                )
+            if use_transcriber:
                 recognizer = speechsdk.transcription.ConversationTranscriber(
                     speech_config=speech_config, audio_config=audio_config,
                     language=config.language or "en-US",

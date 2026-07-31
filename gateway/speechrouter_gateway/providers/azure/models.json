@@ -8,7 +8,7 @@
       "batch"
     ],
     "pricing": {
-      "per_audio_hour_usd": 0.9
+      "per_audio_hour_usd": 0.36
     },
     "capabilities": {
       "word_timestamps": true,
@@ -20,5 +20,60 @@
       "max_audio_seconds": 18000
     },
     "hipaa_eligible": true
+  },
+  {
+    "slug": "azure/speech-realtime",
+    "provider": "azure",
+    "name": "Azure Speech Realtime",
+    "kind": "stt",
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_audio_hour_usd": 1.0
+    },
+    "capabilities": {
+      "interim_results": true,
+      "word_timestamps": true,
+      "languages": [
+        "auto"
+      ],
+      "encodings": [
+        "linear16"
+      ],
+      "sample_rates": [
+        8000,
+        16000
+      ],
+      "diarization": false,
+      "keyword_boosting": true
+    }
+  },
+  {
+    "slug": "azure/conversation-transcription",
+    "provider": "azure",
+    "name": "Azure Conversation Transcription",
+    "kind": "stt",
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_audio_hour_usd": 1.2
+    },
+    "capabilities": {
+      "interim_results": true,
+      "word_timestamps": true,
+      "languages": [
+        "auto"
+      ],
+      "encodings": [
+        "linear16"
+      ],
+      "sample_rates": [
+        8000,
+        16000
+      ],
+      "diarization": true
+    }
   }
 ]
