@@ -8,6 +8,18 @@ export default defineConfig({
     starlight({
       title: 'SpeechRouter',
       favicon: '/favicon.svg',
+      head: [
+        // Privacy-friendly analytics by Plausible
+        {
+          tag: 'script',
+          attrs: { async: true, src: 'https://plausible.io/js/pa-pERz3VNfhsS18-GyTgk1n.js' },
+        },
+        {
+          tag: 'script',
+          content:
+            'window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()',
+        },
+      ],
       logo: { src: './src/assets/logo.svg', alt: '' },
       description:
         'One API for every speech model — 12 providers, mid-stream failover, vendor list prices at 0% markup.',
