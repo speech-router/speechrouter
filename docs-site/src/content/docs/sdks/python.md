@@ -4,8 +4,14 @@ description: The speechrouter package — async client for Python ≥ 3.10.
 ---
 
 ```bash
-pip install speechrouter
+pip install "git+https://github.com/speech-router/speechrouter.git#subdirectory=packages/sdk-python"
 ```
+
+:::note[PyPI package coming soon]
+The `speechrouter` name on PyPI is pending — until it lands, install straight
+from the repo with the command above. Same package, same API; switching to
+`pip install speechrouter` later is a one-line change.
+:::
 
 Async-first (`httpx` + `websockets`).
 

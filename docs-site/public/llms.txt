@@ -7,7 +7,7 @@
 
 Base URL: https://api.speechrouter.ai — streaming: wss .../v1/listen ·
 batch: POST /v1/audio/transcriptions · catalog: GET /v1/models (no auth).
-SDKs: `npm install speechrouter` / `pip install speechrouter`.
+SDKs: `npm install speechrouter` / Python: install from the repo (PyPI package coming soon): pip install "git+https://github.com/speech-router/speechrouter.git#subdirectory=packages/sdk-python"
 
 ## Start here
 - [Introduction](https://docs.speechrouter.ai/intro/)

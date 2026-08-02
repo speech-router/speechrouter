@@ -64,7 +64,11 @@ const { usage } = await stream.stop(); // finalize → transcript tail → usage
 Works in browsers (with a bundled [mic helper](packages/sdk-ts#microphone-browser)),
 Node ≥ 18, and React Native. [Full SDK docs →](packages/sdk-ts)
 
-### Python — `pip install speechrouter`
+### Python — PyPI package coming soon; install from the repo:
+
+```bash
+pip install "git+https://github.com/speech-router/speechrouter.git#subdirectory=packages/sdk-python"
+```
 
 ```python
 from speechrouter import SpeechRouter, Transcript

@@ -6,7 +6,8 @@ Async Python SDK: streaming speech-to-text over WebSocket with mid-stream
 provider failover, plus batch transcription.
 
 ```sh
-pip install speechrouter
+pip install "git+https://github.com/speech-router/speechrouter.git#subdirectory=packages/sdk-python"
+# (PyPI package coming soon — the name is pending approval)
 ```
 
 ## Streaming
