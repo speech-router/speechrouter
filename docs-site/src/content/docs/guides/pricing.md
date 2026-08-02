@@ -29,7 +29,10 @@ catalog the billing engine uses, so they cannot drift from what you're charged.
 
 Prepaid credits, minimum $5 top-up via Stripe, never expire. New accounts get a
 $2 welcome credit on email verification. When the balance hits zero, new
-sessions are rejected with `insufficient_credits` (running sessions finish).
+sessions are rejected with `insufficient_credits`, and running streams are
+metered every ~30 seconds against your live balance — a session that exhausts
+the last credit mid-stream closes cleanly with the same error, so you spend
+every cent you have and not a cent more.
 
 ## The ledger
 

@@ -104,3 +104,18 @@ def test_diarize_model_resolves_with_diarization():
     assert OpenAISTTBatch("x").extra_form(resolved.config) == {
         "response_format": "diarized_json"
     }
+
+
+def test_resolver_carries_list_price_for_metering():
+    from speechrouter_gateway.config import Settings
+    from speechrouter_gateway.router.catalog import Catalog
+    from speechrouter_gateway.router.resolver import StreamRequest, resolve_stream
+
+    catalog = Catalog.load()
+    r = resolve_stream("soniox/stt-rt-v5", StreamRequest(),
+                       Settings(soniox_api_key="x"), catalog)
+    assert abs(r.price_per_second_usd - 0.12 / 3600) < 1e-12
+
+    r = resolve_stream("deepgram/nova-3", StreamRequest(),
+                       Settings(deepgram_api_key="x"), catalog)
+    assert abs(r.price_per_second_usd - 0.0048 / 60) < 1e-12

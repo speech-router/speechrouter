@@ -173,6 +173,8 @@ async def listen(websocket: WebSocket) -> None:
         key_id=record.key_id,
         byok=byok_used,
         settings=state.settings,
+        org_id=record.org_id,
+        redis=getattr(state.keystore, "redis", None),
     )
     try:
         await session.run()

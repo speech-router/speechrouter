@@ -75,6 +75,8 @@ class STTSession:
         key_id: str,
         settings: Settings,
         byok: bool = False,
+        org_id: str | None = None,
+        redis=None,
     ):
         assert attempts, "resolver guarantees at least one attempt"
         self._transport = transport
@@ -83,6 +85,8 @@ class STTSession:
         self._key_id = key_id
         self._byok = byok
         self._settings = settings
+        self._org_id = org_id
+        self._redis = redis
         primary = attempts[0].config
         self._ring = AudioRing(
             max_seconds=settings.ring_buffer_seconds,
@@ -293,8 +297,12 @@ class STTSession:
                 )
 
     async def _watchdog(self) -> None:
+        tick = 0
         while True:
             await asyncio.sleep(1.0)
+            tick += 1
+            if tick % 30 == 0:
+                await self._check_credits()
             now = time.monotonic()
             if now - self._started > self._settings.max_session_seconds:
                 raise SessionLimit(
@@ -308,6 +316,35 @@ class STTSession:
                     "audio_timeout",
                     "no audio or keepalive received; closing idle session",
                 )
+
+    async def _check_credits(self) -> None:
+        """Cut the stream cleanly when this session's accrued cost exhausts
+        the org's balance. Fail OPEN on any infra hiccup — the blocked flag
+        at admission stays the hard gate; this bounds mid-session overdraw
+        to ~30s of audio."""
+        price = self._attempts[0].price_per_second_usd
+        if self._byok or price <= 0 or self._redis is None or not self._org_id:
+            return
+        try:
+            raw = await self._redis.get(f"speechrouter:balance:{self._org_id}")
+        except Exception:  # noqa: BLE001 - metering must never kill a healthy stream
+            return
+        if raw is None:
+            return
+        balance_microusd = int(raw)
+        seconds = (
+            time.monotonic() - self._started
+            if self._attempts[0].billing_basis == BillingBasis.SESSION_TIME
+            else self._ring.audio_seconds
+        )
+        accrued_microusd = seconds * price * 1_000_000
+        if balance_microusd - accrued_microusd <= 0:
+            raise SessionLimit(
+                Code.insufficient_credits,
+                "insufficient_credits",
+                "credit balance exhausted mid-session — "
+                "top up at speechrouter.ai/settings/billing",
+            )
 
     # ---------------------------------------------------------------- misc
 

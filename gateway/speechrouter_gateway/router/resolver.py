@@ -44,6 +44,9 @@ class ResolvedAttempt:
     config: STTConfig
     build: Callable[[], STTStreamProvider]
     billing_basis: str = BillingBasis.AUDIO_TIME
+    # catalog list price (USD per billed second) — drives mid-session
+    # credit metering; 0.0 = unpriced, never metered
+    price_per_second_usd: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -95,7 +98,8 @@ def resolve_stream(
     registered = stt_stream_provider(provider_id)
     if registered is None:
         raise ResolveError(Code.model_not_found, f"unknown provider '{provider_id}'")
-    if catalog.find(slug) is None:
+    entry = catalog.find(slug)
+    if entry is None:
         raise ResolveError(Code.model_not_found, f"unknown model '{slug}'")
 
     caps = registered.capabilities
@@ -130,4 +134,7 @@ def resolve_stream(
         config=config,
         build=partial(registered.build, settings),
         billing_basis=registered.capabilities.billing_basis,
+        price_per_second_usd=float(
+            (entry.get("pricing") or {}).get("per_second_usd") or 0.0
+        ),
     )
