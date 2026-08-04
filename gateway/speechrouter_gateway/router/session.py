@@ -141,9 +141,11 @@ class STTSession:
                     )
                 )
             else:  # reader returned without exception: clean disconnect
-                self._status = "client_disconnect"
+                # a client that sent finalize said a formal goodbye — record
+                # completed even if it left before the done frame landed
+                self._status = "completed" if self._finalized else "client_disconnect"
         except SessionClosed:
-            self._status = "client_disconnect"
+            self._status = "completed" if self._finalized else "client_disconnect"
         except SessionLimit as exc:
             self._status = exc.status
             await self._try_send_error(exc.code, exc.message)
