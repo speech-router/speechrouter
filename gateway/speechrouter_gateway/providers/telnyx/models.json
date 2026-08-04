@@ -1,0 +1,24 @@
+[
+  {
+    "slug": "telnyx/telnyx",
+    "provider": "telnyx",
+    "name": "Telnyx STT (in-house engine)",
+    "kind": "stt",
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_audio_minute_usd": 0.025
+    },
+    "capabilities": {
+      "interim_results": false,
+      "word_timestamps": false,
+      "diarization": false,
+      "endpointing": false,
+      "keyword_boosting": false,
+      "languages": [
+        "auto"
+      ]
+    }
+  }
+]
