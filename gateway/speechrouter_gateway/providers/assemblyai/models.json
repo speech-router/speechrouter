@@ -18,12 +18,25 @@
       "keyword_boosting": true,
       "languages": [
         "auto",
+        "multi",
         "en",
         "es",
-        "fr",
         "de",
+        "fr",
+        "pt",
         "it",
-        "pt"
+        "tr",
+        "nl",
+        "sv",
+        "no",
+        "da",
+        "fi",
+        "hi",
+        "vi",
+        "ar",
+        "he",
+        "ja",
+        "zh"
       ],
       "encodings": [
         "linear16",
@@ -98,10 +111,10 @@
         "auto",
         "en",
         "es",
-        "fr",
         "de",
-        "it",
-        "pt"
+        "fr",
+        "pt",
+        "it"
       ],
       "encodings": [
         "linear16",
@@ -135,7 +148,24 @@
       "word_timestamps": true,
       "keyword_boosting": true,
       "languages": [
-        "auto"
+        "auto",
+        "en",
+        "es",
+        "fr",
+        "de",
+        "it",
+        "pt",
+        "nl",
+        "hi",
+        "ja",
+        "zh",
+        "fi",
+        "ko",
+        "pl",
+        "ru",
+        "tr",
+        "uk",
+        "vi"
       ]
     },
     "hipaa_eligible": true

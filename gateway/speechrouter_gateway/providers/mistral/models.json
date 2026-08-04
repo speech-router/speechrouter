@@ -15,6 +15,7 @@
       "diarization": true,
       "keyword_boosting": true,
       "languages": [
+        "auto",
         "en",
         "zh",
         "hi",
@@ -50,13 +51,18 @@
       "languages": [
         "auto",
         "en",
-        "fr",
-        "de",
+        "zh",
+        "hi",
         "es",
-        "it",
+        "ar",
+        "fr",
         "pt",
-        "nl",
-        "hi"
+        "ru",
+        "de",
+        "ja",
+        "ko",
+        "it",
+        "nl"
       ],
       "encodings": [
         "linear16",
