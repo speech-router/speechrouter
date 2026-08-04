@@ -16,7 +16,32 @@
       "endpointing": true,
       "keyword_boosting": true,
       "languages": [
-        "auto"
+        "auto",
+        "en",
+        "es",
+        "fr",
+        "de",
+        "it",
+        "pt",
+        "nl",
+        "ru",
+        "zh",
+        "ja",
+        "ko",
+        "hi",
+        "ar",
+        "tr",
+        "pl",
+        "uk",
+        "vi",
+        "th",
+        "id",
+        "ms",
+        "sv",
+        "fi",
+        "cs",
+        "el",
+        "ro"
       ],
       "encodings": [
         "linear16",
@@ -29,7 +54,8 @@
         24000,
         44100,
         48000
-      ]
+      ],
+      "language_hints": true
     }
   },
   {

@@ -48,7 +48,26 @@
       "word_timestamps": true,
       "interim_results": true,
       "languages": [
-        "auto"
+        "auto",
+        "en",
+        "es",
+        "fr",
+        "de",
+        "it",
+        "pt",
+        "nl",
+        "ru",
+        "zh",
+        "ja",
+        "ko",
+        "hi",
+        "ar",
+        "tr",
+        "pl",
+        "uk",
+        "sv",
+        "cs",
+        "ro"
       ],
       "encodings": [
         "linear16",

@@ -15,7 +15,22 @@
       "interim_results": true,
       "endpointing": true,
       "languages": [
-        "auto"
+        "auto",
+        "en",
+        "es",
+        "fr",
+        "de",
+        "it",
+        "pt",
+        "nl",
+        "ru",
+        "zh",
+        "ja",
+        "ko",
+        "hi",
+        "ar",
+        "tr",
+        "pl"
       ],
       "encodings": [
         "linear16",
@@ -61,7 +76,22 @@
     "capabilities": {
       "word_timestamps": false,
       "languages": [
-        "auto"
+        "auto",
+        "en",
+        "es",
+        "fr",
+        "de",
+        "it",
+        "pt",
+        "nl",
+        "ru",
+        "zh",
+        "ja",
+        "ko",
+        "hi",
+        "ar",
+        "tr",
+        "pl"
       ]
     }
   },
@@ -80,7 +110,22 @@
     "capabilities": {
       "word_timestamps": false,
       "languages": [
-        "auto"
+        "auto",
+        "en",
+        "es",
+        "fr",
+        "de",
+        "it",
+        "pt",
+        "nl",
+        "ru",
+        "zh",
+        "ja",
+        "ko",
+        "hi",
+        "ar",
+        "tr",
+        "pl"
       ]
     }
   },

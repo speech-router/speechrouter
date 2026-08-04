@@ -17,7 +17,13 @@
       "endpointing": true,
       "keyword_boosting": true,
       "languages": [
-        "auto"
+        "auto",
+        "en",
+        "es",
+        "fr",
+        "de",
+        "it",
+        "pt"
       ],
       "encodings": [
         "linear16",

@@ -19,7 +19,17 @@
       "keyword_boosting": true,
       "languages": [
         "auto",
-        "multi"
+        "multi",
+        "en",
+        "es",
+        "fr",
+        "de",
+        "hi",
+        "ru",
+        "pt",
+        "ja",
+        "it",
+        "nl"
       ],
       "encodings": [
         "linear16",
@@ -99,7 +109,24 @@
       "endpointing": true,
       "keyword_boosting": true,
       "languages": [
-        "auto"
+        "auto",
+        "en",
+        "es",
+        "fr",
+        "de",
+        "hi",
+        "ja",
+        "ko",
+        "zh",
+        "pt",
+        "it",
+        "nl",
+        "ru",
+        "tr",
+        "pl",
+        "uk",
+        "sv",
+        "id"
       ],
       "encodings": [
         "linear16",
