@@ -92,8 +92,12 @@ def parse_message(raw: str, include_raw: bool = False) -> list[STTEvent]:
             [Transcript(type="transcript", is_final=False, text=text,
                         provider_raw=msg if include_raw else None)] if text.strip() else []
         )
-    if kind in ("committed_transcript", "final_transcript",
-                "committed_transcript_with_timestamps", "final_transcript_with_timestamps"):
+    if kind in ("committed_transcript", "final_transcript"):
+        # ElevenLabs sends BOTH the plain commit and its _with_timestamps
+        # sibling for the same audio; we always request timestamps, so the
+        # plain one is a duplicate — drop it or every final doubles.
+        return []
+    if kind in ("committed_transcript_with_timestamps", "final_transcript_with_timestamps"):
         text = msg.get("text", "")
         if not text.strip():
             return []

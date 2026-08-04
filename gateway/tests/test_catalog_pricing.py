@@ -119,3 +119,21 @@ def test_resolver_carries_list_price_for_metering():
     r = resolve_stream("deepgram/nova-3", StreamRequest(),
                        Settings(deepgram_api_key="x"), catalog)
     assert abs(r.price_per_second_usd - 0.0048 / 60) < 1e-12
+
+
+def test_elevenlabs_plain_commit_is_dropped_as_duplicate():
+    from speechrouter_gateway.providers.elevenlabs.adapter import parse_message
+
+    plain = {"message_type": "committed_transcript", "text": "hello there"}
+    stamped = {
+        "message_type": "committed_transcript_with_timestamps",
+        "text": "hello there",
+        "words": [
+            {"type": "word", "text": "hello", "start": 0.1, "end": 0.4},
+            {"type": "word", "text": "there", "start": 0.5, "end": 0.8},
+        ],
+    }
+    import json
+    assert parse_message(json.dumps(plain)) == []
+    finals = parse_message(json.dumps(stamped))
+    assert len(finals) == 1 and finals[0].is_final and finals[0].text == "hello there"

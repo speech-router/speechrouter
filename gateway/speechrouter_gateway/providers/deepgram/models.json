@@ -18,7 +18,8 @@
       "endpointing": true,
       "keyword_boosting": true,
       "languages": [
-        "auto"
+        "auto",
+        "multi"
       ],
       "encodings": [
         "linear16",
