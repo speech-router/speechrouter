@@ -35,3 +35,4 @@ from .soniox import adapter as _soniox_adapter  # noqa: F401  (self-registers)
 from .soniox import batch as _soniox_batch  # noqa: F401
 from .speechmatics import adapter as _speechmatics_adapter  # noqa: F401
 from .speechmatics import batch as _speechmatics_batch  # noqa: F401
+from .telnyx import adapter as _telnyx_adapter  # noqa: F401  (self-registers)

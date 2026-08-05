@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     soniox_api_key: str = ""
     assemblyai_api_key: str = ""
     speechmatics_api_key: str = ""
+    telnyx_api_key: str = ""
     mistral_api_key: str = ""
     google_project_id: str = ""
 
