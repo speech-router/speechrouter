@@ -102,7 +102,7 @@ def parse_message(raw: str, include_raw: bool = False) -> list[STTEvent]:
         detail = first.get("detail") or first.get("title") or "unknown error"
         raise ProviderStreamError(
             f"telnyx error: {detail}", recoverable=False, provider="telnyx",
-            code=str(first.get("code", "")) or None,
+            code=str(first.get("code", "")),
         )
 
     text = msg.get("transcript", "")
