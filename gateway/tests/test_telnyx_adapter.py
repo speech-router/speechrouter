@@ -35,10 +35,17 @@ def test_whitespace_only_transcript_is_skipped():
     assert events == []
 
 
-def test_error_frame_is_skipped():
+def test_error_frame_raises_provider_error():
     import json
-    events = parse_message(json.dumps({"errors": [{"title": "bad"}]}))
-    assert events == []
+
+    import pytest
+
+    from speechrouter_gateway.providers.base import ProviderStreamError
+
+    with pytest.raises(ProviderStreamError) as exc:
+        parse_message(json.dumps({"errors": [{"title": "bad param", "code": "10015"}]}))
+    assert "bad param" in str(exc.value)
+    assert exc.value.code == "10015"
 
 
 def test_include_raw_attaches_provider_payload():

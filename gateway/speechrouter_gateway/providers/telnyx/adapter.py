@@ -21,7 +21,9 @@ Protocol facts (docs/providers/telnyx.md, verified 2026-08-04):
 - Billing: per minute of audio processed (AUDIO_TIME).
 """
 
+import json
 from collections.abc import AsyncIterator
+from urllib.parse import urlencode
 
 import websockets
 
@@ -39,6 +41,7 @@ from ..registry import ProviderNotConfigured, register_stt_stream
 from ..wsconnect import ws_connect
 
 WS_BASE = "wss://api.telnyx.com/v2/speech-to-text/transcription"
+_ENGINE = "Telnyx"  # capitalized per Telnyx docs; lowercase closes the socket
 
 _ENCODING_MAP = {
     "linear16": "linear16",
@@ -46,6 +49,9 @@ _ENCODING_MAP = {
     "alaw": "alaw",
 }
 
+# NOTE: mono only — the endpoint takes no channels param; stereo input
+# would be misread as mono at double rate. The resolver's channel checks
+# plus this comment are the guard until Telnyx documents multichannel.
 CAPABILITIES = Capabilities(
     streaming=True,
     interim_results=False,  # Telnyx engine only emits a single final
@@ -61,7 +67,7 @@ CAPABILITIES = Capabilities(
 def build_url(config: STTConfig, base: str = WS_BASE) -> str:
     """Build the WebSocket URL with query params. Model is the engine name."""
     params: list[tuple[str, str]] = [
-        ("transcription_engine", config.model.capitalize()),
+        ("transcription_engine", _ENGINE),
         ("input_format", _ENCODING_MAP[config.encoding]),
         ("sample_rate", str(config.sample_rate)),
     ]
@@ -69,7 +75,6 @@ def build_url(config: STTConfig, base: str = WS_BASE) -> str:
         params.append(("language", config.language))
     for key, value in config.provider_params.items():
         params.append((key, str(value)))
-    from urllib.parse import urlencode
     return f"{base}?{urlencode(params)}"
 
 
@@ -78,13 +83,18 @@ def parse_message(raw: str, include_raw: bool = False) -> list[STTEvent]:
 
     Side-effect free so fixture tests can drive it without a socket.
     """
-    import json
     msg = json.loads(raw)
     events: list[STTEvent] = []
 
-    # Telnyx error frames: {"errors": [...]} -- not transcript data.
+    # Telnyx error frames: {"errors": [...]} — surface them; a swallowed
+    # error means a session that sits silent until the idle timeout.
     if msg.get("errors"):
-        return events
+        first = (msg["errors"] or [{}])[0]
+        detail = first.get("detail") or first.get("title") or "unknown error"
+        raise ProviderStreamError(
+            f"telnyx error: {detail}", recoverable=False, provider="telnyx",
+            code=str(first.get("code", "")) or None,
+        )
 
     text = msg.get("transcript", "")
     if not text.strip():
