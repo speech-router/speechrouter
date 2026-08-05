@@ -16,11 +16,20 @@ Protocol facts (docs/providers/telnyx.md, verified 2026-08-04):
   engine (verified) -> Capabilities.interim_results is False so the
   resolver never asks for them.
 - No CloseStream: that frame is documented for Deepgram/Speechmatics/Soniox
-  engines only. finish() is a no-op; the server flushes and closes on its
-  own once audio stops.
+  engines only, and no equivalent exists for Telnyx.
+- IMPORTANT (live-verified 2026-08-05, corrects an earlier assumption in
+  this file): the server does NOT close the socket after a final. On a
+  continuous stream with multiple utterances it stays open and keeps
+  emitting one final per utterance. That means finish() cannot rely on a
+  server-initiated close to end events() -- with no signal ever sent, a
+  well-behaved client that waits for `done` would hang until the session's
+  hard cap. finish() therefore grace-waits briefly for a trailing final,
+  then closes the socket itself.
 - Billing: per minute of audio processed (AUDIO_TIME).
 """
 
+import asyncio
+import contextlib
 import json
 from collections.abc import AsyncIterator
 from urllib.parse import urlencode
@@ -177,11 +186,21 @@ class TelnyxSTTStream(STTStreamProvider):
                 code=str(exc.code),
             ) from exc
 
+    # Grace window after the last audio chunk for a trailing final to
+    # arrive before we close the socket ourselves. Telnyx's own endpointing
+    # fired well under 1s of trailing silence in live testing; 2s leaves
+    # headroom without meaningfully delaying `done` for the client.
+    _FINISH_GRACE_SECONDS = 2.0
+
     async def finish(self) -> None:
-        # No explicit flush signal for the Telnyx engine. The server emits the
-        # final transcript after audio stops and closes the socket. Mark
-        # finished so events() tolerates the close.
+        if self._finished or self._ws is None:
+            return
         self._finished = True
+        await asyncio.sleep(self._FINISH_GRACE_SECONDS)
+        # events() treats a close at this point (finished=True) as a clean
+        # end of stream, whether it arrives as ConnectionClosedOK or not.
+        with contextlib.suppress(Exception):
+            await self._ws.close()
 
     async def close(self) -> None:
         if self._closed:

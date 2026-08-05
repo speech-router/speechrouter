@@ -95,3 +95,52 @@ def test_build_url_provider_params_passthrough():
     url = build_url(config)
     qs = parse_qs(url.split("?", 1)[1])
     assert qs["custom_param"] == ["value123"]
+
+
+def test_finish_closes_socket_after_grace_period():
+    """Telnyx never closes the socket on its own (live-verified 2026-08-05),
+    so finish() must proactively close it -- otherwise a client that waits
+    for `done` hangs forever. Regression test for that fix."""
+    import asyncio
+
+    from speechrouter_gateway.providers.telnyx.adapter import TelnyxSTTStream
+
+    class FakeWS:
+        def __init__(self):
+            self.closed = False
+
+        async def close(self):
+            self.closed = True
+
+    async def run():
+        adapter = TelnyxSTTStream(api_key="x")
+        adapter._ws = FakeWS()
+        adapter._FINISH_GRACE_SECONDS = 0  # don't slow down the test suite
+        await adapter.finish()
+        assert adapter._finished is True
+        assert adapter._ws.closed is True
+
+    asyncio.run(run())
+
+
+def test_finish_is_idempotent():
+    import asyncio
+
+    from speechrouter_gateway.providers.telnyx.adapter import TelnyxSTTStream
+
+    class FakeWS:
+        def __init__(self):
+            self.close_calls = 0
+
+        async def close(self):
+            self.close_calls += 1
+
+    async def run():
+        adapter = TelnyxSTTStream(api_key="x")
+        adapter._ws = FakeWS()
+        adapter._FINISH_GRACE_SECONDS = 0
+        await adapter.finish()
+        await adapter.finish()  # second call must be a no-op
+        assert adapter._ws.close_calls == 1
+
+    asyncio.run(run())

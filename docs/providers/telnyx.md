@@ -41,7 +41,10 @@ One JSON text frame per finalized transcript:
 ```
 
 - **No interim frames.** The Telnyx engine emits exactly one final
-  transcript after audio stops arriving, then closes the socket (1000 OK).
+  transcript after audio stops arriving. CORRECTION (live-verified
+  2026-08-05): the socket does NOT close itself -- on a continuous stream
+  it stays open and keeps emitting one final per utterance. finish() must
+  close the socket from our side after a grace period.
   Adding `interim_results=true` to the URL **suppresses ALL output** from
   the Telnyx engine (verified) -- `Capabilities.interim_results` is False.
 - **No word timestamps**, no speaker labels, no `speech_started`, no
@@ -54,8 +57,11 @@ One JSON text frame per finalized transcript:
 ### Shutdown
 
 No `CloseStream` frame -- that is documented for Deepgram/Speechmatics/
-Soniox engines only. The server flushes and closes on its own once audio
-stops arriving. `finish()` is a no-op marker; `close()` closes the socket.
+Soniox engines only, and no equivalent exists here. The server does NOT
+close on its own once audio stops (live-verified 2026-08-05: it stayed
+open across two utterances separated by silence). `finish()` grace-waits
+~2s for a trailing final, then closes the socket itself -- otherwise a
+client waiting for `done` hangs until the session's hard cap.
 
 ### Error frames
 
