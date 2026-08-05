@@ -170,6 +170,13 @@ SpeechmaticsParams = TypedDict(
 )
 """Provider-specific options for speechmatics/* models."""
 
+TelnyxParams = TypedDict(
+    "TelnyxParams",
+    {},
+    total=False,
+)
+"""Provider-specific options for telnyx/* models."""
+
 PROVIDER_PARAMS = {
     "assemblyai": AssemblyaiParams,
     "aws": AwsParams,
@@ -183,4 +190,5 @@ PROVIDER_PARAMS = {
     "openai": OpenaiParams,
     "soniox": SonioxParams,
     "speechmatics": SpeechmaticsParams,
+    "telnyx": TelnyxParams,
 }

@@ -207,6 +207,11 @@ export interface SpeechmaticsParams {
   [key: string]: unknown
 }
 
+/** Provider-specific options for `telnyx/*` models. */
+export interface TelnyxParams {
+  [key: string]: unknown
+}
+
 /** Map from provider name to its typed params. */
 export interface ProviderParamsMap {
   assemblyai: AssemblyaiParams
@@ -221,4 +226,5 @@ export interface ProviderParamsMap {
   openai: OpenaiParams
   soniox: SonioxParams
   speechmatics: SpeechmaticsParams
+  telnyx: TelnyxParams
 }
