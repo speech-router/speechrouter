@@ -5,9 +5,9 @@ FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim AS build
 WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 COPY gateway/pyproject.toml gateway/uv.lock ./
-RUN uv sync --frozen --no-install-project --no-dev --extra azure
+RUN uv sync --frozen --no-install-project --no-dev --extra azure --extra google
 COPY gateway/ ./
-RUN uv sync --frozen --no-dev --extra azure
+RUN uv sync --frozen --no-dev --extra azure --extra google
 
 FROM python:3.14-slim-trixie
 # libasound2: runtime requirement of the Azure Speech SDK's native lib

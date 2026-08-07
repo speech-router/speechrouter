@@ -133,15 +133,16 @@ def build(settings: Settings) -> "GoogleSTTStream":
     if not settings.google_project_id:
         raise ProviderNotConfigured("google")
     _import_sdk()
-    return GoogleSTTStream(settings.google_project_id)
+    return GoogleSTTStream(settings.google_project_id, settings.google_credentials_json)
 
 
 class GoogleSTTStream(STTStreamProvider):
     name = "google"
     capabilities = CAPABILITIES
 
-    def __init__(self, project_id: str):
+    def __init__(self, project_id: str, credentials_json: str = ""):
         self._project_id = project_id
+        self._credentials_json = credentials_json
         self._queue: asyncio.Queue[Any] = asyncio.Queue()
         self._config: STTConfig | None = None
         self._client = None
@@ -155,9 +156,19 @@ class GoogleSTTStream(STTStreamProvider):
         self._byte_rate = config.sample_rate * 2 * config.channels
         location = location_for(config.model)
         try:
-            self._client = speech_v2.SpeechAsyncClient(
-                client_options=client_options_cls(api_endpoint=endpoint_for(location))
-            )
+            client_kwargs: dict[str, Any] = {
+                "client_options": client_options_cls(api_endpoint=endpoint_for(location))
+            }
+            if self._credentials_json:
+                import json as _json  # noqa: PLC0415
+
+                from google.oauth2 import service_account  # noqa: PLC0415
+
+                info = _json.loads(self._credentials_json)
+                client_kwargs["credentials"] = (
+                    service_account.Credentials.from_service_account_info(info)
+                )
+            self._client = speech_v2.SpeechAsyncClient(**client_kwargs)
         except Exception as exc:
             raise ProviderStreamError(
                 f"google client init failed: {exc}", recoverable=False, provider=self.name

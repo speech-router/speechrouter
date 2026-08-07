@@ -42,6 +42,11 @@ class Settings(BaseSettings):
     telnyx_api_key: str = ""
     mistral_api_key: str = ""
     google_project_id: str = ""
+    # Full service-account JSON as a string secret -- keeps prod deploys on
+    # the same plain-env-var pattern as every other provider (no file
+    # mounting in Kamal). Local dev can still use GOOGLE_APPLICATION_CREDENTIALS
+    # pointing at a file; this takes precedence when set.
+    google_credentials_json: str = ""
 
     # observability — empty means disabled
     sentry_dsn: str = ""
