@@ -84,6 +84,7 @@ export default defineConfig({
             { label: 'Bring your own keys', slug: 'guides/byok' },
             { label: 'Pricing & billing', slug: 'guides/pricing' },
             { label: 'Self-hosting', slug: 'guides/self-hosting' },
+            { label: 'Audio persistence', slug: 'guides/audio-persistence' },
           ],
         },
         {

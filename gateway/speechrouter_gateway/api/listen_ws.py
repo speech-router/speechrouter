@@ -175,6 +175,7 @@ async def listen(websocket: WebSocket) -> None:
         settings=state.settings,
         org_id=record.org_id,
         redis=getattr(state.keystore, "redis", None),
+        audio_sink=state.audio_sink,
     )
     try:
         await session.run()

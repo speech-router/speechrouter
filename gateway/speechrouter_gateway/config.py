@@ -17,6 +17,11 @@ class UsageEmitterKind(StrEnum):
     redis = "redis"  # XADD to the usage stream consumed by cloud
 
 
+class AudioSinkKind(StrEnum):
+    none = "none"  # default everywhere, including api.speechrouter.ai
+    s3 = "s3"  # stream raw session audio to an S3 bucket you own
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="SPEECHROUTER_", env_file=".env", extra="ignore")
 
@@ -61,6 +66,18 @@ class Settings(BaseSettings):
     elevenlabs_api_key: str = ""
     cartesia_api_key: str = ""
     groq_api_key: str = ""
+
+    # Optional audio persistence -- off by default. When enabled, session
+    # audio streams to this bucket via real multipart upload (never
+    # buffered whole in memory). Credentials/region default to the AWS
+    # Transcribe settings above when left blank -- set the _-prefixed
+    # variants only if the sink should use a different account/bucket.
+    audio_sink: AudioSinkKind = AudioSinkKind.none
+    audio_sink_bucket: str = ""
+    audio_sink_prefix: str = ""
+    audio_sink_region: str = ""
+    audio_sink_access_key: str = ""
+    audio_sink_secret_key: str = ""
 
 
 @lru_cache
