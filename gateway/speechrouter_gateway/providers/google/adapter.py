@@ -160,11 +160,21 @@ class GoogleSTTStream(STTStreamProvider):
                 "client_options": client_options_cls(api_endpoint=endpoint_for(location))
             }
             if self._credentials_json:
+                import base64  # noqa: PLC0415
                 import json as _json  # noqa: PLC0415
 
                 from google.oauth2 import service_account  # noqa: PLC0415
 
-                info = _json.loads(self._credentials_json)
+                # Base64: the raw JSON's escaped \n in the private key does
+                # not survive some deploy-secret pipelines intact (verified
+                # 2026-08-07 -- arrived corrupted through Kamal's env-file
+                # write). Base64 has no backslashes or quotes to mangle.
+                raw = self._credentials_json
+                try:
+                    raw = base64.b64decode(raw).decode("utf-8")
+                except Exception:  # noqa: BLE001 - not base64: assume raw JSON (local dev)
+                    pass
+                info = _json.loads(raw)
                 client_kwargs["credentials"] = (
                     service_account.Credentials.from_service_account_info(info)
                 )
