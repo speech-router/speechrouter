@@ -4,7 +4,7 @@ description: Every provider behind the one API.
 sidebar: { order: 0, label: Overview }
 ---
 
-12 providers, 36 models, one schema. Prices below are
+13 providers, 37 models, one schema. Prices below are
 vendor list prices — [we add nothing](/guides/pricing/).
 
 - [Soniox](/providers/soniox/) — 60+ languages with translation-grade accuracy; realtime bills wall-clock session time.
@@ -19,5 +19,6 @@ vendor list prices — [we add nothing](/guides/pricing/).
 - [Mistral](/providers/mistral/) — Voxtral — open-weights transcription via Mistral's API.
 - [OpenAI](/providers/openai/) — Whisper and the GPT-4o transcribe family — LLM-grade accuracy.
 - [Speechmatics](/providers/speechmatics/) — Broad language coverage; Melia-1 code-switches across 56 languages.
+- [Telnyx](/providers/telnyx/) — Whisper Large-v3-Turbo as a live stream — 100 languages, hosted by Telnyx.
 
 The live, machine-readable version: [`GET /v1/models`](/reference/rest/#get-v1models).
