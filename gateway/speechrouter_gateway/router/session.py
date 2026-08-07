@@ -77,6 +77,7 @@ class STTSession:
         byok: bool = False,
         org_id: str | None = None,
         redis=None,
+        audio_sink=None,
     ):
         assert attempts, "resolver guarantees at least one attempt"
         self._transport = transport
@@ -87,6 +88,7 @@ class STTSession:
         self._settings = settings
         self._org_id = org_id
         self._redis = redis
+        self._audio_sink = audio_sink
         primary = attempts[0].config
         self._ring = AudioRing(
             max_seconds=settings.ring_buffer_seconds,
@@ -167,6 +169,8 @@ class STTSession:
             for task in all_tasks:
                 task.cancel()
             await asyncio.gather(*all_tasks, return_exceptions=True)
+            if self._audio_sink is not None:
+                await self._audio_sink.on_session_end(self._session_id)
             await self._emit_usage()
 
     # ------------------------------------------------------------- provider
@@ -285,6 +289,8 @@ class STTSession:
             if isinstance(message, bytes):
                 if message and not self._finalized:
                     await self._ring.append(message)
+                    if self._audio_sink is not None:
+                        await self._audio_sink.on_chunk(self._session_id, message)
                 continue
             event_type = _peek_type(message)
             if event_type == "finalize":

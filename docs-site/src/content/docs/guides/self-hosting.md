@@ -39,6 +39,7 @@ Everything is env vars with the `SPEECHROUTER_` prefix (or a `.env` file):
 | `SPEECHROUTER_MAX_CONCURRENT_STREAMS` | `20` | Per key; `0` = unlimited |
 | `SPEECHROUTER_MAX_SESSION_SECONDS` | `14400` | Hard session cap (4 h) |
 | `SPEECHROUTER_IDLE_TIMEOUT_SECONDS` | `60` | Close idle sessions |
+| `SPEECHROUTER_AUDIO_SINK` | `none` | `none` = no persistence (also the hosted default); `s3` = stream session audio to your own bucket — see [Audio persistence](/guides/audio-persistence/) |
 
 Provider keys — set the ones you use:
 

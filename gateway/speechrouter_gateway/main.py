@@ -11,6 +11,7 @@ from .api.listen_ws import router as listen_router
 from .api.models import router as models_router
 from .api.tokens import router as tokens_router
 from .api.transcriptions import router as transcriptions_router
+from .audio import build_audio_sink
 from .auth import build_keystore
 from .auth.tokens import LocalTokenStore, RedisTokenStore
 from .config import KeyStoreKind, settings
@@ -47,6 +48,7 @@ async def lifespan(app: FastAPI):
         else LocalTokenStore()
     )
     app.state.emitter = build_emitter(cfg)
+    app.state.audio_sink = build_audio_sink(cfg)
     app.state.catalog = Catalog.load()
     app.state.concurrency = ConcurrencyGuard(limit=cfg.max_concurrent_streams)
     if cfg.keystore == KeyStoreKind.none:
@@ -56,6 +58,7 @@ async def lifespan(app: FastAPI):
         extra={
             "keystore": cfg.keystore.value,
             "usage_emitter": cfg.usage_emitter.value,
+            "audio_sink": cfg.audio_sink.value,
             "models": len(app.state.catalog.all()),
         },
     )
