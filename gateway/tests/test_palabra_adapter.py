@@ -494,6 +494,61 @@ def test_unknown_region_is_rejected_at_build_time():
         PalabraSTTStream("k", region="mars")
 
 
+def test_unsupported_language_400_carries_the_servers_reason():
+    """Live 2026-09-10: an unknown `language` is refused on the upgrade with
+    HTTP 400 and a body naming the accepted codes. That text is the caller's
+    to see (invalid_request, forwarded verbatim by the session), the key is
+    not, and retrying Palabra cannot help."""
+    import asyncio
+    from types import SimpleNamespace
+
+    import websockets
+
+    from speechrouter_gateway.providers.palabra import adapter as mod
+
+    body = (b'invalid parameter "language": unsupported language code "xx"; '
+            b'one of: ar, de, en, es, fr, hi, it, ja, ko, nl, pt, ru, zh, auto')
+
+    async def boom(*_args, **_kwargs):
+        raise websockets.exceptions.InvalidStatus(
+            # websockets hands the body over as a bytearray, not bytes
+            SimpleNamespace(status_code=400, headers={}, body=bytearray(body + b" token=sekret\n"))
+        )
+
+    async def run():
+        monkeyed = mod.ws_connect
+        mod.ws_connect = boom
+        try:
+            adapter = PalabraSTTStream("sekret")
+            with pytest.raises(ProviderStreamError) as exc:
+                await adapter.connect(
+                    STTConfig(model="asr-v1", encoding="linear16", sample_rate=16000,
+                              language="xx")
+                )
+        finally:
+            mod.ws_connect = monkeyed
+        assert exc.value.code == "invalid_request"
+        assert exc.value.recoverable is False
+        assert 'unsupported language code "xx"' in str(exc.value)
+        assert "one of: ar, de" in str(exc.value)
+        assert "sekret" not in str(exc.value)
+        assert "bytearray" not in str(exc.value) and "\n" not in str(exc.value)
+
+    asyncio.run(run())
+
+
+def test_ws_base_setting_overrides_the_region_endpoint():
+    """SPEECHROUTER_PALABRA_WS_BASE points a gateway at a non-prod Palabra
+    environment; the region table is only the default."""
+    from speechrouter_gateway.config import KeyStoreKind, Settings
+    from speechrouter_gateway.providers.palabra.adapter import WS_BASE, build
+
+    custom = "wss://stt.example.invalid/asr/v1/speech-to-text/stream"
+    common = dict(keystore=KeyStoreKind.local, keys="k", _env_file=None, palabra_api_key="x")
+    assert build(Settings(**common, palabra_ws_base=custom))._ws_base == custom
+    assert build(Settings(**common))._ws_base == WS_BASE
+
+
 # ---------------------------------------------------------------- wiring
 
 

@@ -152,6 +152,15 @@ class STTSession:
             self._status = exc.status
             await self._try_send_error(exc.code, exc.message)
         except ProviderStreamError as exc:
+            if exc.code == "invalid_request":
+                # The provider validated the caller's own parameters and
+                # refused them (e.g. an unsupported language) and no fallback
+                # was left to try. Nothing about our account is in that text;
+                # the caller needs it to fix the request, so it goes through
+                # as-is under invalid_request instead of the masked outage text.
+                self._status = "invalid_request"
+                await self._try_send_error(Code.invalid_request, str(exc), provider=exc.provider)
+                return
             self._status = "provider_error"
             code = Code.all_providers_failed if self._switches else Code.provider_error
             report_provider_failure(

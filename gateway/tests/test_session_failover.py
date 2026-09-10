@@ -207,6 +207,39 @@ async def test_unrecoverable_error_fails_fast_with_usage():
     assert emitter.events[0].status == "provider_error"
 
 
+async def test_rejected_request_reaches_the_caller_verbatim_as_invalid_request():
+    """A provider that validated the caller's own parameters and refused them
+    (Palabra: HTTP 400 on the upgrade for an unsupported language) is not an
+    outage: with no fallback left, the reason goes through unmasked under
+    invalid_request so the caller can fix the request."""
+    class PickyAdapter(FlakyAdapter):
+        name = "picky"
+
+        async def connect(self, config):
+            raise ProviderStreamError(
+                'picky rejected the request: unsupported language code "xx"',
+                recoverable=False, provider=self.name, code="invalid_request",
+            )
+
+    transport = FakeTransport([CHUNK, CHUNK])
+    emitter = CollectingEmitter()
+    session = STTSession(
+        transport=transport,
+        attempts=[_attempt("fake/picky", PickyAdapter())],
+        emitter=emitter,
+        key_id="k1",
+        settings=_settings(),
+    )
+    await asyncio.wait_for(session.run(), 5.0)
+
+    error = transport.sent[-1]
+    assert error["type"] == "error"
+    assert error["code"] == "invalid_request"
+    assert error["provider"] == "picky"
+    assert 'unsupported language code "xx"' in error["message"]
+    assert emitter.events[0].status == "invalid_request"
+
+
 async def test_client_disconnect_still_meters_usage():
     class QuietAdapter(SteadyAdapter):
         name = "quiet"

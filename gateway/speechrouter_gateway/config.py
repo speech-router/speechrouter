@@ -55,6 +55,10 @@ class Settings(BaseSettings):
     # Palabra endpoints are per-region; STT is served from `eu` only today.
     palabra_region: str = "eu"
     meta_api_key: str = ""  # Meta Model API key (LLM|...), Muse Voice Transcribe
+    # Full ASR stream URL (scheme + host + path, no query). When set it wins
+    # over palabra_region -- for pointing a gateway at a non-production
+    # Palabra environment.
+    palabra_ws_base: str = ""
     google_project_id: str = ""
     # Full service-account JSON as a string secret -- keeps prod deploys on
     # the same plain-env-var pattern as every other provider (no file

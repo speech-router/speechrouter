@@ -42,7 +42,7 @@ import asyncio
 import contextlib
 import json
 from collections.abc import AsyncIterator, Mapping
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
 import websockets
 
@@ -107,6 +107,8 @@ CAPABILITIES = Capabilities(
     diarization=False,
     endpointing=False,  # is_eos is a segment edge; unverified as a VAD edge
     keyterms=False,  # hotword glossaries exist, but only on the S2S pipeline
+    # Deliberately no language list: the server owns it and refuses unknown
+    # codes on the upgrade with HTTP 400, which connect() forwards verbatim.
     languages=frozenset({"auto"}),
     encodings=frozenset(_ENCODING_MAP),
     sample_rates=frozenset(),  # flexible; server assumes 16000 when omitted
@@ -143,6 +145,17 @@ def _query_value(value) -> str:
     if isinstance(value, (list, tuple)):
         return ",".join(str(item) for item in value)
     return str(value)
+
+
+def _response_reason(exc: "websockets.exceptions.InvalidStatus", api_key: str) -> str:
+    """The upgrade response body as one redacted line, or the status alone."""
+    body = getattr(exc.response, "body", None) or b""  # bytes or bytearray in practice
+    if isinstance(body, (bytes, bytearray)):
+        text = bytes(body).decode("utf-8", "replace")
+    else:
+        text = str(body)
+    text = " ".join(text.split())[:300]
+    return redact(text, api_key) or f"status {exc.response.status_code}"
 
 
 def redact(text: str, api_key: str) -> str:
@@ -247,7 +260,11 @@ def parse_message(
 def build(settings: Settings) -> "PalabraSTTStream":
     if not settings.palabra_api_key:
         raise ProviderNotConfigured("palabra")
-    return PalabraSTTStream(settings.palabra_api_key, region=settings.palabra_region)
+    return PalabraSTTStream(
+        settings.palabra_api_key,
+        region=settings.palabra_region,
+        ws_base=settings.palabra_ws_base,
+    )
 
 
 class PalabraSTTStream(STTStreamProvider):
@@ -313,6 +330,7 @@ class PalabraSTTStream(STTStreamProvider):
         self._pending = bytearray()
         self._next_send = 0.0
         url = build_url(config, self._api_key, self._ws_base)
+        endpoint = urlsplit(self._ws_base).netloc  # host only, never the token
         try:
             self._ws = await ws_connect(
                 url,
@@ -321,11 +339,26 @@ class PalabraSTTStream(STTStreamProvider):
             )
         except websockets.exceptions.InvalidStatus as exc:
             status = exc.response.status_code
+            if status == 400:
+                # The server validated OUR query and refused it — today that is
+                # an unsupported `language` code, and the body says so
+                # ("unsupported language code \"xx\"; one of: ar, de, ..."). It is
+                # the caller's request that is wrong, so the reason travels
+                # under invalid_request, which router/session.py forwards to
+                # the client verbatim instead of the masked outage text.
+                # Retrying Palabra cannot help; fallbacks, if any, still run.
+                raise ProviderStreamError(
+                    f"palabra rejected the request ({status}): "
+                    f"{_response_reason(exc, self._api_key)}",
+                    recoverable=False,
+                    provider=self.name,
+                    code="invalid_request",
+                ) from exc
             # 401 = bad key: retrying or failing over to another Palabra
             # session cannot help. 409 = a session is already live for this
             # identity, which a retry after backoff may clear.
             raise ProviderStreamError(
-                f"palabra connect rejected ({status})",
+                f"palabra connect rejected ({status}) by {endpoint}",
                 recoverable=status != 401,
                 provider=self.name,
                 code=str(status),
@@ -334,11 +367,19 @@ class PalabraSTTStream(STTStreamProvider):
             # redact: the key is a query param and some websockets exceptions
             # (InvalidURI) quote the URL back at us.
             raise ProviderStreamError(
-                f"palabra connect failed: {redact(str(exc), self._api_key)}",
+                f"palabra connect failed at {endpoint}: {redact(str(exc), self._api_key)}",
                 recoverable=True,
                 provider=self.name,
             ) from exc
-        logger.info("palabra connected", extra={"provider": self.name, "model": config.model})
+        logger.info(
+            "palabra connected",
+            # host only: the token rides in the query string and must not be logged
+            extra={
+                "provider": self.name,
+                "model": config.model,
+                "endpoint": endpoint,
+            },
+        )
 
     async def send_audio(self, chunk: bytes) -> None:
         """Re-chunk to CHUNK_MS and forward under the pacing bucket (_PACING).

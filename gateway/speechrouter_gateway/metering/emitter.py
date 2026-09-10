@@ -21,7 +21,8 @@ class UsageEvent:
     billing_basis: str = "audio_time"  # audio_time | session_time
     characters: int = 0
     provider_switches: int = 0
-    status: str = "completed"  # completed | client_disconnect | provider_error | error
+    # completed | client_disconnect | provider_error | invalid_request | error
+    status: str = "completed"
     byok: bool = False  # org-supplied provider key; billed at the routing fee only
     ts: float = field(default_factory=time.time)
 

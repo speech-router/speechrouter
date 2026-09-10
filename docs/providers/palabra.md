@@ -49,6 +49,7 @@ The clean fix is a dedicated translation event in `packages/spec`; this keeps tr
 
 ## Errors
 - Upgrade-time HTTP: **401** invalid/missing key; **409** "session already active for identity". The SDK maps them to `AuthError` and `SessionError` off `exc.response.status_code` *(SDK)* — same handshake-status branch our adapter needs.
+- **400** invalid query param (e.g. an unsupported `language` code), reason in the body. The adapter raises a non-recoverable `invalid_request` error with that text and `router/session.py` forwards it to the client verbatim; other provider errors stay masked.
 - Docs say that after a successful upgrade the server sends no application-level error frames and just closes with a WS close frame. **The SDK contradicts this slightly**: unknown STT messages fall through to the shared parser, which knows `error {code, desc}` and `warning {code, message}` *(SDK)*. Treat the docs as the floor — parse an `error`/`warning` frame if one shows up, but do not depend on it; classify on the **close code** first.
 - **No reconnection by design** *(SDK)*: a dropped connection ends iteration and the caller retries. Fits our failover model — the session layer owns the retry.
 
@@ -61,7 +62,7 @@ The clean fix is a dedicated translation event in `packages/spec`; this keeps tr
 3. Idle timeout through silence. Partly answered: liveness is WS ping/pong, no app keepalive *(SDK)* — but how long a ping-healthy, audio-silent socket survives is still unknown.
 4. Is `is_eos:true` a real VAD edge worth mapping to `utterance_end`?
 5. Session/stream duration cap.
-6. Source + target language codes — `/docs/languages` is client-rendered, didn't come through a plain fetch. `models.json` ships `languages: ["auto"]` until this is filled in.
+6. Source language codes — not mirrored in the adapter: the server owns the list and refuses unknown codes with 400 (see Errors), so `models.json` keeps `languages: ["auto"]`. Target codes for `translate_languages` still unconfirmed.
 7. ~~Price and billing unit~~ — answered, see Pricing.
 8. Faster-than-realtime ingest: the SDK paces because "the server requires it" and the wire carries `AUDIO_STREAM_TOO_FAST` *(SDK)* — so set `realtime_pacing_required=True` unless a burst test shows the server merely warns. Open question is warn-vs-drop, not whether pacing matters.
 
@@ -73,4 +74,6 @@ The clean fix is a dedicated translation event in `packages/spec`; this keeps tr
 - `provider_params` may not restate `token`/`format`/`sample_rate`/`language` — `urlencode` would emit a second copy and let the server choose. Reserved keys are dropped with a warning.
 - The key is a query param, so error text goes through `redact()` before it can reach a log (websockets' `InvalidURI` quotes the URL back).
 - `keyterms=False`: no boosting param exists on this endpoint. Palabra does ship *hotword* glossaries, but they are a management REST API bound to the **S2S** pipeline *(SDK `management.py`)* — not reachable from these query params.
-- Capabilities draft: `streaming`/`interim_results` True; `realtime_pacing_required` True; `word_timestamps`/`diarization`/`keyterms` False; encodings {linear16, linear32, mulaw, alaw}; chunk_ms ≈320; `languages={"auto"}` pending (6); `endpointing` pending (4); `billing_basis` pending (7).
+- Capabilities draft: `streaming`/`interim_results` True; `realtime_pacing_required` True; `word_timestamps`/`diarization`/`keyterms` False; encodings {linear16, linear32, mulaw, alaw}; chunk_ms ≈320; `languages={"auto"}` by design (6); `endpointing` pending (4); `billing_basis` pending (7).
+
+- **Endpoint override.** `SPEECHROUTER_PALABRA_WS_BASE` (full stream URL, no query) wins over `SPEECHROUTER_PALABRA_REGION`; empty by default.
