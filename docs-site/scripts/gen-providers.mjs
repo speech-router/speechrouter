@@ -15,7 +15,7 @@ const NAMES = {
   openai: 'OpenAI', speechmatics: 'Speechmatics', azure: 'Azure',
   aws: 'AWS', google: 'Google', groq: 'Groq', mistral: 'Mistral',
   elevenlabs: 'ElevenLabs', cartesia: 'Cartesia', telnyx: 'Telnyx',
-  palabra: 'Palabra', gemini: 'Gemini', meta: 'Meta',
+  palabra: 'Palabra', gemini: 'Gemini', meta: 'Meta', xai: 'xAI',
 };
 
 const BLURBS = {
@@ -24,7 +24,7 @@ const BLURBS = {
   assemblyai: 'Streaming turn model built for voice agents, plus strong async models.',
   openai: 'Whisper and the GPT-4o transcribe family — LLM-grade accuracy.',
   speechmatics: 'Broad language coverage; Melia-1 code-switches across 56 languages.',
-  azure: 'Azure AI Speech — enterprise realtime + fast transcription.',
+  azure: 'Azure AI Speech — enterprise realtime + fast transcription, plus Microsoft\'s own MAI-Transcribe-2 (60 languages, $0.10/hr promo).',
   aws: 'Amazon Transcribe streaming with per-request minimums.',
   google: 'Google Cloud Speech-to-Text (Chirp).',
   groq: 'Whisper on LPUs — the fastest batch Whisper anywhere.',
@@ -35,6 +35,7 @@ const BLURBS = {
   palabra: 'Realtime ASR at $0.002/min, with live translation available on the same socket.',
   gemini: 'Gemini 3.5 Transcribe Live at $0.30/hr — 85+ languages, custom vocabulary, and a SMART mode that cleans up disfluencies as it goes.',
   meta: 'Muse Voice Transcribe — 25 languages with code-switching, turn detection and speaker labels at $0.18/hr.',
+  xai: 'Grok Voice Transcribe 2.0 — word timings, speaker labels and keyterms included; $0.20/hr streaming, $0.10/hr batch.',
 };
 
 const esc = (t) => String(t).replace(/\|/g, '\\|');

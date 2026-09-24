@@ -4,13 +4,13 @@ description: Every provider behind the one API.
 sidebar: { order: 0, label: Overview }
 ---
 
-16 providers, 40 models, one schema. Prices below are
+17 providers, 44 models, one schema. Prices below are
 vendor list prices — [we add nothing](/guides/pricing/).
 
 - [Soniox](/providers/soniox/) — 60+ languages with translation-grade accuracy; realtime bills wall-clock session time.
 - [AssemblyAI](/providers/assemblyai/) — Streaming turn model built for voice agents, plus strong async models.
 - [AWS](/providers/aws/) — Amazon Transcribe streaming with per-request minimums.
-- [Azure](/providers/azure/) — Azure AI Speech — enterprise realtime + fast transcription.
+- [Azure](/providers/azure/) — Azure AI Speech — enterprise realtime + fast transcription, plus Microsoft's own MAI-Transcribe-2 (60 languages, $0.10/hr promo).
 - [Cartesia](/providers/cartesia/) — Ink — low-latency STT built for realtime agents.
 - [Deepgram](/providers/deepgram/) — The realtime workhorse — fast, cheap, excellent English.
 - [ElevenLabs](/providers/elevenlabs/) — Scribe — high-accuracy STT from the voice company.
@@ -23,5 +23,6 @@ vendor list prices — [we add nothing](/guides/pricing/).
 - [Palabra](/providers/palabra/) — Realtime ASR at $0.002/min, with live translation available on the same socket.
 - [Speechmatics](/providers/speechmatics/) — Broad language coverage; Melia-1 code-switches across 56 languages.
 - [Telnyx](/providers/telnyx/) — Whisper Large-v3-Turbo as a live stream — 100 languages, hosted by Telnyx.
+- [xAI](/providers/xai/) — Grok Voice Transcribe 2.0 — word timings, speaker labels and keyterms included; $0.20/hr streaming, $0.10/hr batch.
 
 The live, machine-readable version: [`GET /v1/models`](/reference/rest/#get-v1models).

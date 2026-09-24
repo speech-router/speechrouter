@@ -36,6 +36,7 @@ AzureParams = TypedDict(
         "locales": list,
         "diarization": dict,
         "channels": list,
+        "enhancedMode": dict,
     },
     total=False,
 )
@@ -212,6 +213,23 @@ TelnyxParams = TypedDict(
 )
 """Provider-specific options for telnyx/* models."""
 
+XaiParams = TypedDict(
+    "XaiParams",
+    {
+        "endpointing": int,
+        "smart_turn": float,
+        "smart_turn_timeout": int,
+        "filler_words": bool,
+        "vad_threshold": float,
+        "format": bool,
+        "multichannel": bool,
+        "audio_format": Literal["pcm", "mulaw", "alaw"],
+        "sample_rate": int,
+    },
+    total=False,
+)
+"""Provider-specific options for xai/* models."""
+
 PROVIDER_PARAMS = {
     "assemblyai": AssemblyaiParams,
     "aws": AwsParams,
@@ -229,4 +247,5 @@ PROVIDER_PARAMS = {
     "soniox": SonioxParams,
     "speechmatics": SpeechmaticsParams,
     "telnyx": TelnyxParams,
+    "xai": XaiParams,
 }
