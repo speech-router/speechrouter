@@ -1,0 +1,90 @@
+{
+  "forwarding": {
+    "streaming": "WebSocket query params",
+    "batch": "multipart form fields"
+  },
+  "note": "`language` is sent as a bare code (`en-US` \u2192 `en`) and only switches on inverse text normalization (numbers, currency, dates) \u2014 the model auto-detects the spoken language either way; batch adds `format=true` alongside it. Filler words (uh, um) are removed unless `filler_words` is true. `model`, `encoding`, `sample_rate`, `channels` and `multichannel` are owned by the adapter on streaming. Streaming and batch are separate slugs because xAI prices them differently ($0.20/hr vs $0.10/hr).",
+  "params": [
+    {
+      "name": "endpointing",
+      "type": "integer",
+      "default": 400,
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Silence (ms, 0\u20135000) before an utterance final; 0 fires on any VAD silence boundary"
+    },
+    {
+      "name": "smart_turn",
+      "type": "number",
+      "modes": [
+        "streaming"
+      ],
+      "doc": "End-of-turn model threshold (0\u20131, e.g. 0.7); pauses below it stay mid-utterance"
+    },
+    {
+      "name": "smart_turn_timeout",
+      "type": "integer",
+      "modes": [
+        "streaming"
+      ],
+      "doc": "Max silence (ms, 1\u20135000) before an utterance final is forced when smart_turn is on"
+    },
+    {
+      "name": "filler_words",
+      "type": "boolean",
+      "default": false,
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "Keep filler words (uh, um, er) in text and words"
+    },
+    {
+      "name": "vad_threshold",
+      "type": "number",
+      "modes": [
+        "streaming",
+        "batch"
+      ],
+      "doc": "Speech-probability gate (0\u20131; default 0.08 streaming, 0.5 batch); lower keeps quiet or telephony speech, 0 disables"
+    },
+    {
+      "name": "format",
+      "type": "boolean",
+      "modes": [
+        "batch"
+      ],
+      "doc": "Inverse text normalization; requires `language` (sent automatically with it)"
+    },
+    {
+      "name": "multichannel",
+      "type": "boolean",
+      "modes": [
+        "batch"
+      ],
+      "doc": "Transcribe each channel independently; words are merged in time order"
+    },
+    {
+      "name": "audio_format",
+      "type": "string",
+      "enum": [
+        "pcm",
+        "mulaw",
+        "alaw"
+      ],
+      "modes": [
+        "batch"
+      ],
+      "doc": "Only for headerless raw audio (with `sample_rate`); containers are auto-detected"
+    },
+    {
+      "name": "sample_rate",
+      "type": "integer",
+      "modes": [
+        "batch"
+      ],
+      "doc": "Raw audio only: 8000, 16000, 22050, 24000, 44100 or 48000"
+    }
+  ]
+}

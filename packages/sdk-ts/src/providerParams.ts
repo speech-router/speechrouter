@@ -37,12 +37,14 @@ export interface AwsParams {
 
 /** Provider-specific options for `azure/*` models. */
 export interface AzureParams {
-  /** Candidate locales for language identification — applies to batch */
+  /** Candidate locales for language identification (MAI models: exactly one bare code) — applies to batch */
   locales?: unknown[]
   /** {maxSpeakers: 2–35} — mono audio only — applies to batch */
   diarization?: Record<string, unknown>
   /** Channel indices to transcribe (≤2) — applies to batch */
   channels?: unknown[]
+  /** MAI-Transcribe-2: {modelOptions: {transcribeStyle: "verbatim" | "clean", timestamps: "word" | "segment" | "none"}} (gateway sends timestamps "word"). MAI-Transcribe-1.5: {transcribeStyle: "verbatim"} — applies to batch */
+  enhancedMode?: Record<string, unknown>
   [key: string]: unknown
 }
 
@@ -249,6 +251,29 @@ export interface TelnyxParams {
   [key: string]: unknown
 }
 
+/** Provider-specific options for `xai/*` models. */
+export interface XaiParams {
+  /** Silence (ms, 0–5000) before an utterance final; 0 fires on any VAD silence boundary — @default 400; applies to streaming */
+  endpointing?: number
+  /** End-of-turn model threshold (0–1, e.g. 0.7); pauses below it stay mid-utterance — applies to streaming */
+  smart_turn?: number
+  /** Max silence (ms, 1–5000) before an utterance final is forced when smart_turn is on — applies to streaming */
+  smart_turn_timeout?: number
+  /** Keep filler words (uh, um, er) in text and words — @default false; applies to streaming + batch */
+  filler_words?: boolean
+  /** Speech-probability gate (0–1; default 0.08 streaming, 0.5 batch); lower keeps quiet or telephony speech, 0 disables — applies to streaming + batch */
+  vad_threshold?: number
+  /** Inverse text normalization; requires `language` (sent automatically with it) — applies to batch */
+  format?: boolean
+  /** Transcribe each channel independently; words are merged in time order — applies to batch */
+  multichannel?: boolean
+  /** Only for headerless raw audio (with `sample_rate`); containers are auto-detected — applies to batch */
+  audio_format?: 'pcm' | 'mulaw' | 'alaw'
+  /** Raw audio only: 8000, 16000, 22050, 24000, 44100 or 48000 — applies to batch */
+  sample_rate?: number
+  [key: string]: unknown
+}
+
 /** Map from provider name to its typed params. */
 export interface ProviderParamsMap {
   assemblyai: AssemblyaiParams
@@ -267,4 +292,5 @@ export interface ProviderParamsMap {
   soniox: SonioxParams
   speechmatics: SpeechmaticsParams
   telnyx: TelnyxParams
+  xai: XaiParams
 }

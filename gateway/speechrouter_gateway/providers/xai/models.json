@@ -1,0 +1,107 @@
+[
+  {
+    "slug": "xai/grok-voice-transcribe-2.0",
+    "provider": "xai",
+    "name": "Grok Voice Transcribe 2.0",
+    "kind": "stt",
+    "modes": [
+      "streaming"
+    ],
+    "pricing": {
+      "per_audio_hour_usd": 0.2
+    },
+    "capabilities": {
+      "interim_results": true,
+      "word_timestamps": true,
+      "diarization": true,
+      "endpointing": true,
+      "keyword_boosting": true,
+      "languages": [
+        "auto",
+        "ar",
+        "cs",
+        "da",
+        "de",
+        "en",
+        "es",
+        "fa",
+        "fil",
+        "fr",
+        "hi",
+        "id",
+        "it",
+        "ja",
+        "ko",
+        "mk",
+        "ms",
+        "nl",
+        "pl",
+        "pt",
+        "ro",
+        "ru",
+        "sv",
+        "th",
+        "tr",
+        "vi"
+      ],
+      "encodings": [
+        "linear16",
+        "mulaw",
+        "alaw"
+      ],
+      "sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        44100,
+        48000
+      ]
+    }
+  },
+  {
+    "slug": "xai/grok-voice-transcribe-2.0-batch",
+    "provider": "xai",
+    "name": "Grok Voice Transcribe 2.0 (batch)",
+    "kind": "stt",
+    "modes": [
+      "batch"
+    ],
+    "pricing": {
+      "per_audio_hour_usd": 0.1
+    },
+    "capabilities": {
+      "word_timestamps": true,
+      "diarization": true,
+      "keyword_boosting": true,
+      "languages": [
+        "auto",
+        "ar",
+        "cs",
+        "da",
+        "de",
+        "en",
+        "es",
+        "fa",
+        "fil",
+        "fr",
+        "hi",
+        "id",
+        "it",
+        "ja",
+        "ko",
+        "mk",
+        "ms",
+        "nl",
+        "pl",
+        "pt",
+        "ro",
+        "ru",
+        "sv",
+        "th",
+        "tr",
+        "vi"
+      ]
+    }
+  }
+]

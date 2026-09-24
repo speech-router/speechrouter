@@ -3,7 +3,7 @@
     "streaming": null,
     "batch": "fast-transcription definition fields"
   },
-  "note": "Realtime runs through the Azure Speech SDK \u2014 session knobs are gateway-managed, provider_params are not forwarded on streaming models.",
+  "note": "Realtime runs through the Azure Speech SDK — session knobs are gateway-managed, provider_params are not forwarded on streaming models. On batch, nested objects are merged into the adapter's definition rather than replacing it. MAI models: `enhancedMode.enabled` and `enhancedMode.model` are owned by the adapter; `language` is sent as one bare code (`en-US` → `en`); `diarization=true` is ignored on `azure/mai-transcribe-1.5`, and on MAI-Transcribe-2 fails for recordings of about 15 minutes or longer (Microsoft preview limit).",
   "params": [
     {
       "name": "locales",
@@ -11,7 +11,7 @@
       "modes": [
         "batch"
       ],
-      "doc": "Candidate locales for language identification"
+      "doc": "Candidate locales for language identification (MAI models: exactly one bare code)"
     },
     {
       "name": "diarization",
@@ -19,7 +19,7 @@
       "modes": [
         "batch"
       ],
-      "doc": "{maxSpeakers: 2\u201335} \u2014 mono audio only"
+      "doc": "{maxSpeakers: 2–35} — mono audio only"
     },
     {
       "name": "channels",
@@ -27,7 +27,15 @@
       "modes": [
         "batch"
       ],
-      "doc": "Channel indices to transcribe (\u22642)"
+      "doc": "Channel indices to transcribe (≤2)"
+    },
+    {
+      "name": "enhancedMode",
+      "type": "object",
+      "modes": [
+        "batch"
+      ],
+      "doc": "MAI-Transcribe-2: {modelOptions: {transcribeStyle: \"verbatim\" | \"clean\", timestamps: \"word\" | \"segment\" | \"none\"}} (gateway sends timestamps \"word\"). MAI-Transcribe-1.5: {transcribeStyle: \"verbatim\"}"
     }
   ]
 }

@@ -5,7 +5,7 @@
 <h1 align="center">SpeechRouter</h1>
 
 <p align="center"><b>One API for every speech model.</b><br>
-Streaming speech-to-text across 16 providers with mid-stream failover —<br>
+Streaming speech-to-text across 17 providers with mid-stream failover —<br>
 one key, one schema, switch vendors by editing a string.</p>
 
 <p align="center">
@@ -36,7 +36,7 @@ fallback and keeps transcribing** — your client sees a `provider_switched`
 event, not an outage. Suppressed duplicate finals mean no words are lost or
 repeated at the seam.
 
-- 🎛 **40 models, 16 providers** — Deepgram (incl. Flux), Soniox, AssemblyAI, Speechmatics, OpenAI, Groq, Mistral, Cartesia (incl. ink-2 turns), ElevenLabs, Azure, AWS, Google, Gemini, Telnyx, Palabra, Meta (Muse)
+- 🎛 **44 models, 17 providers** — Deepgram (incl. Flux), Soniox, AssemblyAI, Speechmatics, OpenAI, Groq, Mistral, Cartesia (incl. ink-2 turns), ElevenLabs, Azure (incl. MAI-Transcribe), AWS, Google, Gemini, Telnyx, Palabra, Meta (Muse), xAI (Grok)
 - 🔌 **One normalized schema** — text, word timings, confidence, speakers, language; `include_raw=true` for the untouched vendor payload
 - 💸 **One bill** — per-second pricing, prepaid credits, no vendor contracts; or **BYOK** with your own provider keys for free — pure pass-through, 0% markup
 - 🔁 **Same params everywhere** — diarization, interims, keyterm boosting, endpointing, translated per provider; `provider_params` passes anything vendor-specific through
@@ -140,12 +140,13 @@ gateway models are code-generated from them and CI fails on drift.
 | Mistral | ✅ | ✅ | voxtral realtime |
 | Cartesia | ✅ | ✅ | incl. ink-2 turn protocol |
 | ElevenLabs | ✅ | ✅ | scribe |
-| Azure Speech | ✅ | ✅ | streaming via `[azure]` extra |
+| Azure Speech | ✅ | ✅ | streaming via `[azure]` extra; batch incl. Microsoft's MAI-Transcribe-2 ($0.10/hr promo) |
 | AWS Transcribe | ✅ | soon | native SigV4 event-stream codec |
 | Google Cloud STT | ✅ | soon | gRPC v2, via `[google]` extra |
 | Gemini | ✅ | — | gemini-3.5-transcribe-live; $0.30/hr, VERBATIM or SMART |
 | Palabra | ✅ | — | $0.002/min; live translation on the same socket |
 | Meta (Muse) | ✅ | ✅ | turn detection + speaker labels, $0.18/hr; linear16 @ 16/24 kHz only |
+| xAI (Grok) | ✅ | ✅ | grok-voice-transcribe-2.0; $0.20/hr streaming, $0.10/hr batch (`-batch` slug) |
 
 Live catalog with per-second pricing: [speechrouter.ai/models](https://speechrouter.ai/models)
 
@@ -183,7 +184,7 @@ Self-host mode needs no database. Azure streaming and Google need extras:
    /v1/listen           │   auth → resolve → session engine      │
    /v1/audio/transcr.   │   ┌──────────────────────────────┐     │
    /v1/models           │   │ ring buffer · failover ·     │     │──► provider adapters
-                        │   │ dedup · usage metering       │     │    (16 vendors, ws/grpc/rest)
+                        │   │ dedup · usage metering       │     │    (17 vendors, ws/grpc/rest)
                         │   └──────────────────────────────┘     │
                         └────────────────────────────────────────┘
 ```

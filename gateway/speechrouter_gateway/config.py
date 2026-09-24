@@ -55,6 +55,7 @@ class Settings(BaseSettings):
     # Palabra endpoints are per-region; STT is served from `eu` only today.
     palabra_region: str = "eu"
     meta_api_key: str = ""  # Meta Model API key (LLM|...), Muse Voice Transcribe
+    xai_api_key: str = ""  # xAI API key (console.x.ai), Grok Voice Transcribe
     google_project_id: str = ""
     # Full service-account JSON as a string secret -- keeps prod deploys on
     # the same plain-env-var pattern as every other provider (no file

@@ -5,6 +5,12 @@ transcribe?api-version=2025-10-15, multipart audio + definition JSON. This
 API uses MILLISECOND units (offsetMilliseconds), unlike the SDK's 100-ns
 ticks. <5h / <500MB. Diarization is mono-only, maxSpeakers 2-35.
 
+MAI-Transcribe rides the same endpoint: an `enhancedMode` block naming the
+model switches the request to Microsoft's in-house model (docs/providers/
+azure.md § MAI-Transcribe). Word timings are opt-in there
+(modelOptions.timestamps, default "none"), locales takes ONE bare language
+code, and only MAI-Transcribe-2 diarizes.
+
 Realtime Azure (Speech SDK bridge) is a separate adapter — the USP WebSocket
 protocol is undocumented, so streaming requires azure-cognitiveservices-speech
 (optional dependency), tracked as remaining work.
@@ -32,7 +38,52 @@ CAPABILITIES = Capabilities(
 )
 
 
+# our model name -> enhancedMode.model, spelled as each doc revision's wire
+# examples spell it (the 1.5 examples are lowercase, the 2 examples are not)
+MAI_MODELS = {
+    "mai-transcribe-2": "MAI-Transcribe-2",
+    "mai-transcribe-1.5": "mai-transcribe-1.5",
+}
+_MAI_DIARIZE_MODELS = {"mai-transcribe-2"}
+
+
+def _merge(base: dict, override: dict) -> dict:
+    """provider_params win, but nested objects merge instead of replacing, so
+    {"enhancedMode": {"modelOptions": {...}}} keeps the adapter's model."""
+    merged = dict(base)
+    for key, value in override.items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = _merge(merged[key], value)
+        else:
+            merged[key] = value
+    return merged
+
+
+def _mai_definition(config: STTConfig) -> dict:
+    enhanced: dict = {"enabled": True, "model": MAI_MODELS[config.model]}
+    if config.model == "mai-transcribe-2":
+        enhanced["modelOptions"] = {"timestamps": "word"}
+    definition: dict = {"enhancedMode": enhanced}
+    if config.language and config.language != "auto":
+        # one bare code ("en"), not a locale; "yue"/"fil" are already bare
+        definition["locales"] = [config.language.split("-")[0].lower()]
+    # 1.5 has no diarization; the flag is ignored like other non-diarizing
+    # batch models (models.json carries the per-model truth)
+    if config.diarization and config.model in _MAI_DIARIZE_MODELS:
+        definition["diarization"] = {"enabled": True}
+    if config.keyterms:
+        definition["phraseList"] = {"phrases": list(config.keyterms)}
+    return definition
+
+
 def build_definition(config: STTConfig) -> dict:
+    if config.model in MAI_MODELS:
+        definition = _merge(_mai_definition(config), config.provider_params)
+        if not isinstance(definition["enhancedMode"], dict):
+            definition["enhancedMode"] = {}
+        # the adapter owns which model runs — it decides the vendor meter
+        definition["enhancedMode"].update(enabled=True, model=MAI_MODELS[config.model])
+        return definition
     definition: dict = {}
     if config.language:
         definition["locales"] = [config.language]
@@ -40,7 +91,10 @@ def build_definition(config: STTConfig) -> dict:
         definition["diarization"] = {"enabled": True, "maxSpeakers": 10}
     if config.keyterms:
         definition["phraseList"] = {"phrases": list(config.keyterms), "biasingWeight": 1.0}
-    definition.update(config.provider_params)
+    definition = _merge(definition, config.provider_params)
+    if isinstance(definition.get("enhancedMode"), dict):
+        # LLM Speech shares fast transcription's SKU; a MAI model does not
+        definition["enhancedMode"].pop("model", None)
     return definition
 
 

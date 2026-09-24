@@ -29,6 +29,7 @@ PROVIDER_KEY_FIELDS = {
     "palabra": "palabra_api_key",
     "gemini": "gemini_api_key",
     "meta": "meta_api_key",
+    "xai": "xai_api_key",
 }
 
 
