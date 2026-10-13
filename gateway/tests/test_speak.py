@@ -24,7 +24,9 @@ def test_segmenter_cuts_on_sentence_ends_and_merges_short_ones():
     assert seg.push("How are you doing today? I am") == ["Hi. How are you doing today?"]
     assert seg.pending == "I am"
     assert seg.push(" fine.\nNext") == []  # still under min_chars: merges forward
-    assert seg.push(" up is the weather report.\n") == ["I am fine.\nNext up is the weather report."]
+    assert seg.push(" up is the weather report.\n") == [
+        "I am fine.\nNext up is the weather report."
+    ]
     assert seg.flush() is None
 
 
@@ -133,9 +135,10 @@ def _session(transport, fmt="pcm", **settings_kw):
     return SpeakSession(transport, resolved, emitter, "key1", settings), emitter
 
 
-async def _until(predicate, timeout=2.0):
-    async with asyncio.timeout(timeout):
-        while not predicate():
+async def _until(predicate, limit=2.0):
+    """Poll a condition on the session's observable output."""
+    async with asyncio.timeout(limit):
+        while not predicate():  # noqa: ASYNC110 - observing a black box, no event to await
             await asyncio.sleep(0.005)
 
 
@@ -246,7 +249,7 @@ async def test_stale_clause_is_spoken_without_waiting_for_a_period():
     session, _ = _session(transport)
     task = asyncio.create_task(session.run())
     transport.say(type="text.delta", text="an unpunctuated clause from a slow model")
-    await _until(lambda: FakeTTS.started, timeout=2)
+    await _until(lambda: FakeTTS.started)
     assert FakeTTS.started == ["an unpunctuated clause from a slow"]
     transport.say(type="finalize")
     await asyncio.wait_for(task, 2)
