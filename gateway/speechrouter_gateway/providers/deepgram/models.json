@@ -320,5 +320,122 @@
         48000
       ]
     }
+  },
+  {
+    "slug": "deepgram/aura-2",
+    "provider": "deepgram",
+    "name": "Deepgram Aura-2",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 3e-05
+    },
+    "pricing_source": "https://deepgram.com/pricing",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "aura-2-thalia-en",
+        "aura-2-andromeda-en",
+        "aura-2-helena-en",
+        "aura-2-apollo-en",
+        "aura-2-arcas-en",
+        "aura-2-aries-en",
+        "aura-2-celeste-es",
+        "aura-2-estrella-es",
+        "aura-2-nestor-es",
+        "aura-2-agathe-fr",
+        "aura-2-hector-fr",
+        "aura-2-julius-de",
+        "aura-2-viktoria-de",
+        "aura-2-livia-it",
+        "aura-2-fujin-ja"
+      ],
+      "default_voice": "aura-2-thalia-en",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "flac",
+        "aac",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        24000,
+        32000,
+        48000
+      ],
+      "max_input_chars": 2000,
+      "instructions": false,
+      "speed": false,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "voice = Deepgram model id (aura-2-<name>-<lang>), ~90 voices"
+  },
+  {
+    "slug": "deepgram/aura-1",
+    "provider": "deepgram",
+    "name": "Deepgram Aura",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 1.5e-05
+    },
+    "pricing_source": "https://deepgram.com/pricing",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "aura-asteria-en",
+        "aura-luna-en",
+        "aura-stella-en",
+        "aura-athena-en",
+        "aura-hera-en",
+        "aura-orion-en",
+        "aura-arcas-en",
+        "aura-perseus-en",
+        "aura-angus-en",
+        "aura-orpheus-en",
+        "aura-helios-en",
+        "aura-zeus-en"
+      ],
+      "default_voice": "aura-asteria-en",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "flac",
+        "aac",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        24000,
+        32000,
+        48000
+      ],
+      "max_input_chars": 2000,
+      "instructions": false,
+      "speed": false,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "voice = Deepgram model id (aura-<name>-en)"
   }
 ]

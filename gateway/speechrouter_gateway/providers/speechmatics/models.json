@@ -200,5 +200,47 @@
         "mulaw"
       ]
     }
+  },
+  {
+    "slug": "speechmatics/preview",
+    "provider": "speechmatics",
+    "name": "Speechmatics TTS (preview)",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 1.1e-05
+    },
+    "pricing_source": "https://www.speechmatics.com/pricing",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "sarah",
+        "theo",
+        "megan",
+        "jack"
+      ],
+      "default_voice": "megan",
+      "custom_voices": false,
+      "formats": [
+        "pcm",
+        "wav",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        16000,
+        8000
+      ],
+      "max_input_chars": 2000,
+      "instructions": false,
+      "speed": false,
+      "languages": [
+        "en"
+      ]
+    },
+    "notes": "first 1M characters free per Speechmatics; docs still say preview"
   }
 ]

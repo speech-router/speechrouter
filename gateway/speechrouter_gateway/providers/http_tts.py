@@ -74,3 +74,132 @@ def wrap_transport_error(provider: str, exc: httpx.HTTPError) -> ProviderStreamE
     return ProviderStreamError(
         f"{provider}: {type(exc).__name__}: {exc}", recoverable=True, provider=provider, code=code
     )
+
+
+# ------------------------------------------------------------------ base class
+#
+# Most TTS vendors are "POST text, audio comes back": they differ only in the
+# request shape and in how audio rides the response. Subclasses declare both;
+# synthesize() owns the streaming loop, error mapping and character counting.
+
+
+class HTTPStreamTTS:
+    """Mixin-style base for HTTP TTS adapters. Subclasses set:
+
+    name, capabilities (TTSCapabilities), key_field (Settings attribute),
+    response_mode:
+      "bytes"      raw audio body, streamed (chunked transfer)
+      "sse"        `data: {json}` events -> audio_from_event()
+      "json"       one JSON document -> audio_from_event() (non-streaming APIs)
+      "ndjson"     newline-delimited JSON objects -> audio_from_event()
+    and implement build_request(text, config) -> dict(method, url, headers,
+    json|content|data, params).
+    """
+
+    name: str = ""
+    response_mode: str = "bytes"
+    count_characters: bool = True  # usage.characters += len(text)
+
+    def __init__(self, credentials: dict, transport: httpx.AsyncBaseTransport | None = None):
+        self.credentials = credentials
+        self._transport = transport
+        self._client: httpx.AsyncClient | None = None
+
+    # -- subclass hooks -----------------------------------------------------
+
+    def build_request(self, text: str, config) -> dict:  # noqa: ANN001
+        raise NotImplementedError
+
+    def audio_from_event(self, event: dict) -> bytes | None:
+        """Audio carried by one SSE/JSON/NDJSON event (None if none)."""
+        return None
+
+    def check_event(self, event: dict) -> None:
+        """Raise ProviderStreamError for in-band errors (HTTP 200 bodies)."""
+
+    def on_headers(self, headers: httpx.Headers, usage) -> None:  # noqa: ANN001
+        """Read usage reported in response headers."""
+
+    def on_event_usage(self, event: dict, usage) -> None:  # noqa: ANN001
+        """Read usage reported in an event."""
+
+    def strip_header(self, chunk: bytes, first: bool) -> bytes:
+        """e.g. drop a WAV header when raw pcm was asked for."""
+        return chunk
+
+    # -- engine ---------------------------------------------------------------
+
+    async def synthesize(self, text: str, config, usage) -> AsyncIterator[bytes]:  # noqa: ANN001
+        if self.count_characters:
+            usage.characters += len(text)
+        spec = self.build_request(text, config)
+        method = spec.pop("method", "POST")
+        url = spec.pop("url")
+        self._client = self._client or make_client(self._transport)
+        first = True
+        try:
+            async with self._client.stream(method, url, **spec) as resp:
+                if resp.status_code >= 400:
+                    detail = (await resp.aread()).decode(errors="replace")
+                    raise status_error(self.name, resp.status_code, detail)
+                self.on_headers(resp.headers, usage)
+                if self.response_mode == "bytes":
+                    async for chunk in resp.aiter_bytes():
+                        chunk = self.strip_header(chunk, first)
+                        first = False
+                        if chunk:
+                            yield chunk
+                    return
+                events = self._events(resp)
+                async for event in events:
+                    self.check_event(event)
+                    audio = self.audio_from_event(event)
+                    if audio:
+                        audio = self.strip_header(audio, first)
+                        first = False
+                        if audio:
+                            yield audio
+                    self.on_event_usage(event, usage)
+        except httpx.HTTPError as exc:
+            raise wrap_transport_error(self.name, exc) from exc
+
+    async def _events(self, resp: httpx.Response) -> AsyncIterator[dict]:
+        if self.response_mode == "sse":
+            async for event in sse_events(resp):
+                yield event
+        elif self.response_mode == "ndjson":
+            async for line in resp.aiter_lines():
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    payload = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if isinstance(payload, dict):
+                    yield payload
+        else:  # "json": one document
+            body = await resp.aread()
+            try:
+                payload = json.loads(body)
+            except json.JSONDecodeError as exc:
+                raise ProviderStreamError(f"{self.name}: non-JSON response", recoverable=True,
+                                          provider=self.name, code="bad_response") from exc
+            if isinstance(payload, dict):
+                yield payload
+
+    def estimate_usage(self, text, config, audio_seconds, usage) -> None:  # noqa: ANN001
+        """Character-priced vendors need no estimate."""
+
+    async def close(self) -> None:
+        if self._client is not None:
+            await self._client.aclose()
+            self._client = None
+
+
+def strip_wav_header(chunk: bytes, first: bool) -> bytes:
+    """Drop a canonical 44-byte RIFF header from the first chunk."""
+    if first and chunk[:4] == b"RIFF":
+        index = chunk.find(b"data")
+        return chunk[index + 8:] if index >= 0 else chunk[44:]
+    return chunk

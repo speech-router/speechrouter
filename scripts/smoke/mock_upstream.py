@@ -212,6 +212,9 @@ async def gemini_live(ws: WebSocket):
                                                 {"modality": "TEXT", "tokenCount": 6}],
                         "responseTokensDetails": [{"modality": "AUDIO", "tokenCount": 13}]},
                 }).encode())
+                # per-turn report, matching the gateway's per_message default
+                # (real semantics unverified: docs/providers/gemini.md)
+                audio_in = 0
     except Exception:  # noqa: BLE001 - client left
         return
 

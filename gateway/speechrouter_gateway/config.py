@@ -100,6 +100,23 @@ class Settings(BaseSettings):
     elevenlabs_api_key: str = ""
     cartesia_api_key: str = ""
     groq_api_key: str = ""
+    # TTS-only providers (docs/providers/tts/*.md)
+    rime_api_key: str = ""
+    hume_api_key: str = ""
+    lmnt_api_key: str = ""
+    inworld_api_key: str = ""  # Basic-auth credential string from the Inworld portal
+    fishaudio_api_key: str = ""
+    playht_api_key: str = ""
+    playht_user_id: str = ""
+    minimax_api_key: str = ""
+    murf_api_key: str = ""
+    resemble_api_key: str = ""
+    # Google Cloud TTS REST accepts an API key; independent of the STT
+    # service-account settings below
+    google_tts_api_key: str = ""
+    # JSON {"<provider>": "<base url>"}: per-provider TTS upstream override
+    # (egress proxies, the local smoke harness). Empty = vendor defaults.
+    tts_base_urls: str = ""
 
     # Optional audio persistence -- off by default. When enabled, session
     # audio streams to this bucket via real multipart upload (never
@@ -112,6 +129,20 @@ class Settings(BaseSettings):
     audio_sink_region: str = ""
     audio_sink_access_key: str = ""
     audio_sink_secret_key: str = ""
+
+
+def tts_base_url(cfg: Settings, provider: str, default: str) -> str:
+    """Upstream base for a TTS provider, honouring tts_base_urls."""
+    if not cfg.tts_base_urls:
+        return default
+    import json  # noqa: PLC0415
+
+    try:
+        overrides = json.loads(cfg.tts_base_urls)
+    except json.JSONDecodeError:
+        return default
+    value = overrides.get(provider) if isinstance(overrides, dict) else None
+    return value.rstrip("/") if isinstance(value, str) and value else default
 
 
 @lru_cache

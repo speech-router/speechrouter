@@ -348,5 +348,404 @@
         "zu"
       ]
     }
+  },
+  {
+    "slug": "elevenlabs/eleven_v4",
+    "provider": "elevenlabs",
+    "name": "ElevenLabs v4",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 8e-05
+    },
+    "pricing_source": "https://elevenlabs.io/pricing/api",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "JBFqnCBsd6RMkjVDRZzb",
+        "CwhRBWXzGAHq8TQ4Fs17",
+        "EXAVITQu4vr4xnSDxMaL",
+        "FGY2WhTYpPnrIDTdsKH5",
+        "IKne3meq5aSn9XLyUdCD",
+        "N2lVS1w4EtoT3dr4eOWO",
+        "SAz9YHcvj6GT2YYXdXww",
+        "SOYHLrjzK2X1ezoPC6cr",
+        "TX3LPaxmHKxFdv7VOQHJ",
+        "Xb7hH8MSUJpSbSDYk0k2",
+        "XrExE9yKIg1WjnnlVkGX",
+        "bIHbv24MWmeRgasZH58o",
+        "cgSgspJ2msm6clMCkdW9",
+        "cjVigY5qzO86Huf0OWal",
+        "nPczCjzI2devNBz1zQrb"
+      ],
+      "default_voice": "JBFqnCBsd6RMkjVDRZzb",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        48000
+      ],
+      "max_input_chars": 5000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "elevenlabs/eleven_v4_turbo",
+    "provider": "elevenlabs",
+    "name": "ElevenLabs v4 Turbo",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 4e-05
+    },
+    "pricing_source": "https://elevenlabs.io/pricing/api",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "JBFqnCBsd6RMkjVDRZzb",
+        "CwhRBWXzGAHq8TQ4Fs17",
+        "EXAVITQu4vr4xnSDxMaL",
+        "FGY2WhTYpPnrIDTdsKH5",
+        "IKne3meq5aSn9XLyUdCD",
+        "N2lVS1w4EtoT3dr4eOWO",
+        "SAz9YHcvj6GT2YYXdXww",
+        "SOYHLrjzK2X1ezoPC6cr",
+        "TX3LPaxmHKxFdv7VOQHJ",
+        "Xb7hH8MSUJpSbSDYk0k2",
+        "XrExE9yKIg1WjnnlVkGX",
+        "bIHbv24MWmeRgasZH58o",
+        "cgSgspJ2msm6clMCkdW9",
+        "cjVigY5qzO86Huf0OWal",
+        "nPczCjzI2devNBz1zQrb"
+      ],
+      "default_voice": "JBFqnCBsd6RMkjVDRZzb",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        48000
+      ],
+      "max_input_chars": 5000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "elevenlabs/eleven_v3",
+    "provider": "elevenlabs",
+    "name": "ElevenLabs v3",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 8e-05
+    },
+    "pricing_source": "https://elevenlabs.io/pricing/api",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "JBFqnCBsd6RMkjVDRZzb",
+        "CwhRBWXzGAHq8TQ4Fs17",
+        "EXAVITQu4vr4xnSDxMaL",
+        "FGY2WhTYpPnrIDTdsKH5",
+        "IKne3meq5aSn9XLyUdCD",
+        "N2lVS1w4EtoT3dr4eOWO",
+        "SAz9YHcvj6GT2YYXdXww",
+        "SOYHLrjzK2X1ezoPC6cr",
+        "TX3LPaxmHKxFdv7VOQHJ",
+        "Xb7hH8MSUJpSbSDYk0k2",
+        "XrExE9yKIg1WjnnlVkGX",
+        "bIHbv24MWmeRgasZH58o",
+        "cgSgspJ2msm6clMCkdW9",
+        "cjVigY5qzO86Huf0OWal",
+        "nPczCjzI2devNBz1zQrb"
+      ],
+      "default_voice": "JBFqnCBsd6RMkjVDRZzb",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        48000
+      ],
+      "max_input_chars": 5000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "elevenlabs/eleven_v3_conversational",
+    "provider": "elevenlabs",
+    "name": "ElevenLabs v3 Conversational",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 4e-05
+    },
+    "pricing_source": "https://elevenlabs.io/pricing/api",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "JBFqnCBsd6RMkjVDRZzb",
+        "CwhRBWXzGAHq8TQ4Fs17",
+        "EXAVITQu4vr4xnSDxMaL",
+        "FGY2WhTYpPnrIDTdsKH5",
+        "IKne3meq5aSn9XLyUdCD",
+        "N2lVS1w4EtoT3dr4eOWO",
+        "SAz9YHcvj6GT2YYXdXww",
+        "SOYHLrjzK2X1ezoPC6cr",
+        "TX3LPaxmHKxFdv7VOQHJ",
+        "Xb7hH8MSUJpSbSDYk0k2",
+        "XrExE9yKIg1WjnnlVkGX",
+        "bIHbv24MWmeRgasZH58o",
+        "cgSgspJ2msm6clMCkdW9",
+        "cjVigY5qzO86Huf0OWal",
+        "nPczCjzI2devNBz1zQrb"
+      ],
+      "default_voice": "JBFqnCBsd6RMkjVDRZzb",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        48000
+      ],
+      "max_input_chars": 5000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "elevenlabs/eleven_multilingual_v2",
+    "provider": "elevenlabs",
+    "name": "ElevenLabs Multilingual v2",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 8e-05
+    },
+    "pricing_source": "https://elevenlabs.io/pricing/api",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "JBFqnCBsd6RMkjVDRZzb",
+        "CwhRBWXzGAHq8TQ4Fs17",
+        "EXAVITQu4vr4xnSDxMaL",
+        "FGY2WhTYpPnrIDTdsKH5",
+        "IKne3meq5aSn9XLyUdCD",
+        "N2lVS1w4EtoT3dr4eOWO",
+        "SAz9YHcvj6GT2YYXdXww",
+        "SOYHLrjzK2X1ezoPC6cr",
+        "TX3LPaxmHKxFdv7VOQHJ",
+        "Xb7hH8MSUJpSbSDYk0k2",
+        "XrExE9yKIg1WjnnlVkGX",
+        "bIHbv24MWmeRgasZH58o",
+        "cgSgspJ2msm6clMCkdW9",
+        "cjVigY5qzO86Huf0OWal",
+        "nPczCjzI2devNBz1zQrb"
+      ],
+      "default_voice": "JBFqnCBsd6RMkjVDRZzb",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        48000
+      ],
+      "max_input_chars": 5000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "elevenlabs/eleven_flash_v2_5",
+    "provider": "elevenlabs",
+    "name": "ElevenLabs Flash v2.5",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 4e-05
+    },
+    "pricing_source": "https://elevenlabs.io/pricing/api",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "JBFqnCBsd6RMkjVDRZzb",
+        "CwhRBWXzGAHq8TQ4Fs17",
+        "EXAVITQu4vr4xnSDxMaL",
+        "FGY2WhTYpPnrIDTdsKH5",
+        "IKne3meq5aSn9XLyUdCD",
+        "N2lVS1w4EtoT3dr4eOWO",
+        "SAz9YHcvj6GT2YYXdXww",
+        "SOYHLrjzK2X1ezoPC6cr",
+        "TX3LPaxmHKxFdv7VOQHJ",
+        "Xb7hH8MSUJpSbSDYk0k2",
+        "XrExE9yKIg1WjnnlVkGX",
+        "bIHbv24MWmeRgasZH58o",
+        "cgSgspJ2msm6clMCkdW9",
+        "cjVigY5qzO86Huf0OWal",
+        "nPczCjzI2devNBz1zQrb"
+      ],
+      "default_voice": "JBFqnCBsd6RMkjVDRZzb",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        48000
+      ],
+      "max_input_chars": 5000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "elevenlabs/eleven_flash_v2",
+    "provider": "elevenlabs",
+    "name": "ElevenLabs Flash v2",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 4e-05
+    },
+    "pricing_source": "https://elevenlabs.io/pricing/api",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "JBFqnCBsd6RMkjVDRZzb",
+        "CwhRBWXzGAHq8TQ4Fs17",
+        "EXAVITQu4vr4xnSDxMaL",
+        "FGY2WhTYpPnrIDTdsKH5",
+        "IKne3meq5aSn9XLyUdCD",
+        "N2lVS1w4EtoT3dr4eOWO",
+        "SAz9YHcvj6GT2YYXdXww",
+        "SOYHLrjzK2X1ezoPC6cr",
+        "TX3LPaxmHKxFdv7VOQHJ",
+        "Xb7hH8MSUJpSbSDYk0k2",
+        "XrExE9yKIg1WjnnlVkGX",
+        "bIHbv24MWmeRgasZH58o",
+        "cgSgspJ2msm6clMCkdW9",
+        "cjVigY5qzO86Huf0OWal",
+        "nPczCjzI2devNBz1zQrb"
+      ],
+      "default_voice": "JBFqnCBsd6RMkjVDRZzb",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        48000
+      ],
+      "max_input_chars": 5000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
   }
 ]

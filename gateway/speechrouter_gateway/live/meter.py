@@ -181,12 +181,14 @@ def openai_units(usage: dict) -> dict[str, float]:
     cached = inp.get("cached_tokens_details") or {}
     cached_text = cached.get("text_tokens") or 0
     cached_audio = cached.get("audio_tokens") or 0
+    cached_image = cached.get("image_tokens") or 0
     units: dict[str, float] = {}
     _add(units, "text_input_tokens", (inp.get("text_tokens") or 0) - cached_text)
     _add(units, "cached_text_input_tokens", cached_text)
     _add(units, "audio_input_tokens", (inp.get("audio_tokens") or 0) - cached_audio)
     _add(units, "cached_audio_input_tokens", cached_audio)
-    _add(units, "image_input_tokens", inp.get("image_tokens"))
+    _add(units, "image_input_tokens", (inp.get("image_tokens") or 0) - cached_image)
+    _add(units, "cached_image_input_tokens", cached_image)
     _add(units, "text_output_tokens", out.get("text_tokens"))
     _add(units, "audio_output_tokens", out.get("audio_tokens"))
     return units

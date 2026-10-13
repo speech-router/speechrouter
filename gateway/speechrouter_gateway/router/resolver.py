@@ -224,7 +224,7 @@ def resolve_tts(
     voice = request.voice or caps.get("default_voice") or registered.capabilities.default_voice
     if not voice:
         raise ResolveError(Code.invalid_request, f"'{slug}' requires a voice")
-    if voices and voice not in voices:
+    if voices and voice not in voices and not caps.get("custom_voices"):
         raise ResolveError(
             Code.invalid_request,
             f"unknown voice '{voice}' for '{slug}' (one of: {', '.join(voices)})",
@@ -241,7 +241,10 @@ def resolve_tts(
     wrap = fmt not in native_formats
     if wrap and not (fmt in PCM_WRAPPED_FORMATS and "pcm" in native_formats):
         raise ResolveError(Code.unsupported_encoding, f"'{slug}' cannot produce '{fmt}'")
-    native_rate = max(registered.capabilities.sample_rates or {24000})
+    # native_rates: rates at which the adapter itself produces its pcm-family
+    # formats (pcm/wav/mulaw/alaw). Anything else is decimated from pcm.
+    native_rates = registered.capabilities.sample_rates or frozenset({24000})
+    native_rate = 24000 if 24000 in native_rates else max(native_rates)
     rates = caps.get("output_sample_rates") or [native_rate]
     out_rate = request.sample_rate or _DEFAULT_RATE.get(fmt, native_rate)
     if fmt in {"pcm", "wav", "mulaw", "alaw"}:
@@ -250,7 +253,15 @@ def resolve_tts(
                 Code.unsupported_encoding,
                 f"'{slug}' outputs sample_rate {', '.join(map(str, rates))}, not {out_rate}",
             )
-        if out_rate != native_rate:
+        fmt_rates = registered.capabilities.format_rates.get(fmt, native_rates)
+        if not wrap and out_rate in fmt_rates:
+            native_rate = out_rate  # the provider renders this rate itself
+        elif out_rate != native_rate:
+            sources = [r for r in native_rates if r % out_rate == 0]
+            if not sources or "pcm" not in native_formats:
+                raise ResolveError(Code.unsupported_encoding,
+                                   f"'{slug}' cannot produce {fmt} at {out_rate} Hz")
+            native_rate = native_rate if native_rate in sources else max(sources)
             wrap = True  # gateway decimates
     elif request.sample_rate is not None:
         raise ResolveError(Code.invalid_request, "sample_rate applies to pcm/wav/mulaw/alaw only")

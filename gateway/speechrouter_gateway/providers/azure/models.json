@@ -370,5 +370,104 @@
       ],
       "diarization": true
     }
+  },
+  {
+    "slug": "azure/neural",
+    "provider": "azure",
+    "name": "Azure Neural TTS",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 1.5e-05
+    },
+    "pricing_source": "https://prices.azure.com/api/retail/prices (Azure Speech, eastus: 'S1 Neural Text To Speech Characters', 'Neural HD Text to Speech Characters')",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "en-US-JennyNeural",
+        "en-US-JennyMultilingualNeural",
+        "en-US-ChristopherNeural",
+        "en-US-AvaMultilingualNeural"
+      ],
+      "default_voice": "en-US-JennyNeural",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        24000,
+        48000
+      ],
+      "max_input_chars": 5000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "500+ voices across locales via /cognitiveservices/voices/list"
+  },
+  {
+    "slug": "azure/neural-hd",
+    "provider": "azure",
+    "name": "Azure Neural HD (Dragon HD)",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 2.2e-05
+    },
+    "pricing_source": "https://prices.azure.com/api/retail/prices (Azure Speech, eastus: 'S1 Neural Text To Speech Characters', 'Neural HD Text to Speech Characters')",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "en-US-Ava:DragonHDLatestNeural",
+        "en-US-Andrew:DragonHDLatestNeural",
+        "en-US-Andrew2:DragonHDLatestNeural",
+        "en-US-Aria:DragonHDLatestNeural",
+        "en-US-Brian:DragonHDLatestNeural",
+        "en-US-Davis:DragonHDLatestNeural",
+        "en-US-Emma:DragonHDLatestNeural",
+        "en-US-Emma2:DragonHDLatestNeural",
+        "en-US-Jenny:DragonHDLatestNeural",
+        "en-US-Nova:DragonHDLatestNeural",
+        "en-US-Phoebe:DragonHDLatestNeural",
+        "en-US-Serena:DragonHDLatestNeural"
+      ],
+      "default_voice": "en-US-Ava:DragonHDLatestNeural",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        24000,
+        48000
+      ],
+      "max_input_chars": 5000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
   }
 ]

@@ -81,6 +81,9 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    # browsers can only read response headers that are listed here
+    expose_headers=["X-SpeechRouter-Request-Id", "X-SpeechRouter-Model",
+                    "X-SpeechRouter-Characters", "X-SpeechRouter-Cost-Usd"],
 )
 app.include_router(models_router)
 app.include_router(listen_router)

@@ -22,6 +22,7 @@ class TTSRun:
         self.usage = usage or TTSUsage()
         self._pcm_bytes = 0  # adapter pcm (native rate) seen
         self._wav_bytes = 0
+        self._g711_bytes = 0  # native G.711: 1 byte per sample
         self._mp3 = Mp3DurationCounter() if resolved.config.format == "mp3" else None
         self.produced_bytes = 0  # adapter output seen; 0 = provider generated nothing
 
@@ -41,6 +42,8 @@ class TTSRun:
                     self._pcm_bytes += len(chunk)
                 elif native == "wav":
                     self._wav_bytes += len(chunk)
+                elif native in ("mulaw", "alaw"):
+                    self._g711_bytes += len(chunk)
                 elif self._mp3 is not None:
                     self._mp3.feed(chunk)
                 out = converter.feed(chunk) if converter else chunk
@@ -62,6 +65,8 @@ class TTSRun:
         rate = self._resolved.native_rate
         if self._pcm_bytes:
             return self._pcm_bytes / (2 * rate)
+        if self._g711_bytes:
+            return self._g711_bytes / rate
         if self._wav_bytes:
             return max(0, self._wav_bytes - _WAV_HEADER) / (2 * rate)
         if self._mp3 is not None:
@@ -73,8 +78,8 @@ def tts_units(entry: dict, usage: TTSUsage, produced: bool = True) -> dict[str, 
     """Priced quantities per PLAN §3.0: provider-reported tokens, plus
     characters when the model is priced per character. A request the
     provider failed before generating anything costs nothing upstream, so
-    it carries no characters (reported tokens, if any, still count)."""
-    if not produced and not usage.tokens:
+    it carries no units at all (pre-counted ones like utf8_bytes included)."""
+    if not produced:
         return {}
     units = {k: v for k, v in usage.tokens.items() if k in UNIT_RATE_FIELDS and v}
     if "per_character_usd" in effective_pricing(entry) and usage.characters:

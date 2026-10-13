@@ -155,6 +155,9 @@ class TTSCapabilities:
     # wrappers around pcm for adapters whose native output is pcm only
     formats: frozenset[str] = field(default_factory=frozenset)
     sample_rates: frozenset[int] = field(default_factory=frozenset)  # pcm output rates
+    # per-format native rates where they differ from sample_rates, e.g.
+    # {"mulaw": frozenset({8000})}; formats not listed use sample_rates
+    format_rates: dict = field(default_factory=dict)
     max_input_chars: int = 0  # 0 = gateway default
     instructions: bool = False
     speed: bool = False

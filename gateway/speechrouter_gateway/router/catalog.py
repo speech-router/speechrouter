@@ -22,11 +22,13 @@ _PROVIDERS_DIR = Path(__file__).parent.parent / "providers"
 # UsageEvent.units key -> (catalog rate field, units per priced quantity)
 UNIT_RATE_FIELDS: dict[str, tuple[str, float]] = {
     "characters": ("per_character_usd", 1.0),
+    "utf8_bytes": ("per_utf8_byte_usd", 1.0),  # Fish Audio bills input UTF-8 bytes
     "text_input_tokens": ("per_1m_text_input_tokens_usd", 1e6),
     "cached_text_input_tokens": ("per_1m_cached_text_input_tokens_usd", 1e6),
     "audio_input_tokens": ("per_1m_audio_input_tokens_usd", 1e6),
     "cached_audio_input_tokens": ("per_1m_cached_audio_input_tokens_usd", 1e6),
     "image_input_tokens": ("per_1m_image_input_tokens_usd", 1e6),
+    "cached_image_input_tokens": ("per_1m_cached_image_input_tokens_usd", 1e6),
     "text_output_tokens": ("per_1m_text_output_tokens_usd", 1e6),
     "audio_output_tokens": ("per_1m_audio_output_tokens_usd", 1e6),
 }

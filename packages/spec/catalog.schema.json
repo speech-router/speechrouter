@@ -94,6 +94,14 @@
           "type": "number",
           "description": "per 1,000,000 audio output tokens"
         },
+        "per_utf8_byte_usd": {
+          "type": "number",
+          "description": "TTS: per UTF-8 byte of input text (Fish Audio); priced against units.utf8_bytes"
+        },
+        "per_1m_cached_image_input_tokens_usd": {
+          "type": "number",
+          "description": "per 1,000,000 cached image input tokens"
+        },
         "per_second_usd": {
           "type": "number",
           "deprecated": true,
@@ -194,6 +202,10 @@
         "max_session_seconds": {
           "type": "number",
           "description": "live: upstream session cap"
+        },
+        "custom_voices": {
+          "type": "boolean",
+          "description": "TTS: voice ids beyond `voices` (cloned / library / account voices) are accepted and validated by the provider"
         }
       }
     },
@@ -247,6 +259,19 @@
         },
         "additionalProperties": false
       }
+    },
+    "pricing_source": {
+      "type": "string",
+      "description": "Where the list price was read (URL + notes)"
+    },
+    "pricing_checked": {
+      "type": "string",
+      "format": "date",
+      "description": "When pricing_source was last checked"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Human-readable caveats (billing quirks, limits)"
     }
   }
 }

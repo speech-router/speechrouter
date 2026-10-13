@@ -760,7 +760,8 @@
       "per_1m_text_input_tokens_usd": 4.0,
       "per_1m_cached_text_input_tokens_usd": 0.4,
       "per_1m_text_output_tokens_usd": 24.0,
-      "per_1m_image_input_tokens_usd": 5.0
+      "per_1m_image_input_tokens_usd": 5.0,
+      "per_1m_cached_image_input_tokens_usd": 0.5
     },
     "capabilities": {
       "voices": [
@@ -810,7 +811,8 @@
       "per_1m_text_input_tokens_usd": 0.6,
       "per_1m_cached_text_input_tokens_usd": 0.06,
       "per_1m_text_output_tokens_usd": 2.4,
-      "per_1m_image_input_tokens_usd": 0.8
+      "per_1m_image_input_tokens_usd": 0.8,
+      "per_1m_cached_image_input_tokens_usd": 0.08
     },
     "capabilities": {
       "voices": [
@@ -860,7 +862,8 @@
       "per_1m_text_input_tokens_usd": 4.0,
       "per_1m_cached_text_input_tokens_usd": 0.4,
       "per_1m_text_output_tokens_usd": 24.0,
-      "per_1m_image_input_tokens_usd": 5.0
+      "per_1m_image_input_tokens_usd": 5.0,
+      "per_1m_cached_image_input_tokens_usd": 0.5
     },
     "capabilities": {
       "voices": [
@@ -910,7 +913,8 @@
       "per_1m_text_input_tokens_usd": 4.0,
       "per_1m_cached_text_input_tokens_usd": 0.4,
       "per_1m_text_output_tokens_usd": 16.0,
-      "per_1m_image_input_tokens_usd": 5.0
+      "per_1m_image_input_tokens_usd": 5.0,
+      "per_1m_cached_image_input_tokens_usd": 0.5
     },
     "capabilities": {
       "voices": [
@@ -960,7 +964,8 @@
       "per_1m_text_input_tokens_usd": 4.0,
       "per_1m_cached_text_input_tokens_usd": 0.4,
       "per_1m_text_output_tokens_usd": 16.0,
-      "per_1m_image_input_tokens_usd": 5.0
+      "per_1m_image_input_tokens_usd": 5.0,
+      "per_1m_cached_image_input_tokens_usd": 0.5
     },
     "capabilities": {
       "voices": [
@@ -1010,7 +1015,8 @@
       "per_1m_text_input_tokens_usd": 0.6,
       "per_1m_cached_text_input_tokens_usd": 0.06,
       "per_1m_text_output_tokens_usd": 2.4,
-      "per_1m_image_input_tokens_usd": 0.8
+      "per_1m_image_input_tokens_usd": 0.8,
+      "per_1m_cached_image_input_tokens_usd": 0.08
     },
     "capabilities": {
       "voices": [

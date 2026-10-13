@@ -696,3 +696,17 @@ def test_models_include_disabled_for_price_sync(gw):
     # still not routable
     with client.websocket_connect(OPENAI_URL, headers=BEARER) as ws:
         assert json.loads(ws.receive_text())["error"]["code"] == "model_not_found"
+
+
+def test_openai_cached_image_tokens_split_out():
+    units = openai_units({"input_token_details": {
+        "image_tokens": 100, "cached_tokens": 40,
+        "cached_tokens_details": {"image_tokens": 40}}})
+    assert units == {"image_input_tokens": 60, "cached_image_input_tokens": 40}
+
+
+def test_cors_exposes_speechrouter_headers(gw):
+    client, _ = gw
+    r = client.get("/v1/models", headers={"Origin": "https://app.example"})
+    exposed = r.headers.get("access-control-expose-headers", "").lower()
+    assert "x-speechrouter-cost-usd" in exposed and "x-speechrouter-request-id" in exposed

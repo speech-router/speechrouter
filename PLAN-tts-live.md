@@ -409,6 +409,22 @@ Each `XADD speechrouter:usage` entry is `{"payload": <JSON>}` with these fields:
 | `output_audio_seconds` | float | **new** | Audio generated: TTS = same as `audio_seconds`; live = provider→client audio in this interval |
 | `list_cost_usd` | float | **new** | Gateway's own Σ units × catalog rate (cross-check only; cloud prices from its table). `0` for BYOK and STT |
 
+**New billing units (phase 2, 2026-10-13). Cloud must price these:**
+
+| unit key | catalog rate field | divisor | who | why |
+|---|---|---|---|---|
+| `utf8_bytes` | `per_utf8_byte_usd` | 1 | Fish Audio (`fishaudio/*`) | Fish bills **UTF-8 bytes** of input, not characters (CJK ≈ 3 bytes). Fish events carry `units.utf8_bytes` and no `characters` unit (the `characters` field is still filled for dashboards). |
+| `cached_image_input_tokens` | `per_1m_cached_image_input_tokens_usd` | 1e6 | OpenAI Realtime (`openai/gpt-realtime*`) | Cached image tokens are now split out of `image_input_tokens` (same rule as text/audio). |
+
+Both are in `router/catalog.py::UNIT_RATE_FIELDS` and `catalog.schema.json`. Every other phase-2 provider
+(ElevenLabs, Cartesia, Deepgram, Azure, Google, Rime, Inworld, MiniMax, Groq, Murf, Speechmatics) uses the
+existing `characters` → `per_character_usd` unit. Where the vendor reports its own billed count (Deepgram
+`dg-char-count`, Inworld `processedCharactersCount`, MiniMax `usage_characters`), that count replaces
+`len(text)` in `characters` and `units.characters`.
+
+New catalog fields on TTS entries (informational): `pricing_source` (URL and notes), `pricing_checked`
+(date), `notes`, and `capabilities.custom_voices` (any voice ID is accepted and validated by the provider).
+
 **Pricing rule:** `price = Σ_k units[k] × rate(k)`. Rate fields in the catalog `pricing` object:
 `characters → per_character_usd` (per 1 char); every `*_tokens` key → `per_1m_<key>_usd` per 1,000,000
 (e.g. `audio_output_tokens → per_1m_audio_output_tokens_usd`). A unit with no rate field on the
