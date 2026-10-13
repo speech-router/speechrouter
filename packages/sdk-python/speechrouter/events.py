@@ -44,6 +44,7 @@ class SessionOpen:
     model: str
     encoding: str | None = None
     sample_rate: int | None = None
+    voice: str | None = None  # /v1/speak
 
 
 @dataclass(slots=True)
@@ -92,6 +93,16 @@ class Cleared:
 
 
 @dataclass(slots=True)
+class AudioChunk:
+    """/v1/speak: chunk metadata; `data` holds the binary frame that follows."""
+
+    type: Literal["audio.chunk"]
+    seq: int
+    start: float | None = None
+    data: bytes = b""
+
+
+@dataclass(slots=True)
 class KeepAlive:
     type: Literal["keepalive"]
 
@@ -119,6 +130,7 @@ ListenEvent = (
     | ProviderSwitched
     | TextDelta
     | Cleared
+    | AudioChunk
     | KeepAlive
     | Done
     | ErrorEvent
@@ -132,6 +144,7 @@ _EVENT_TYPES: dict[str, type] = {
     "provider_switched": ProviderSwitched,
     "text.delta": TextDelta,
     "cleared": Cleared,
+    "audio.chunk": AudioChunk,
     "keepalive": KeepAlive,
     "done": Done,
     "error": ErrorEvent,

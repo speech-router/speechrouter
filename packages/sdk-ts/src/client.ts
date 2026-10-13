@@ -10,6 +10,22 @@ export type TranscribeFormats = {
   text: string
 }
 import { buildListenUrl, ListenStream, type ListenOptions } from './listen'
+import { buildSpeakUrl, SpeakStream, type SpeakOptions } from './speak'
+
+export interface SpeechOptions {
+  /** TTS model slug, e.g. "openai/gpt-4o-mini-tts". */
+  model: string
+  input: string
+  voice?: string
+  /** mp3 | opus | aac | flac | wav | pcm | mulaw | alaw (per model). */
+  responseFormat?: string
+  sampleRate?: number
+  speed?: number
+  instructions?: string
+  language?: string
+  providerParams?: Record<string, unknown>
+  signal?: AbortSignal
+}
 
 export interface SpeechRouterOptions {
   /** Your sk_sr_... key. In browsers, prefer a short-lived key minted by
@@ -70,6 +86,42 @@ export class SpeechRouter {
   /** Open a live transcription session over WebSocket. */
   listen(opts: ListenOptions): ListenStream {
     return new ListenStream(buildListenUrl(this.wsBase, opts), opts, this.apiKey)
+  }
+
+  /** Open a streaming text-to-speech session over WebSocket. */
+  speak(opts: SpeakOptions): SpeakStream {
+    return new SpeakStream(buildSpeakUrl(this.wsBase, opts), this.apiKey)
+  }
+
+  /** Synthesize speech; resolves with the whole audio file. */
+  async speech(opts: SpeechOptions): Promise<ArrayBuffer> {
+    const response = await this.speechRequest(opts, false)
+    return response.arrayBuffer()
+  }
+
+  /** Synthesize speech; the body streams as audio is generated. */
+  async speechStream(opts: SpeechOptions): Promise<ReadableStream<Uint8Array>> {
+    const response = await this.speechRequest(opts, true)
+    if (!response.body)
+      throw new SpeechRouterError('response has no body', { code: 'internal_error' })
+    return response.body
+  }
+
+  private speechRequest(opts: SpeechOptions, stream: boolean): Promise<Response> {
+    const body: Record<string, unknown> = { model: opts.model, input: opts.input, stream }
+    if (opts.voice) body.voice = opts.voice
+    if (opts.responseFormat) body.response_format = opts.responseFormat
+    if (opts.sampleRate) body.sample_rate = opts.sampleRate
+    if (opts.speed !== undefined) body.speed = opts.speed
+    if (opts.instructions) body.instructions = opts.instructions
+    if (opts.language) body.language = opts.language
+    if (opts.providerParams) body.provider_params = opts.providerParams
+    return this.request('/v1/audio/speech', {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: { 'Content-Type': 'application/json' },
+      ...(opts.signal ? { signal: opts.signal } : {}),
+    })
   }
 
   /** Transcribe a complete file. Return type follows `responseFormat`:

@@ -3,6 +3,7 @@
 from .client import SpeechRouter
 from .errors import SpeechRouterError
 from .events import (
+    AudioChunk,
     Cleared,
     Done,
     ErrorEvent,
@@ -16,11 +17,13 @@ from .events import (
     UtteranceEnd,
     Word,
 )
+from .speak import SpeakStream
 from .stream import ListenStream
 
 __version__ = "0.1.0"
 
 __all__ = [
+    "AudioChunk",
     "Cleared",
     "Done",
     "ErrorEvent",
@@ -29,6 +32,7 @@ __all__ = [
     "ListenStream",
     "ProviderSwitched",
     "SessionOpen",
+    "SpeakStream",
     "SpeechRouter",
     "SpeechRouterError",
     "SpeechStarted",
