@@ -78,6 +78,54 @@ const price = (p) => {
 
 const yes = '<span class="sr-yes">✓</span>', no = '<span class="sr-no">—</span>';
 
+// TTS + live models price in characters or per-1M tokens by modality
+const UNIT_LABELS = {
+  per_character_usd: ['char', 1e6, 'per 1M chars'],
+  per_1m_text_input_tokens_usd: ['text in'],
+  per_1m_cached_text_input_tokens_usd: ['cached text in'],
+  per_1m_audio_input_tokens_usd: ['audio in'],
+  per_1m_cached_audio_input_tokens_usd: ['cached audio in'],
+  per_1m_image_input_tokens_usd: ['image in'],
+  per_1m_text_output_tokens_usd: ['text out'],
+  per_1m_audio_output_tokens_usd: ['audio out'],
+};
+const unitPrice = (p) => Object.entries(UNIT_LABELS)
+  .filter(([field]) => p?.[field] != null)
+  .map(([field, [label, scale]]) => (scale
+    ? `$${+(p[field] * scale).toFixed(4)} ${UNIT_LABELS[field][2]}`
+    : `$${p[field]} ${label}`))
+  .join(' · ') || '—';
+
+const voiceSection = (all) => {
+  const tts = all.filter((m) => m.kind === 'tts');
+  const live = all.filter((m) => m.kind === 'live');
+  let out = '';
+  if (tts.length) {
+    out += `
+## Text-to-speech
+
+Token prices are per 1M tokens. [Text-to-speech guide](/guides/tts/).
+
+| Model | List price | Formats | Voices |
+| --- | --- | --- | --- |
+${tts.map((m) => `| \`${m.slug}\` | ${unitPrice(m.pricing)}${m.pricing_schedule?.length ? ` (from ${m.pricing_schedule[0].effective_from}: ${unitPrice(m.pricing_schedule[0].pricing)})` : ''} | ${(m.capabilities?.formats ?? []).join(', ')} | ${(m.capabilities?.voices ?? []).length} |`).join('\n')}
+`;
+  }
+  if (live.length) {
+    out += `
+## Live voice
+
+Speech-to-speech sessions in the vendor's own protocol (\`${live[0].dialect}\`). Prices
+per 1M tokens. [Live voice guide](/guides/live/).
+
+| Model | List price |
+| --- | --- |
+${live.map((m) => `| \`${m.slug}\`${m.deprecated ? ' (deprecated)' : ''} | ${unitPrice(m.pricing)} |`).join('\n')}
+`;
+  }
+  return out;
+};
+
 const sample = (models) => {
   const batch = models.find((m) => (m.modes ?? []).includes('batch'));
   if (batch) return `\`\`\`bash
@@ -104,8 +152,8 @@ const providers = readdirSync(providersDir, { withFileTypes: true })
 let total = 0;
 const allSlugs = [];
 for (const name of providers) {
-  const models = JSON.parse(readFileSync(join(providersDir, name, 'models.json'), 'utf8'))
-    .filter((m) => m.kind === 'stt');
+  const all = JSON.parse(readFileSync(join(providersDir, name, 'models.json'), 'utf8'));
+  const models = all.filter((m) => (m.kind ?? 'stt') === 'stt');
   if (!models.length) continue;
   total += models.length;
   allSlugs.push(...models.map((m) => m.slug));
@@ -135,7 +183,7 @@ knobs pass through untouched via \`provider_params\`.
 | Model | Modes | List price | Diarization | Word timings |
 | --- | --- | --- | --- | --- |
 ${rows}
-${sessionNote}${paramsSection(join(providersDir, name))}
+${sessionNote}${voiceSection(all)}${paramsSection(join(providersDir, name))}
 ## Try it
 
 ${sample(models)}

@@ -16,6 +16,14 @@ Each model is priced in its vendor's own unit — no lossy conversions:
 | per audio-hour | `speechmatics/melia-1` — $0.129/hr |
 | per session-hour | `soniox/stt-rt-v5` — $0.12/hr **wall-clock** |
 | minimum per request | `aws/*` — 15s minimum, `groq/*` — 10s minimum |
+| per character (TTS) | `openai/tts-1` — $15 per 1M characters |
+| per 1M tokens, by modality (TTS, live) | `openai/gpt-4o-mini-tts` — $0.60 text in, $12 audio out; `gemini/gemini-3.8-live` — $3 audio in, $12 audio out |
+
+**Token-priced models** bill each token count the provider reports for the
+request: text, audio and image input, cached input, and text and audio
+output, each at its own rate. A live session records usage every 60 seconds,
+so long calls appear while they run. If a provider sends no usage at all,
+the gateway estimates from the audio relayed and marks the record estimated.
 
 **Session-billed models** (Soniox realtime, AssemblyAI streaming) meter on
 wall-clock connection time — an open socket bills even when silent, because

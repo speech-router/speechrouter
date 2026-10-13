@@ -214,7 +214,7 @@ class GeminiLiveMeter(LiveMeter):
     gemini.md): `per_message` (default) sums every report, right if each
     message bills its own turn, which is how Live bills context per turn;
     `cumulative` keeps the largest running total, right if each message
-    restates the session so far. scripts/live_probe.py settles it.
+    restates the session so far. scripts/tts_live_probe.py (gemini_live) captures the evidence.
 
     Estimate rates come from Google's published per-minute prices for
     gemini-3.8-live: $0.005/min in at $3/1M = 1667 tok/min; $0.018/min out

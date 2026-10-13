@@ -181,3 +181,36 @@ real adapter. Everything below is measured, not read.
 4. `gemini-3.5-transcribe` (non-live) as a batch model: the launch post promises speaker
    attribution and word-level timestamps, ~$0.005/min. It ships on the **Interactions
    API**, not the Live socket and not `generateContent`, so it needs its own `batch.py`.
+
+## TTS (added 2026-10-13, SR-TTS-LIVE) — documented, NOT yet live-verified
+
+- `POST v1beta/models/{m}:streamGenerateContent?alt=sse`, key in `x-goog-api-key` (never `?key=`).
+- Body: `contents[{role:user, parts:[{text}]}]`, `generationConfig {responseModalities:["AUDIO"],
+  speechConfig {voiceConfig {prebuiltVoiceConfig {voiceName}}, languageCode?}}`; multi-speaker via
+  `provider_params.speechConfig.multiSpeakerVoiceConfig`.
+- Output: `candidates[0].content.parts[].inlineData {mimeType:"audio/L16;codec=pcm;rate=24000", data}` —
+  raw PCM only. The gateway wraps wav / G.711 (8 kHz).
+- Style: no `instructions` field; the gateway prefixes the prompt (`"<instructions>: <text>"`), billed as
+  text tokens.
+- Usage: `usageMetadata {promptTokenCount (text in), candidatesTokenCount (audio out)}`, treated as
+  cumulative (last wins). Fallback: 25 audio tokens/s, 4 chars/text token. **Probe:** `--exp gemini_tts`.
+- Pricing: gemini-3.8-flash-tts $0.50 / $9.00 per 1M (text in / audio out), flash-lite $0.50 / $6.00,
+  **doubling on 2027-01-01** (catalog `pricing_schedule`).
+
+## Live passthrough (added 2026-10-13) — documented, NOT yet live-verified
+
+- Same socket as transcription above; the gateway forwards frames verbatim. The model comes from
+  `setup.model` in the FIRST frame, so the gateway reads one frame before dialing.
+- google-genai (2.30) builds `wss://<base>/ws/google.ai.generativelanguage.<ver>.GenerativeService.
+  BidiGenerateContent` and puts the key in its http_options headers (`x-goog-api-key`). Ephemeral
+  `auth_tokens/…` switch to `BidiGenerateContentConstrained` with `Authorization: Token`. **It always
+  forces `wss://`**, so a self-hosted gateway needs TLS for Gemini Live. The SDK sends snake_case
+  top-level keys (`realtime_input`); the meter accepts both spellings.
+- Server frames are JSON in **binary** WS frames; passthrough keeps the frame type.
+- **Open: `usageMetadata` semantics on Live** — per message (sum) vs cumulative (max). Default
+  `per_message` (`SPEECHROUTER_GEMINI_LIVE_USAGE_SEMANTICS`). Settle with `--exp gemini_live` plus the
+  billing console. Modality split from `promptTokensDetails` / `responseTokensDetails`
+  (`cacheTokensDetails` subtracted out); without details, prompt → audio in, response → audio out,
+  flagged `units_estimated`.
+- Fallback estimate: 1667 tok/min in, 1500 tok/min out (from the per-minute prices on Google's page).
+- Pricing (per 1M): gemini-3.8-live text 0.75 / audio 3.00 / image·video 1.00 in, text 4.50 / audio 12.00 out.

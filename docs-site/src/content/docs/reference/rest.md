@@ -1,6 +1,6 @@
 ---
 title: REST API
-description: Every HTTP endpoint — transcriptions, tokens, models, health.
+description: Every HTTP endpoint — transcriptions, speech, tokens, models, health.
 ---
 
 Base URL: `https://api.speechrouter.ai`. Errors use an OpenAI-compatible
@@ -18,6 +18,12 @@ The machine-readable spec:
 Batch transcription. Multipart form; Bearer auth. Fields, formats, and limits:
 [Batch transcription](/guides/batch/).
 
+## POST /v1/audio/speech
+
+Text-to-speech, OpenAI-compatible. JSON body; Bearer auth; audio streams back
+with chunked transfer. Fields, formats and voices:
+[Text-to-speech](/guides/tts/).
+
 ## POST /v1/tokens
 
 Mint a [short-lived client token](/authentication/#short-lived-client-tokens).
@@ -29,11 +35,18 @@ Bearer auth with a full API key (tokens cannot mint tokens).
 
 Returns `{ "token": "st_…", "expires_at": "…", "ttl_seconds": 60 }`.
 
+## POST /v1/realtime/client_secrets
+
+OpenAI-shaped alias for browser [live sessions](/guides/live/). The body's
+`expires_after.seconds` is clamped to 10–300. Returns
+`{ "value": "st_…", "expires_at": <unix seconds>, "session": {…} }`. The
+`session` you send is echoed back; it is not pinned to the token.
+
 ## GET /v1/models
 
 The live catalog — no auth required. Each entry carries the slug, display
-name, `modes` (`streaming` / `batch`), capabilities, and pricing in the
-vendor's native unit:
+name, `kind` (`stt` / `tts` / `live`), `modes` (`streaming` / `batch` /
+`live`), capabilities, and pricing in the vendor's native unit:
 
 ```json
 {
@@ -44,8 +57,21 @@ vendor's native unit:
 }
 ```
 
-The catalog is the billing engine's own source of truth — what it says is what
-you pay.
+TTS and live models price per character or per million tokens by modality,
+and can carry dated price changes:
+
+```json
+{
+  "slug": "gemini/gemini-3.8-flash-tts",
+  "kind": "tts",
+  "pricing": { "per_1m_text_input_tokens_usd": 0.5, "per_1m_audio_output_tokens_usd": 9.0 },
+  "pricing_schedule": [{ "effective_from": "2027-01-01",
+    "pricing": { "per_1m_text_input_tokens_usd": 1.0, "per_1m_audio_output_tokens_usd": 18.0 } }]
+}
+```
+
+`pricing` is always the rate in force today. The catalog is the billing
+engine's own source of truth: what it says is what you pay.
 
 ## POST /v1/listen
 
