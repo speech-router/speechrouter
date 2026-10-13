@@ -424,6 +424,22 @@ force at event `ts` is the latest schedule entry with `effective_from <= date(ts
 event with the terminal status. `seq` starts at 1 and increments, with no gaps. A session that ends inside
 its first 60 s emits exactly one event (`<parent>:1`). Sum all events per `parent_session_id` for totals.
 
+**OpenAI input-transcription legs (added 2026-10-13, resolves Q4 without new fields):** when an
+OpenAI Realtime session has input transcription enabled (`session.audio.input.transcription.model`),
+OpenAI bills that transcription separately at the transcription model's rate. The gateway emits, next
+to each live event that covers transcribed audio, one companion event:
+`kind = "stt_stream"`, `model = "openai/<transcription model>"` (e.g. `openai/gpt-4o-mini-transcribe`),
+`session_id = "<parent>:t<n>"` (own counter, from 1, no gaps), `parent_session_id = <parent>`,
+`billing_basis = "audio_time"`, `audio_seconds = billed_seconds =` input audio relayed while
+transcription was on, `units = {}`, same `status` as the live event it accompanies. Cloud prices it
+with the **existing seconds path** (the STT catalog rate for that slug). Totals per live session =
+all events with that `parent_session_id`, both kinds.
+
+**Live status values:** besides `in_progress`/`completed`/`client_disconnect`, a final live event may
+be `provider_error` (upstream refused or dropped), `error` (client protocol violation, e.g. a second
+Gemini `setup`), or a limit status (`insufficient_credits`, `session_expired`, `audio_timeout`). A
+session refused at upstream handshake still emits exactly one final event (`<parent>:1`, empty units).
+
 **Catalog fields cloud should read:** `kind` (`stt`|`tts`|`live`), `modes` (`streaming`|`batch`|`live`),
 `dialect` (live only: `openai-realtime`|`gemini-live`), `pricing`, `pricing_schedule`. For multi-rate
 entries `pricing.per_second_usd` is **not** derived: treat it as absent.

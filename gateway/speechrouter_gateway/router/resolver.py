@@ -300,3 +300,26 @@ def resolve_tts(
         wrap=wrap,
         max_input_chars=max_chars,
     )
+
+
+# ------------------------------------------------------------------ live
+
+
+def resolve_live(slug: str, dialect: str, settings: Settings, catalog: Catalog):
+    """Validate a live slug for the dialect the client connected with and
+    that the gateway holds credentials. Returns (entry, provider model)."""
+    provider_id, _, model_name = slug.partition("/")
+    entry = catalog.find(slug)
+    if entry is None or entry.get("kind") != "live" or not model_name:
+        raise ResolveError(Code.model_not_found, f"'{slug}' is not an available live model")
+    if entry.get("dialect") != dialect:
+        raise ResolveError(
+            Code.model_not_found,
+            f"'{slug}' speaks {entry.get('dialect')}, not {dialect} — connect to its endpoint",
+        )
+    field_name = {"openai": "openai_api_key", "gemini": "gemini_api_key"}.get(provider_id)
+    if field_name is None or not getattr(settings, field_name, ""):
+        raise ResolveError(
+            Code.invalid_request, f"provider '{provider_id}' has no credentials configured"
+        )
+    return entry, model_name

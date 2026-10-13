@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 
 from .api.listen_ws import router as listen_router
 from .api.models import router as models_router
+from .api.realtime_ws import router as realtime_router
 from .api.speak_ws import router as speak_router
 from .api.speech import router as speech_router
 from .api.tokens import router as tokens_router
@@ -87,6 +88,7 @@ app.include_router(transcriptions_router)
 app.include_router(tokens_router)
 app.include_router(speech_router)
 app.include_router(speak_router)
+app.include_router(realtime_router)
 
 
 @app.exception_handler(RequestValidationError)

@@ -53,6 +53,10 @@ class Settings(BaseSettings):
     # admission needs this much balance (micro-USD; cloud mode only, house
     # keys only). 5_000_000 = $5. 0 disables the floor.
     live_min_balance_microusd: int = 5_000_000
+    # How to read Gemini Live usageMetadata until a live probe settles it
+    # (docs/providers/gemini.md): per_message = sum every report,
+    # cumulative = keep the running max.
+    gemini_live_usage_semantics: str = "per_message"
 
     # Provider credentials (gateway-owned; BYOK arrives via the cloud keystore)
     deepgram_api_key: str = ""
