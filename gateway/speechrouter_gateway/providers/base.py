@@ -189,5 +189,12 @@ class TTSProvider(ABC):
         """Yield audio chunks as the provider produces them. Raises
         ProviderStreamError before or during the stream."""
 
+    def estimate_usage(  # noqa: B027 - optional hook
+        self, text: str, config: TTSConfig, audio_seconds: float, usage: TTSUsage
+    ) -> None:
+        """Called when a stream ended (usually cancelled by barge-in) before the
+        provider reported usage. Token-priced adapters fill usage.tokens with
+        an estimate and set usage.estimated; others leave it alone."""
+
     async def close(self) -> None:  # noqa: B027 - optional hook
         """Release pooled resources. Safe from any state."""

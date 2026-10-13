@@ -33,21 +33,27 @@ class TTSRun:
             else None
         )
         native = resolved.config.format
-        async for chunk in adapter.synthesize(text, resolved.config, self.usage):
-            self.produced_bytes += len(chunk)
-            if native == "pcm":
-                self._pcm_bytes += len(chunk)
-            elif native == "wav":
-                self._wav_bytes += len(chunk)
-            elif self._mp3 is not None:
-                self._mp3.feed(chunk)
-            out = converter.feed(chunk) if converter else chunk
-            if out:
-                yield out
-        if converter is not None:
-            tail = converter.flush()
-            if tail:
-                yield tail
+        source = adapter.synthesize(text, resolved.config, self.usage)
+        try:
+            async for chunk in source:
+                self.produced_bytes += len(chunk)
+                if native == "pcm":
+                    self._pcm_bytes += len(chunk)
+                elif native == "wav":
+                    self._wav_bytes += len(chunk)
+                elif self._mp3 is not None:
+                    self._mp3.feed(chunk)
+                out = converter.feed(chunk) if converter else chunk
+                if out:
+                    yield out
+            if converter is not None:
+                tail = converter.flush()
+                if tail:
+                    yield tail
+        finally:
+            await source.aclose()  # type: ignore[attr-defined]
+            if self.produced_bytes and not self.usage.tokens:
+                adapter.estimate_usage(text, resolved.config, self.audio_seconds, self.usage)
 
     @property
     def audio_seconds(self) -> float:

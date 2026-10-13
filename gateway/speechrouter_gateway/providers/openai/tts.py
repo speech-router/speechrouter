@@ -18,6 +18,7 @@ Token split: input_tokens are TEXT tokens, output_tokens are AUDIO tokens
 """
 
 import base64
+import math
 from collections.abc import AsyncIterator
 
 import httpx
@@ -28,6 +29,12 @@ from ..http_tts import make_client, sse_events, status_error, wrap_transport_err
 from ..registry import ProviderNotConfigured, register_tts
 
 _SSE_MODELS = {"gpt-4o-mini-tts"}
+
+# Fallback estimate only (stream cancelled before speech.audio.done). OpenAI
+# publishes gpt-4o-mini-tts at ~$0.015/min of audio = 1250 tokens/min at
+# $12/1M — not a measured wire figure. Verify with a live probe.
+AUDIO_TOKENS_PER_SECOND = 1250 / 60
+CHARS_PER_TEXT_TOKEN = 4
 
 VOICES = frozenset({
     "alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer",
@@ -122,6 +129,18 @@ class OpenAITTS(TTSProvider):
                             yield chunk
         except httpx.HTTPError as exc:
             raise wrap_transport_error(self.name, exc) from exc
+
+    def estimate_usage(
+        self, text: str, config: TTSConfig, audio_seconds: float, usage: TTSUsage
+    ) -> None:
+        if config.model not in _SSE_MODELS or usage.tokens:
+            return
+        prompt = len(text) + len(config.instructions or "")
+        usage.tokens["text_input_tokens"] = float(math.ceil(prompt / CHARS_PER_TEXT_TOKEN))
+        usage.tokens["audio_output_tokens"] = float(
+            math.ceil(audio_seconds * AUDIO_TOKENS_PER_SECOND)
+        )
+        usage.estimated = True
 
     async def close(self) -> None:
         if self._client is not None:
