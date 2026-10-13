@@ -79,3 +79,28 @@ progress). Terminal errors close the socket. Codes:
 
 Sessions idle for 60 seconds — no audio and no keepalive — close with
 `audio_timeout`.
+
+## /v1/speak (text-to-speech)
+
+Same framing rule: text frames are JSON events, binary frames are audio.
+Full walkthrough: [Text-to-speech](/guides/tts/#wss-v1speak).
+
+| Direction | Frame | Meaning |
+| --- | --- | --- |
+| → | `{"type": "text.delta", "text": "…"}` | Append text to speak |
+| → | `{"type": "finalize"}` | End of text: speak the rest, then `done` |
+| → | `{"type": "clear"}` | Barge-in: discard queued and in-flight audio |
+| → | `{"type": "keepalive"}` | Hold an idle session open |
+| ← | `session.open` | Adds `voice` to the fields above |
+| ← | `{"type": "audio.chunk", "seq": 3, "start": 1.24}` | Exactly one binary audio frame follows |
+| ← | `{"type": "cleared", "last_seq": 7}` | Ack for `clear` |
+| ← | `done` | `usage` adds `characters`, `output_audio_seconds`, `units`, `cost_usd` |
+
+```json
+{ "type": "done", "usage": { "model": "openai/gpt-4o-mini-tts", "characters": 107,
+  "audio_seconds": 2.74, "output_audio_seconds": 2.74, "cost_usd": 0.000723,
+  "units": { "text_input_tokens": 25, "audio_output_tokens": 59 } } }
+```
+
+Live voice sessions (`/v1/realtime`, Gemini Live) speak the **vendor's**
+protocol, not this one. See [Live voice](/guides/live/).

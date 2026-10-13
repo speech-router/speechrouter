@@ -200,7 +200,11 @@ Self-host mode needs no database. Azure streaming and Google need extras:
 
 ## Roadmap
 
-**TTS lane** (`/v1/speak` — same router, voices out) · AWS/Google batch ·
+**TTS + live voice: shipped (behind flags).** `POST /v1/audio/speech` (OpenAI-compatible),
+`WSS /v1/speak` (stream LLM text in, audio out, barge-in), and OpenAI Realtime / Gemini Live
+passthrough with the vendors' own SDKs. See [Text-to-speech](https://docs.speechrouter.ai/guides/tts/)
+and [Live voice](https://docs.speechrouter.ai/guides/live/). Next: native-socket TTS adapters
+(ElevenLabs, Cartesia, Deepgram Aura) · AWS/Google batch ·
 eager-turn events · more providers (Gladia, NVIDIA Riva, Rev, Sarvam —
 [the bench](https://speechrouter.ai/models)).
 

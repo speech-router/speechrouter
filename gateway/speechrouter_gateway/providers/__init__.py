@@ -1,8 +1,10 @@
 from .assemblyai import adapter as _assemblyai_adapter  # noqa: F401  (self-registers)
 from .assemblyai import batch as _assemblyai_batch  # noqa: F401
 from .aws import adapter as _aws_adapter  # noqa: F401
+from .aws import tts as _aws_tts  # noqa: F401
 from .azure import adapter as _azure_adapter  # noqa: F401
 from .azure import batch as _azure_batch  # noqa: F401
+from .azure import tts as _azure_tts  # noqa: F401
 from .base import (  # noqa: F401
     BillingBasis,
     Capabilities,
@@ -14,31 +16,50 @@ from .base import (  # noqa: F401
 )
 from .cartesia import adapter as _cartesia_adapter  # noqa: F401
 from .cartesia import batch as _cartesia_batch  # noqa: F401
+from .cartesia import tts as _cartesia_tts  # noqa: F401
 from .deepgram import adapter as _deepgram_adapter  # noqa: F401  (self-registers)
 from .deepgram import batch as _deepgram_batch  # noqa: F401
+from .deepgram import tts as _deepgram_tts  # noqa: F401
 from .elevenlabs import adapter as _elevenlabs_adapter  # noqa: F401
 from .elevenlabs import batch as _elevenlabs_batch  # noqa: F401
+from .elevenlabs import tts as _elevenlabs_tts  # noqa: F401
+from .fishaudio import tts as _fishaudio_tts  # noqa: F401
 from .gemini import adapter as _gemini_adapter  # noqa: F401  (self-registers)
+from .gemini import tts as _gemini_tts  # noqa: F401
 from .google import adapter as _google_adapter  # noqa: F401
+from .google import tts as _google_tts  # noqa: F401
 from .groq import batch as _groq_batch  # noqa: F401
+from .groq import tts as _groq_tts  # noqa: F401
+from .inworld import tts as _inworld_tts  # noqa: F401
 from .meta import adapter as _meta_adapter  # noqa: F401  (self-registers)
 from .meta import batch as _meta_batch  # noqa: F401
+from .minimax import tts as _minimax_tts  # noqa: F401
 from .mistral import adapter as _mistral_adapter  # noqa: F401
 from .mistral import batch as _mistral_batch  # noqa: F401
+from .mistral import tts as _mistral_tts  # noqa: F401
+from .murf import tts as _murf_tts  # noqa: F401
 from .openai import adapter as _openai_adapter  # noqa: F401
 from .openai import batch as _openai_batch  # noqa: F401
+from .openai import tts as _openai_tts  # noqa: F401
 from .palabra import adapter as _palabra_adapter  # noqa: F401  (self-registers)
 from .registry import (  # noqa: F401
     ProviderNotConfigured,
     register_stt_batch,
     register_stt_stream,
+    register_tts,
     stt_batch_provider,
     stt_stream_provider,
+    tts_provider,
 )
+from .rime import tts as _rime_tts  # noqa: F401
+from .smallest import tts as _smallest_tts  # noqa: F401
 from .soniox import adapter as _soniox_adapter  # noqa: F401  (self-registers)
 from .soniox import batch as _soniox_batch  # noqa: F401
 from .speechmatics import adapter as _speechmatics_adapter  # noqa: F401
 from .speechmatics import batch as _speechmatics_batch  # noqa: F401
+from .speechmatics import tts as _speechmatics_tts  # noqa: F401
 from .telnyx import adapter as _telnyx_adapter  # noqa: F401  (self-registers)
+from .together import tts as _together_tts  # noqa: F401
 from .xai import adapter as _xai_adapter  # noqa: F401  (self-registers)
 from .xai import batch as _xai_batch  # noqa: F401
+from .xai import tts as _xai_tts  # noqa: F401

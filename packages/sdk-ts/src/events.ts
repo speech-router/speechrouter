@@ -35,6 +35,8 @@ export interface SessionOpenEvent {
   model: string
   encoding?: string
   sample_rate?: number
+  /** /v1/speak: resolved voice id */
+  voice?: string
 }
 
 export interface TranscriptEvent {
@@ -75,17 +77,44 @@ export interface TextDeltaEvent {
 export interface ClearedEvent {
   type: 'cleared'
   last_seq: number
+  /** Native-socket providers that report it (Deepgram Flux): text voiced before the barge-in */
+  text_spoken?: string
+  text_remaining?: string
 }
 
 export interface KeepAliveEvent {
   type: 'keepalive'
 }
 
+/** /v1/speak: metadata for the binary audio frame that follows it. */
+export interface AudioChunkEvent {
+  type: 'audio.chunk'
+  seq: number
+  /** Audio-time seconds of this chunk within the session. */
+  start?: number
+}
+
+/** A /v1/speak audio frame paired with its `audio.chunk` metadata. */
+export interface SpeakAudio {
+  type: 'audio'
+  seq: number
+  start?: number
+  data: ArrayBuffer
+}
+
+/** Everything a SpeakStream yields. */
+export type SpeakEvent = SessionOpenEvent | SpeakAudio | ClearedEvent | DoneEvent | ErrorEvent
+
 export interface DoneEvent {
   type: 'done'
   usage: {
     audio_seconds?: number
     model?: string
+    /** TTS: characters synthesized */
+    characters?: number
+    cost_usd?: number
+    /** Priced quantities: characters, *_tokens by modality */
+    units?: Record<string, number>
     [key: string]: unknown
   }
 }
@@ -127,8 +156,11 @@ export interface Model {
   slug: string
   provider: string
   name?: string
+  /** 'stt' | 'tts' | 'live' */
   kind: string
   modes?: string[]
+  /** live models: the vendor protocol to speak ('openai-realtime' | 'gemini-live') */
+  dialect?: string
   pricing?: {
     per_audio_second_usd?: number
     per_audio_minute_usd?: number

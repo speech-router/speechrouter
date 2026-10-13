@@ -1,0 +1,356 @@
+[
+  {
+    "slug": "minimax/speech-2.8-hd",
+    "provider": "minimax",
+    "name": "MiniMax Speech 2.8 HD",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 0.0001
+    },
+    "pricing_source": "https://platform.minimax.io/docs/guides/pricing-paygo",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "English_expressive_narrator",
+        "English_radiant_girl",
+        "English_magnetic_voiced_man",
+        "English_compelling_lady1",
+        "English_Aussie_Bloke",
+        "English_captivating_female1",
+        "English_Upbeat_Woman",
+        "English_Trustworth_Man",
+        "English_CalmWoman",
+        "English_Gentle-voiced_man",
+        "English_Graceful_Lady",
+        "English_ManWithDeepVoice",
+        "English_FriendlyPerson",
+        "English_Wiselady",
+        "English_ConfidentWoman"
+      ],
+      "default_voice": "English_expressive_narrator",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "flac",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        32000,
+        44100
+      ],
+      "max_input_chars": 4096,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "minimax/speech-2.8-turbo",
+    "provider": "minimax",
+    "name": "MiniMax Speech 2.8 Turbo",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 6e-05
+    },
+    "pricing_source": "https://platform.minimax.io/docs/guides/pricing-paygo",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "English_expressive_narrator",
+        "English_radiant_girl",
+        "English_magnetic_voiced_man",
+        "English_compelling_lady1",
+        "English_Aussie_Bloke",
+        "English_captivating_female1",
+        "English_Upbeat_Woman",
+        "English_Trustworth_Man",
+        "English_CalmWoman",
+        "English_Gentle-voiced_man",
+        "English_Graceful_Lady",
+        "English_ManWithDeepVoice",
+        "English_FriendlyPerson",
+        "English_Wiselady",
+        "English_ConfidentWoman"
+      ],
+      "default_voice": "English_expressive_narrator",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "flac",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        32000,
+        44100
+      ],
+      "max_input_chars": 4096,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "minimax/speech-2.6-hd",
+    "provider": "minimax",
+    "name": "MiniMax Speech 2.6 HD",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 0.0001
+    },
+    "pricing_source": "https://platform.minimax.io/docs/guides/pricing-paygo",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "English_expressive_narrator",
+        "English_radiant_girl",
+        "English_magnetic_voiced_man",
+        "English_compelling_lady1",
+        "English_Aussie_Bloke",
+        "English_captivating_female1",
+        "English_Upbeat_Woman",
+        "English_Trustworth_Man",
+        "English_CalmWoman",
+        "English_Gentle-voiced_man",
+        "English_Graceful_Lady",
+        "English_ManWithDeepVoice",
+        "English_FriendlyPerson",
+        "English_Wiselady",
+        "English_ConfidentWoman"
+      ],
+      "default_voice": "English_expressive_narrator",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "flac",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        32000,
+        44100
+      ],
+      "max_input_chars": 4096,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "minimax/speech-2.6-turbo",
+    "provider": "minimax",
+    "name": "MiniMax Speech 2.6 Turbo",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 6e-05
+    },
+    "pricing_source": "https://platform.minimax.io/docs/guides/pricing-paygo",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "English_expressive_narrator",
+        "English_radiant_girl",
+        "English_magnetic_voiced_man",
+        "English_compelling_lady1",
+        "English_Aussie_Bloke",
+        "English_captivating_female1",
+        "English_Upbeat_Woman",
+        "English_Trustworth_Man",
+        "English_CalmWoman",
+        "English_Gentle-voiced_man",
+        "English_Graceful_Lady",
+        "English_ManWithDeepVoice",
+        "English_FriendlyPerson",
+        "English_Wiselady",
+        "English_ConfidentWoman"
+      ],
+      "default_voice": "English_expressive_narrator",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "flac",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        32000,
+        44100
+      ],
+      "max_input_chars": 4096,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "minimax/speech-02-hd",
+    "provider": "minimax",
+    "name": "MiniMax Speech 02 HD",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 0.0001
+    },
+    "pricing_source": "https://platform.minimax.io/docs/guides/pricing-paygo",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "English_expressive_narrator",
+        "English_radiant_girl",
+        "English_magnetic_voiced_man",
+        "English_compelling_lady1",
+        "English_Aussie_Bloke",
+        "English_captivating_female1",
+        "English_Upbeat_Woman",
+        "English_Trustworth_Man",
+        "English_CalmWoman",
+        "English_Gentle-voiced_man",
+        "English_Graceful_Lady",
+        "English_ManWithDeepVoice",
+        "English_FriendlyPerson",
+        "English_Wiselady",
+        "English_ConfidentWoman"
+      ],
+      "default_voice": "English_expressive_narrator",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "flac",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        32000,
+        44100
+      ],
+      "max_input_chars": 4096,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "minimax/speech-02-turbo",
+    "provider": "minimax",
+    "name": "MiniMax Speech 02 Turbo",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 6e-05
+    },
+    "pricing_source": "https://platform.minimax.io/docs/guides/pricing-paygo",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "English_expressive_narrator",
+        "English_radiant_girl",
+        "English_magnetic_voiced_man",
+        "English_compelling_lady1",
+        "English_Aussie_Bloke",
+        "English_captivating_female1",
+        "English_Upbeat_Woman",
+        "English_Trustworth_Man",
+        "English_CalmWoman",
+        "English_Gentle-voiced_man",
+        "English_Graceful_Lady",
+        "English_ManWithDeepVoice",
+        "English_FriendlyPerson",
+        "English_Wiselady",
+        "English_ConfidentWoman"
+      ],
+      "default_voice": "English_expressive_narrator",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "flac",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        32000,
+        44100
+      ],
+      "max_input_chars": 4096,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  }
+]

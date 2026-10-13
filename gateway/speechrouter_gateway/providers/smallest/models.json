@@ -1,0 +1,101 @@
+[
+  {
+    "slug": "smallest/lightning_v3.1",
+    "provider": "smallest",
+    "name": "Smallest.ai Lightning v3.1",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 1.75e-05
+    },
+    "pricing_source": "https://smallest.ai/pricing/models",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "liam",
+        "avery",
+        "meher",
+        "magnus",
+        "devansh",
+        "kartik",
+        "maithili"
+      ],
+      "default_voice": "liam",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100
+      ],
+      "max_input_chars": 8000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "217 voices via GET /waves/v1/lightning-v3.1/get_voices; native ulaw/alaw"
+  },
+  {
+    "slug": "smallest/lightning_v3.1_pro",
+    "provider": "smallest",
+    "name": "Smallest.ai Lightning v3.1 Pro",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 1.95e-05
+    },
+    "pricing_source": "https://smallest.ai/pricing/models",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "sophie",
+        "ellie",
+        "sam",
+        "henry",
+        "rhea",
+        "zariya",
+        "kareena",
+        "mishka",
+        "meher",
+        "aviraj",
+        "vyom"
+      ],
+      "default_voice": "sophie",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100
+      ],
+      "max_input_chars": 8000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  }
+]

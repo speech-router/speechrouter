@@ -15,6 +15,20 @@ knobs pass through untouched via `provider_params`.
 | `elevenlabs/scribe_v2` | batch | $0.21996/hr | <span class="sr-yes">✓</span> | <span class="sr-yes">✓</span> |
 | `elevenlabs/scribe_v1` | batch | $0.21996/hr | <span class="sr-yes">✓</span> | <span class="sr-yes">✓</span> |
 
+## Text-to-speech
+
+Token prices are per 1M tokens; "+" means any account or library voice id is accepted. [Text-to-speech guide](/guides/tts/).
+
+| Model | List price | Formats | Voices |
+| --- | --- | --- | --- |
+| `elevenlabs/eleven_v4` | $80 per 1M chars | pcm, wav, mp3, opus, mulaw, alaw | 15+ |
+| `elevenlabs/eleven_v4_turbo` | $40 per 1M chars | pcm, wav, mp3, opus, mulaw, alaw | 15+ |
+| `elevenlabs/eleven_v3` | $80 per 1M chars | pcm, wav, mp3, opus, mulaw, alaw | 15+ |
+| `elevenlabs/eleven_v3_conversational` | $40 per 1M chars | pcm, wav, mp3, opus, mulaw, alaw | 15+ |
+| `elevenlabs/eleven_multilingual_v2` | $80 per 1M chars | pcm, wav, mp3, opus, mulaw, alaw | 15+ |
+| `elevenlabs/eleven_flash_v2_5` | $40 per 1M chars | pcm, wav, mp3, opus, mulaw, alaw | 15+ |
+| `elevenlabs/eleven_flash_v2` | $40 per 1M chars | pcm, wav, mp3, opus, mulaw, alaw | 15+ |
+
 ## Provider options
 
 Reach past the unified surface with [`provider_params`](/guides/streaming/#query-parameters)

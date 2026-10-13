@@ -40,7 +40,8 @@
         "session_id": { "type": "string" },
         "model": { "type": "string", "description": "Resolved slug, e.g. deepgram/nova-3" },
         "encoding": { "type": "string" },
-        "sample_rate": { "type": "integer" }
+        "sample_rate": { "type": "integer" },
+        "voice": { "type": "string", "description": "/v1/speak: resolved voice id" }
       }
     },
     "Transcript": {
@@ -94,7 +95,8 @@
       "type": "object",
       "description": "client->server on /v1/speak: barge-in. Discard all queued/undelivered synthesis immediately; server responds with `cleared`. Essential for voice-agent interruption.",
       "required": ["type"],
-      "properties": { "type": { "const": "clear" } }
+      "properties": { "type": { "const": "clear" },
+        "playback_ms": { "type": "integer", "description": "Optional: milliseconds of session audio the client has actually played. Providers that report what was spoken at barge-in (Deepgram Flux) use it; without it the gateway uses audio sent." } }
     },
     "Cleared": {
       "type": "object",
@@ -102,7 +104,9 @@
       "required": ["type", "last_seq"],
       "properties": {
         "type": { "const": "cleared" },
-        "last_seq": { "type": "integer" }
+        "last_seq": { "type": "integer" },
+        "text_spoken": { "type": "string", "description": "Provider-reported text actually voiced before the barge-in (native-socket providers that report it, e.g. Deepgram Flux); absent otherwise" },
+        "text_remaining": { "type": "string", "description": "Provider-reported text that was accepted but not voiced; absent otherwise" }
       }
     },
     "KeepAlive": {
@@ -140,7 +144,9 @@
             "audio_seconds": { "type": "number" },
             "characters": { "type": "integer" },
             "model": { "type": "string" },
-            "cost_usd": { "type": "number" }
+            "cost_usd": { "type": "number" },
+            "output_audio_seconds": { "type": "number", "description": "TTS: audio generated" },
+            "units": { "type": "object", "additionalProperties": { "type": "number" }, "description": "Priced quantities (characters, *_tokens by modality); same keys as the usage event, see PLAN-tts-live.md §3.0" }
           }
         }
       }

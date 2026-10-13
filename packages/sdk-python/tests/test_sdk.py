@@ -149,3 +149,81 @@ async def test_create_token(monkeypatch):
     sr = SpeechRouter(api_key="k", base_url="https://gw.test")
     out = await sr.create_token(ttl_seconds=90)
     assert out["token"] == "st_x"
+
+
+# ---- TTS: speak (WS) + speech (REST) ----
+
+async def test_speak_pairs_chunk_metadata_with_audio(ws_server):
+    from speechrouter import AudioChunk, Cleared
+
+    async def script(conn, state):
+        await conn.send(json.dumps({"type": "session.open", "session_id": "speak_1",
+                                    "model": "openai/gpt-4o-mini-tts", "voice": "marin"}))
+        async for msg in conn:
+            event = json.loads(msg)
+            state["received"].append(event)
+            if event["type"] == "clear":
+                await conn.send(json.dumps({"type": "cleared", "last_seq": 1}))
+            if event["type"] == "finalize":
+                for seq, data in ((1, b"\x01\x02"), (2, b"\x03\x04")):
+                    await conn.send(json.dumps({"type": "audio.chunk", "seq": seq, "start": 0.0}))
+                    await conn.send(data)
+                await conn.send(json.dumps({"type": "done", "usage": {"characters": 5}}))
+
+    ws_server["script"] = script
+    sr = client(ws_server["port"])
+    async with sr.speak(model="openai/gpt-4o-mini-tts", voice="marin") as tts:
+        await tts.send_text("Hello")
+        await tts.clear()
+        await tts.finalize()
+        events = [e async for e in tts]
+        assert tts.session is not None and tts.session.voice == "marin"
+        assert (await tts.done()).usage == {"characters": 5}
+    chunks = [e for e in events if isinstance(e, AudioChunk)]
+    assert [(c.seq, c.data) for c in chunks] == [(1, b"\x01\x02"), (2, b"\x03\x04")]
+    assert any(isinstance(e, Cleared) for e in events)
+    assert "/v1/speak?model=openai%2Fgpt-4o-mini-tts" in ws_server["path"]
+    assert "voice=marin" in ws_server["path"] and "encoding=linear16" in ws_server["path"]
+    assert [e["type"] for e in ws_server["received"]] == ["text.delta", "clear", "finalize"]
+
+
+@pytest.fixture
+def speech_transport(monkeypatch):
+    import httpx
+
+    seen = {}
+
+    def handler(request):
+        seen["body"] = json.loads(request.content)
+        seen["auth"] = request.headers["authorization"]
+        if seen["body"]["model"] == "nope/x":
+            return httpx.Response(404, json={"error": {"code": "model_not_found",
+                                                       "message": "no such model"}})
+        return httpx.Response(200, content=b"AUDIO" * 100)
+
+    real = httpx.AsyncClient
+    monkeypatch.setattr("speechrouter.client.httpx.AsyncClient",
+                        lambda **kw: real(transport=httpx.MockTransport(handler), **kw))
+    return seen
+
+
+async def test_speech_returns_bytes_and_streams(speech_transport):
+    sr = SpeechRouter(api_key="sk_sr_test", base_url="http://gw")
+    audio = await sr.speech(model="openai/tts-1", input="hi", voice="alloy", speed=1.5)
+    assert audio == b"AUDIO" * 100
+    assert speech_transport["body"] == {"model": "openai/tts-1", "input": "hi", "voice": "alloy",
+                                        "speed": 1.5, "stream": False}
+    assert speech_transport["auth"] == "Bearer sk_sr_test"
+    streamed = b"".join([c async for c in sr.speech_stream(model="openai/tts-1", input="hi")])
+    assert streamed == b"AUDIO" * 100 and "stream" not in speech_transport["body"]
+
+
+async def test_speech_errors_raise_typed(speech_transport):
+    sr = SpeechRouter(api_key="sk_sr_test", base_url="http://gw")
+    with pytest.raises(SpeechRouterError) as info:
+        await sr.speech(model="nope/x", input="hi")
+    assert info.value.code == "model_not_found"
+    with pytest.raises(SpeechRouterError) as info:
+        async for _ in sr.speech_stream(model="nope/x", input="hi"):
+            pass
+    assert info.value.code == "model_not_found"

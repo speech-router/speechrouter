@@ -20,14 +20,16 @@ cd packages/sdk-python && uv sync && uv run pytest -q
 
 1. Start from the protocol notes in `docs/providers/` — write yours from the
    vendor's primary docs, not memory. This file is the review artifact.
-2. Implement `STTStreamProvider` and/or `STTBatchProvider`
+2. Implement `STTStreamProvider` and/or `STTBatchProvider` (or `TTSProvider` for
+   text-to-speech: `synthesize()` yields audio and fills `TTSUsage`)
    (`gateway/speechrouter_gateway/providers/base.py`) in a new
    `providers/<name>/` package. Adapters stay thin: the session engine owns
    failover, timestamp offsets, and billing. Timestamps you emit are
    adapter-relative; `connect()` returns only when the provider is ready for
    audio.
-3. Add `models.json` (slugs, modes, capabilities, pricing) and register in the
-   provider registry.
+3. Add `models.json` (slugs, `kind`, modes, capabilities, pricing) and register in the
+   provider registry. TTS/live entries price per character or per 1M tokens by
+   modality (`packages/spec/catalog.schema.json`).
 4. Add fixture tests mirroring real captured payloads — they verify our
    reading of the protocol; a live smoke against the vendor verifies reality.
 

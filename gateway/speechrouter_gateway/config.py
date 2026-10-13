@@ -39,6 +39,25 @@ class Settings(BaseSettings):
     idle_timeout_seconds: int = 60
     ring_buffer_seconds: int = 10
 
+    # TTS + live voice (PLAN-tts-live.md). On for self-host; cloud deploys set
+    # them false until cloud billing prices unit-based events. A disabled
+    # kind vanishes from /v1/models and its endpoints answer model_not_found.
+    enable_tts: bool = True
+    enable_live: bool = True
+    max_tts_input_chars: int = 4096  # per request / per /v1/speak segment
+    # live sessions cost ~10-50x STT per minute: separate, tighter cap
+    max_concurrent_live: int = 5  # per org (cloud) / key (local); 0 = unlimited
+    max_live_session_seconds: int = 60 * 60  # OpenAI caps upstream at 60 min
+    live_idle_timeout_seconds: int = 120
+    live_checkpoint_seconds: int = 60  # usage checkpoint cadence (§2.6)
+    # admission needs this much balance (micro-USD; cloud mode only, house
+    # keys only). 5_000_000 = $5. 0 disables the floor.
+    live_min_balance_microusd: int = 5_000_000
+    # How to read Gemini Live usageMetadata until a live probe settles it
+    # (docs/providers/gemini.md): per_message = sum every report,
+    # cumulative = keep the running max.
+    gemini_live_usage_semantics: str = "per_message"
+
     # Provider credentials (gateway-owned; BYOK arrives via the cloud keystore)
     deepgram_api_key: str = ""
     soniox_api_key: str = ""
@@ -73,9 +92,33 @@ class Settings(BaseSettings):
     aws_secret_access_key: str = ""
     aws_region: str = "us-east-1"
     openai_api_key: str = ""
+    # Upstream base URLs for TTS + live. Overridable for self-host egress
+    # proxies and for the local smoke harness (mock upstream); the realtime
+    # WebSocket URL is derived (https->wss). STT adapters keep their own.
+    openai_base_url: str = "https://api.openai.com/v1"
+    gemini_base_url: str = "https://generativelanguage.googleapis.com"
     elevenlabs_api_key: str = ""
     cartesia_api_key: str = ""
     groq_api_key: str = ""
+    # TTS-only providers (docs/providers/tts/*.md)
+    rime_api_key: str = ""
+    hume_api_key: str = ""
+    lmnt_api_key: str = ""
+    inworld_api_key: str = ""  # Basic-auth credential string from the Inworld portal
+    fishaudio_api_key: str = ""
+    playht_api_key: str = ""
+    playht_user_id: str = ""
+    minimax_api_key: str = ""
+    murf_api_key: str = ""
+    resemble_api_key: str = ""
+    smallest_api_key: str = ""
+    together_api_key: str = ""  # Kokoro tier (non-PHI only per Together ToS)
+    # Google Cloud TTS REST accepts an API key; independent of the STT
+    # service-account settings below
+    google_tts_api_key: str = ""
+    # JSON {"<provider>": "<base url>"}: per-provider TTS upstream override
+    # (egress proxies, the local smoke harness). Empty = vendor defaults.
+    tts_base_urls: str = ""
 
     # Optional audio persistence -- off by default. When enabled, session
     # audio streams to this bucket via real multipart upload (never
@@ -88,6 +131,20 @@ class Settings(BaseSettings):
     audio_sink_region: str = ""
     audio_sink_access_key: str = ""
     audio_sink_secret_key: str = ""
+
+
+def tts_base_url(cfg: Settings, provider: str, default: str) -> str:
+    """Upstream base for a TTS provider, honouring tts_base_urls."""
+    if not cfg.tts_base_urls:
+        return default
+    import json  # noqa: PLC0415
+
+    try:
+        overrides = json.loads(cfg.tts_base_urls)
+    except json.JSONDecodeError:
+        return default
+    value = overrides.get(provider) if isinstance(overrides, dict) else None
+    return value.rstrip("/") if isinstance(value, str) and value else default
 
 
 @lru_cache

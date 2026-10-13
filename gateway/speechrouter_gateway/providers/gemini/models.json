@@ -8,7 +8,7 @@
       "streaming"
     ],
     "pricing": {
-      "per_audio_hour_usd": 0.30
+      "per_audio_hour_usd": 0.3
     },
     "capabilities": {
       "word_timestamps": false,
@@ -109,5 +109,352 @@
         16000
       ]
     }
+  },
+  {
+    "slug": "gemini/gemini-3.8-flash-tts",
+    "provider": "gemini",
+    "name": "Gemini 3.8 Flash TTS",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_1m_text_input_tokens_usd": 0.5,
+      "per_1m_audio_output_tokens_usd": 9.0
+    },
+    "pricing_schedule": [
+      {
+        "effective_from": "2027-01-01",
+        "pricing": {
+          "per_1m_text_input_tokens_usd": 1.0,
+          "per_1m_audio_output_tokens_usd": 18.0
+        }
+      }
+    ],
+    "capabilities": {
+      "voices": [
+        "Achernar",
+        "Achird",
+        "Algenib",
+        "Algieba",
+        "Alnilam",
+        "Aoede",
+        "Autonoe",
+        "Callirrhoe",
+        "Charon",
+        "Despina",
+        "Enceladus",
+        "Erinome",
+        "Fenrir",
+        "Gacrux",
+        "Iapetus",
+        "Kore",
+        "Laomedeia",
+        "Leda",
+        "Orus",
+        "Puck",
+        "Pulcherrima",
+        "Rasalgethi",
+        "Sadachbia",
+        "Sadaltager",
+        "Schedar",
+        "Sulafat",
+        "Umbriel",
+        "Vindemiatrix",
+        "Zephyr",
+        "Zubenelgenubi"
+      ],
+      "default_voice": "Kore",
+      "formats": [
+        "pcm",
+        "wav",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        24000,
+        8000
+      ],
+      "max_input_chars": 4096,
+      "instructions": true,
+      "speed": false,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "gemini/gemini-3.8-flash-lite-tts",
+    "provider": "gemini",
+    "name": "Gemini 3.8 Flash-Lite TTS",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_1m_text_input_tokens_usd": 0.5,
+      "per_1m_audio_output_tokens_usd": 6.0
+    },
+    "pricing_schedule": [
+      {
+        "effective_from": "2027-01-01",
+        "pricing": {
+          "per_1m_text_input_tokens_usd": 1.0,
+          "per_1m_audio_output_tokens_usd": 12.0
+        }
+      }
+    ],
+    "capabilities": {
+      "voices": [
+        "Achernar",
+        "Achird",
+        "Algenib",
+        "Algieba",
+        "Alnilam",
+        "Aoede",
+        "Autonoe",
+        "Callirrhoe",
+        "Charon",
+        "Despina",
+        "Enceladus",
+        "Erinome",
+        "Fenrir",
+        "Gacrux",
+        "Iapetus",
+        "Kore",
+        "Laomedeia",
+        "Leda",
+        "Orus",
+        "Puck",
+        "Pulcherrima",
+        "Rasalgethi",
+        "Sadachbia",
+        "Sadaltager",
+        "Schedar",
+        "Sulafat",
+        "Umbriel",
+        "Vindemiatrix",
+        "Zephyr",
+        "Zubenelgenubi"
+      ],
+      "default_voice": "Kore",
+      "formats": [
+        "pcm",
+        "wav",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        24000,
+        8000
+      ],
+      "max_input_chars": 4096,
+      "instructions": true,
+      "speed": false,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "gemini/gemini-3.8-live",
+    "provider": "gemini",
+    "name": "Gemini 3.8 Live",
+    "kind": "live",
+    "modes": [
+      "live"
+    ],
+    "dialect": "gemini-live",
+    "pricing": {
+      "per_1m_text_input_tokens_usd": 0.75,
+      "per_1m_audio_input_tokens_usd": 3.0,
+      "per_1m_image_input_tokens_usd": 1.0,
+      "per_1m_text_output_tokens_usd": 4.5,
+      "per_1m_audio_output_tokens_usd": 12.0
+    },
+    "capabilities": {
+      "voices": [
+        "Achernar",
+        "Achird",
+        "Algenib",
+        "Algieba",
+        "Alnilam",
+        "Aoede",
+        "Autonoe",
+        "Callirrhoe",
+        "Charon",
+        "Despina",
+        "Enceladus",
+        "Erinome",
+        "Fenrir",
+        "Gacrux",
+        "Iapetus",
+        "Kore",
+        "Laomedeia",
+        "Leda",
+        "Orus",
+        "Puck",
+        "Pulcherrima",
+        "Rasalgethi",
+        "Sadachbia",
+        "Sadaltager",
+        "Schedar",
+        "Sulafat",
+        "Umbriel",
+        "Vindemiatrix",
+        "Zephyr",
+        "Zubenelgenubi"
+      ],
+      "default_voice": "Puck",
+      "encodings": [
+        "linear16"
+      ],
+      "input_sample_rates": [
+        16000
+      ],
+      "output_sample_rates": [
+        24000
+      ],
+      "tools": true,
+      "max_session_seconds": 900,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "gemini/gemini-3.8-live-extended-thinking",
+    "provider": "gemini",
+    "name": "Gemini 3.8 Live (extended thinking)",
+    "kind": "live",
+    "modes": [
+      "live"
+    ],
+    "dialect": "gemini-live",
+    "pricing": {
+      "per_1m_text_input_tokens_usd": 0.75,
+      "per_1m_audio_input_tokens_usd": 3.0,
+      "per_1m_image_input_tokens_usd": 1.0,
+      "per_1m_text_output_tokens_usd": 4.5,
+      "per_1m_audio_output_tokens_usd": 12.0
+    },
+    "capabilities": {
+      "voices": [
+        "Achernar",
+        "Achird",
+        "Algenib",
+        "Algieba",
+        "Alnilam",
+        "Aoede",
+        "Autonoe",
+        "Callirrhoe",
+        "Charon",
+        "Despina",
+        "Enceladus",
+        "Erinome",
+        "Fenrir",
+        "Gacrux",
+        "Iapetus",
+        "Kore",
+        "Laomedeia",
+        "Leda",
+        "Orus",
+        "Puck",
+        "Pulcherrima",
+        "Rasalgethi",
+        "Sadachbia",
+        "Sadaltager",
+        "Schedar",
+        "Sulafat",
+        "Umbriel",
+        "Vindemiatrix",
+        "Zephyr",
+        "Zubenelgenubi"
+      ],
+      "default_voice": "Puck",
+      "encodings": [
+        "linear16"
+      ],
+      "input_sample_rates": [
+        16000
+      ],
+      "output_sample_rates": [
+        24000
+      ],
+      "tools": true,
+      "max_session_seconds": 900,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "gemini/gemini-2.5-flash-native-audio-preview-12-2025",
+    "provider": "gemini",
+    "name": "Gemini 2.5 Flash Native Audio (preview)",
+    "kind": "live",
+    "modes": [
+      "live"
+    ],
+    "dialect": "gemini-live",
+    "pricing": {
+      "per_1m_text_input_tokens_usd": 0.5,
+      "per_1m_audio_input_tokens_usd": 3.0,
+      "per_1m_image_input_tokens_usd": 3.0,
+      "per_1m_text_output_tokens_usd": 2.0,
+      "per_1m_audio_output_tokens_usd": 12.0
+    },
+    "capabilities": {
+      "voices": [
+        "Achernar",
+        "Achird",
+        "Algenib",
+        "Algieba",
+        "Alnilam",
+        "Aoede",
+        "Autonoe",
+        "Callirrhoe",
+        "Charon",
+        "Despina",
+        "Enceladus",
+        "Erinome",
+        "Fenrir",
+        "Gacrux",
+        "Iapetus",
+        "Kore",
+        "Laomedeia",
+        "Leda",
+        "Orus",
+        "Puck",
+        "Pulcherrima",
+        "Rasalgethi",
+        "Sadachbia",
+        "Sadaltager",
+        "Schedar",
+        "Sulafat",
+        "Umbriel",
+        "Vindemiatrix",
+        "Zephyr",
+        "Zubenelgenubi"
+      ],
+      "default_voice": "Puck",
+      "encodings": [
+        "linear16"
+      ],
+      "input_sample_rates": [
+        16000
+      ],
+      "output_sample_rates": [
+        24000
+      ],
+      "tools": true,
+      "max_session_seconds": 900,
+      "languages": [
+        "auto"
+      ]
+    },
+    "deprecated": true
   }
 ]

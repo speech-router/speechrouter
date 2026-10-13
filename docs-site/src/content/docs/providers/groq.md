@@ -1,7 +1,7 @@
 ---
 title: Groq
 description: Whisper on LPUs — the fastest batch Whisper anywhere.
-sidebar: { order: 10 }
+sidebar: { order: 11 }
 ---
 
 Whisper on LPUs — the fastest batch Whisper anywhere.
@@ -13,6 +13,15 @@ knobs pass through untouched via `provider_params`.
 | --- | --- | --- | --- | --- |
 | `groq/whisper-large-v3` | batch | $0.111/hr (min $0.00031/req) | <span class="sr-no">—</span> | <span class="sr-yes">✓</span> |
 | `groq/whisper-large-v3-turbo` | batch | $0.03996/hr (min $0.00011/req) | <span class="sr-no">—</span> | <span class="sr-yes">✓</span> |
+
+## Text-to-speech
+
+Token prices are per 1M tokens; "+" means any account or library voice id is accepted. [Text-to-speech guide](/guides/tts/).
+
+| Model | List price | Formats | Voices |
+| --- | --- | --- | --- |
+| `groq/orpheus-v1-english` | $22 per 1M chars | pcm, wav, mulaw, alaw | 6 |
+| `groq/orpheus-arabic-saudi` | $40 per 1M chars | pcm, wav, mulaw, alaw | 6 |
 
 ## Provider options
 

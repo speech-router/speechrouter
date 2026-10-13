@@ -74,5 +74,55 @@
         16000
       ]
     }
+  },
+  {
+    "slug": "mistral/voxtral-mini-tts-2603",
+    "provider": "mistral",
+    "name": "Mistral Voxtral Mini TTS",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 1.6e-05
+    },
+    "pricing_source": "https://mistral.ai/pricing/api/ (\"introductory\" price; docs.mistral.ai/models/voxtral-tts-26-03)",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "fr_marie_neutral"
+      ],
+      "default_voice": "fr_marie_neutral",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "flac",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        24000,
+        8000
+      ],
+      "max_input_chars": 4096,
+      "instructions": false,
+      "speed": false,
+      "languages": [
+        "en",
+        "fr",
+        "es",
+        "pt",
+        "it",
+        "nl",
+        "de",
+        "hi",
+        "ar"
+      ]
+    },
+    "notes": "pass a preset or saved voice_id (GET /v1/audio/voices); upstream pcm is float32, converted to s16le; 8 kHz G.711 is gateway-encoded"
   }
 ]

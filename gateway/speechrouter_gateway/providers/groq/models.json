@@ -235,5 +235,103 @@
         "zh"
       ]
     }
+  },
+  {
+    "slug": "groq/orpheus-v1-english",
+    "provider": "groq",
+    "name": "Groq Orpheus v1 (English)",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 2.2e-05
+    },
+    "pricing_source": "https://console.groq.com/docs/model/canopylabs/orpheus-v1-english",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "autumn",
+        "diana",
+        "hannah",
+        "austin",
+        "daniel",
+        "troy"
+      ],
+      "default_voice": "autumn",
+      "custom_voices": false,
+      "formats": [
+        "pcm",
+        "wav",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        32000,
+        44100,
+        48000
+      ],
+      "max_input_chars": 200,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "upstream canopylabs/orpheus-v1-english; 200 chars per request; requires a one-time terms acceptance by the Groq org admin in the console before the API serves it (verified live 2026-10-13)"
+  },
+  {
+    "slug": "groq/orpheus-arabic-saudi",
+    "provider": "groq",
+    "name": "Groq Orpheus (Arabic, Saudi)",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 4e-05
+    },
+    "pricing_source": "https://console.groq.com/docs/model/canopylabs/orpheus-arabic-saudi",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "abdullah",
+        "fahad",
+        "sultan",
+        "lulwa",
+        "noura",
+        "aisha"
+      ],
+      "default_voice": "abdullah",
+      "custom_voices": false,
+      "formats": [
+        "pcm",
+        "wav",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        32000,
+        44100,
+        48000
+      ],
+      "max_input_chars": 200,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "ar"
+      ]
+    },
+    "notes": "requires a one-time terms acceptance by the Groq org admin in the console before the API serves it (verified live 2026-10-13)"
   }
 ]

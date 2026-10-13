@@ -1,0 +1,54 @@
+[
+  {
+    "slug": "murf/falcon-2",
+    "provider": "murf",
+    "name": "Murf Falcon 2",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 1e-05
+    },
+    "pricing_source": "https://murf.ai/api/docs (Falcon 2 page; murf.ai/pricing did not load)",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "Natalie",
+        "Ariana",
+        "Miles",
+        "Amara",
+        "Maverick",
+        "Charles",
+        "Alicia",
+        "Gordon",
+        "Ken"
+      ],
+      "default_voice": "Natalie",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "flac",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        24000,
+        44100,
+        48000
+      ],
+      "max_input_chars": 3000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  }
+]

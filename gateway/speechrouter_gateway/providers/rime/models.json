@@ -1,0 +1,114 @@
+[
+  {
+    "slug": "rime/coda",
+    "provider": "rime",
+    "name": "Rime Coda",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 5e-05
+    },
+    "pricing_source": "https://www.rime.ai/pricing",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "astra",
+        "luna",
+        "celeste",
+        "masonry",
+        "albion",
+        "cove",
+        "lyra",
+        "clementine",
+        "lintel",
+        "eyre",
+        "bancroft",
+        "marlu",
+        "hesse",
+        "beatty",
+        "godfrey"
+      ],
+      "default_voice": "astra",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000
+      ],
+      "max_input_chars": 1000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "rime/mistv3",
+    "provider": "rime",
+    "name": "Rime Mist v3",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 3e-05
+    },
+    "pricing_source": "https://www.rime.ai/pricing",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "astra",
+        "luna",
+        "celeste",
+        "masonry",
+        "albion",
+        "cove",
+        "lyra",
+        "clementine",
+        "lintel",
+        "eyre",
+        "bancroft",
+        "marlu",
+        "hesse",
+        "beatty",
+        "godfrey"
+      ],
+      "default_voice": "astra",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000
+      ],
+      "max_input_chars": 1000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  }
+]

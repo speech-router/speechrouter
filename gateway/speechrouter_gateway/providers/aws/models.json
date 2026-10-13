@@ -130,5 +130,205 @@
       ]
     },
     "hipaa_eligible": true
+  },
+  {
+    "slug": "aws/polly-generative",
+    "provider": "aws",
+    "name": "Amazon Polly Generative",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 3e-05
+    },
+    "pricing_source": "https://aws.amazon.com/polly/pricing/",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "Danielle",
+        "Joanna",
+        "Salli",
+        "Matthew",
+        "Ruth",
+        "Stephen",
+        "Tiffany",
+        "Amy",
+        "Brian"
+      ],
+      "default_voice": "Ruth",
+      "custom_voices": false,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        16000,
+        8000
+      ],
+      "max_input_chars": 3000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "SynthesizeSpeech (SigV4); pcm is 8/16 kHz only; 3000 billed chars per request; AWS self-serve BAA (HIPAA-eligible)"
+  },
+  {
+    "slug": "aws/polly-neural",
+    "provider": "aws",
+    "name": "Amazon Polly Neural",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 1.6e-05
+    },
+    "pricing_source": "https://aws.amazon.com/polly/pricing/",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "Danielle",
+        "Gregory",
+        "Ivy",
+        "Joanna",
+        "Kendra",
+        "Kimberly",
+        "Salli",
+        "Joey",
+        "Justin",
+        "Kevin",
+        "Matthew",
+        "Ruth",
+        "Stephen",
+        "Amy",
+        "Emma",
+        "Brian",
+        "Arthur"
+      ],
+      "default_voice": "Joanna",
+      "custom_voices": false,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        16000,
+        8000
+      ],
+      "max_input_chars": 3000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "SynthesizeSpeech (SigV4); pcm is 8/16 kHz only; 3000 billed chars per request; AWS self-serve BAA (HIPAA-eligible)"
+  },
+  {
+    "slug": "aws/polly-long-form",
+    "provider": "aws",
+    "name": "Amazon Polly Long-Form",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 0.0001
+    },
+    "pricing_source": "https://aws.amazon.com/polly/pricing/",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "Danielle",
+        "Gregory",
+        "Ruth",
+        "Patrick"
+      ],
+      "default_voice": "Danielle",
+      "custom_voices": false,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        16000,
+        8000
+      ],
+      "max_input_chars": 3000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "SynthesizeSpeech (SigV4); pcm is 8/16 kHz only; 3000 billed chars per request; AWS self-serve BAA (HIPAA-eligible)"
+  },
+  {
+    "slug": "aws/polly-standard",
+    "provider": "aws",
+    "name": "Amazon Polly Standard",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 4e-06
+    },
+    "pricing_source": "https://aws.amazon.com/polly/pricing/",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "Ivy",
+        "Joanna",
+        "Kendra",
+        "Kimberly",
+        "Salli",
+        "Joey",
+        "Kevin",
+        "Amy",
+        "Emma",
+        "Brian"
+      ],
+      "default_voice": "Joanna",
+      "custom_voices": false,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        16000,
+        8000
+      ],
+      "max_input_chars": 3000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "SynthesizeSpeech (SigV4); pcm is 8/16 kHz only; 3000 billed chars per request; AWS self-serve BAA (HIPAA-eligible)"
   }
 ]

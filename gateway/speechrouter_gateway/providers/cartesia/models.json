@@ -198,5 +198,137 @@
         48000
       ]
     }
+  },
+  {
+    "slug": "cartesia/sonic-3.6",
+    "provider": "cartesia",
+    "name": "Cartesia Sonic 3.6",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 6.5e-05
+    },
+    "pricing_source": "https://cartesia.ai/pricing",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "db6b0ed5-d5d3-463d-ae85-518a07d3c2b4"
+      ],
+      "default_voice": "db6b0ed5-d5d3-463d-ae85-518a07d3c2b4",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        44100,
+        48000
+      ],
+      "max_input_chars": 5000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "1 credit = 1 character; priced at the Pro plan overage rate ($65/1M credits)"
+  },
+  {
+    "slug": "cartesia/sonic-3.5",
+    "provider": "cartesia",
+    "name": "Cartesia Sonic 3.5",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 6.5e-05
+    },
+    "pricing_source": "https://cartesia.ai/pricing",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "db6b0ed5-d5d3-463d-ae85-518a07d3c2b4"
+      ],
+      "default_voice": "db6b0ed5-d5d3-463d-ae85-518a07d3c2b4",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        44100,
+        48000
+      ],
+      "max_input_chars": 5000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "1 credit = 1 character; priced at the Pro plan overage rate ($65/1M credits)"
+  },
+  {
+    "slug": "cartesia/sonic-3",
+    "provider": "cartesia",
+    "name": "Cartesia Sonic 3",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 6.5e-05
+    },
+    "pricing_source": "https://cartesia.ai/pricing",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "db6b0ed5-d5d3-463d-ae85-518a07d3c2b4"
+      ],
+      "default_voice": "db6b0ed5-d5d3-463d-ae85-518a07d3c2b4",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        44100,
+        48000
+      ],
+      "max_input_chars": 5000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "1 credit = 1 character; priced at the Pro plan overage rate ($65/1M credits)"
   }
 ]

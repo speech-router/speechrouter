@@ -1,7 +1,7 @@
 ---
 title: Palabra
 description: Realtime ASR at $0.002/min, with live translation available on the same socket.
-sidebar: { order: 14 }
+sidebar: { order: 18 }
 ---
 
 Realtime ASR at $0.002/min, with live translation available on the same socket.

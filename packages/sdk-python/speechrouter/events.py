@@ -44,6 +44,7 @@ class SessionOpen:
     model: str
     encoding: str | None = None
     sample_rate: int | None = None
+    voice: str | None = None  # /v1/speak
 
 
 @dataclass(slots=True)
@@ -89,6 +90,18 @@ class TextDelta:
 class Cleared:
     type: Literal["cleared"]
     last_seq: int
+    text_spoken: str | None = None  # native-socket providers that report it (Deepgram Flux)
+    text_remaining: str | None = None
+
+
+@dataclass(slots=True)
+class AudioChunk:
+    """/v1/speak: chunk metadata; `data` holds the binary frame that follows."""
+
+    type: Literal["audio.chunk"]
+    seq: int
+    start: float | None = None
+    data: bytes = b""
 
 
 @dataclass(slots=True)
@@ -119,6 +132,7 @@ ListenEvent = (
     | ProviderSwitched
     | TextDelta
     | Cleared
+    | AudioChunk
     | KeepAlive
     | Done
     | ErrorEvent
@@ -132,6 +146,7 @@ _EVENT_TYPES: dict[str, type] = {
     "provider_switched": ProviderSwitched,
     "text.delta": TextDelta,
     "cleared": Cleared,
+    "audio.chunk": AudioChunk,
     "keepalive": KeepAlive,
     "done": Done,
     "error": ErrorEvent,

@@ -405,5 +405,208 @@
         48000
       ]
     }
+  },
+  {
+    "slug": "google/chirp3-hd",
+    "provider": "google",
+    "name": "Google Chirp 3 HD",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 3e-05
+    },
+    "pricing_source": "https://cloud.google.com/text-to-speech/pricing (figures via search summary; page did not render \u2014 recheck)",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "en-US-Chirp3-HD-Achernar",
+        "en-US-Chirp3-HD-Aoede",
+        "en-US-Chirp3-HD-Autonoe",
+        "en-US-Chirp3-HD-Callirrhoe",
+        "en-US-Chirp3-HD-Despina",
+        "en-US-Chirp3-HD-Erinome",
+        "en-US-Chirp3-HD-Gacrux",
+        "en-US-Chirp3-HD-Kore",
+        "en-US-Chirp3-HD-Laomedeia",
+        "en-US-Chirp3-HD-Leda",
+        "en-US-Chirp3-HD-Pulcherrima",
+        "en-US-Chirp3-HD-Sulafat",
+        "en-US-Chirp3-HD-Vindemiatrix",
+        "en-US-Chirp3-HD-Zephyr",
+        "en-US-Chirp3-HD-Achird",
+        "en-US-Chirp3-HD-Algenib",
+        "en-US-Chirp3-HD-Algieba",
+        "en-US-Chirp3-HD-Alnilam",
+        "en-US-Chirp3-HD-Charon",
+        "en-US-Chirp3-HD-Enceladus",
+        "en-US-Chirp3-HD-Fenrir",
+        "en-US-Chirp3-HD-Iapetus",
+        "en-US-Chirp3-HD-Orus",
+        "en-US-Chirp3-HD-Puck",
+        "en-US-Chirp3-HD-Rasalgethi",
+        "en-US-Chirp3-HD-Sadachbia",
+        "en-US-Chirp3-HD-Sadaltager",
+        "en-US-Chirp3-HD-Schedar",
+        "en-US-Chirp3-HD-Umbriel",
+        "en-US-Chirp3-HD-Zubenelgenubi"
+      ],
+      "default_voice": "en-US-Chirp3-HD-Kore",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        24000,
+        48000
+      ],
+      "max_input_chars": 4000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "non-streaming upstream (REST returns whole clip)"
+  },
+  {
+    "slug": "google/neural2",
+    "provider": "google",
+    "name": "Google Neural2",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 1.6e-05
+    },
+    "pricing_source": "https://cloud.google.com/text-to-speech/pricing (figures via search summary; page did not render \u2014 recheck)",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "en-US-Neural2-A",
+        "en-US-Neural2-C"
+      ],
+      "default_voice": "en-US-Neural2-C",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        24000,
+        48000
+      ],
+      "max_input_chars": 4000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "non-streaming upstream"
+  },
+  {
+    "slug": "google/studio",
+    "provider": "google",
+    "name": "Google Studio",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 0.00016
+    },
+    "pricing_source": "https://cloud.google.com/text-to-speech/pricing (figures via search summary; page did not render \u2014 recheck)",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "en-US-Studio-O",
+        "en-US-Studio-Q"
+      ],
+      "default_voice": "en-US-Studio-O",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        24000,
+        48000
+      ],
+      "max_input_chars": 4000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "non-streaming upstream"
+  },
+  {
+    "slug": "google/standard",
+    "provider": "google",
+    "name": "Google Standard",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 4e-06
+    },
+    "pricing_source": "https://cloud.google.com/text-to-speech/pricing (figures via search summary; page did not render \u2014 recheck)",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "en-US-Standard-A"
+      ],
+      "default_voice": "en-US-Standard-A",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        24000,
+        48000
+      ],
+      "max_input_chars": 4000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "non-streaming upstream"
   }
 ]

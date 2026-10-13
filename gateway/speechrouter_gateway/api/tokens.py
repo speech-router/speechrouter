@@ -18,8 +18,7 @@ def _error(status: int, code: str, message: str) -> JSONResponse:
     )
 
 
-@router.post("/v1/tokens")
-async def mint_token(request: Request) -> JSONResponse:
+async def _mint(request: Request, ttl: int | None) -> JSONResponse | tuple[str, float, int]:
     state = request.app.state
     header = request.headers.get("authorization", "")
     presented = header[7:].strip() if header.lower().startswith("bearer ") else ""
@@ -32,13 +31,14 @@ async def mint_token(request: Request) -> JSONResponse:
     if record is None:
         return _error(401, "auth_failed", "invalid or revoked API key")
 
-    ttl = DEFAULT_TTL
-    try:
-        body = await request.json()
-        if isinstance(body, dict) and "ttl_seconds" in body:
-            ttl = int(body["ttl_seconds"])
-    except Exception:  # noqa: BLE001, S110 - empty/non-JSON body means defaults
-        pass
+    if ttl is None:
+        ttl = DEFAULT_TTL
+        try:
+            body = await request.json()
+            if isinstance(body, dict) and "ttl_seconds" in body:
+                ttl = int(body["ttl_seconds"])
+        except Exception:  # noqa: BLE001, S110 - empty/non-JSON body means defaults
+            pass
     if not MIN_TTL <= ttl <= MAX_TTL:
         return _error(
             400, "invalid_request", f"ttl_seconds must be between {MIN_TTL} and {MAX_TTL}"
@@ -49,6 +49,15 @@ async def mint_token(request: Request) -> JSONResponse:
         "client token minted",
         extra={"key_id": record.key_id, "org_id": record.org_id, "ttl_seconds": ttl},
     )
+    return token, expires_at, ttl
+
+
+@router.post("/v1/tokens")
+async def mint_token(request: Request) -> JSONResponse:
+    minted = await _mint(request, None)
+    if isinstance(minted, JSONResponse):
+        return minted
+    token, expires_at, ttl = minted
     return JSONResponse(
         {
             "token": token,
@@ -56,3 +65,31 @@ async def mint_token(request: Request) -> JSONResponse:
             "ttl_seconds": ttl,
         }
     )
+
+
+@router.post("/v1/realtime/client_secrets")
+async def realtime_client_secret(request: Request) -> JSONResponse:
+    """OpenAI-shaped alias so browser Realtime samples work unchanged: the
+    returned `value` is an st_ token, used where OpenAI's ek_ secret goes.
+    `expires_after.seconds` is clamped into our 10-300 s connect window.
+    The `session` config is echoed, NOT pinned into the token (PLAN Q3)."""
+    body: dict = {}
+    try:
+        parsed = await request.json()
+        if isinstance(parsed, dict):
+            body = parsed
+    except Exception:  # noqa: BLE001, S110 - empty body means defaults
+        pass
+    expires = body.get("expires_after")
+    if not isinstance(expires, dict):
+        expires = {}
+    try:
+        seconds = int(expires.get("seconds", MAX_TTL))
+    except (TypeError, ValueError):
+        seconds = MAX_TTL
+    minted = await _mint(request, max(MIN_TTL, min(MAX_TTL, seconds)))
+    if isinstance(minted, JSONResponse):
+        return minted
+    token, expires_at, _ = minted
+    return JSONResponse({"value": token, "expires_at": int(expires_at),
+                         "session": body.get("session") or {}})

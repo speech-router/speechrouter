@@ -1,11 +1,14 @@
 openapi: 3.1.0
 info:
   title: SpeechRouter API
-  version: 0.3.0
+  version: 0.4.0
   description: |
     One API for every speech model. REST surface of the SpeechRouter gateway;
-    live streaming uses the /v1/listen WebSocket (see the AsyncAPI-style event
-    schemas in schema.json / docs.speechrouter.ai/reference/events).
+    live streaming uses the /v1/listen and /v1/speak WebSockets (see the
+    AsyncAPI-style event schemas in events.schema.json /
+    docs.speechrouter.ai/reference/events). Live voice (OpenAI Realtime,
+    Gemini Live) is a passthrough of the vendor protocols at /v1/realtime and
+    /ws/google.ai.generativelanguage.*.GenerativeService.BidiGenerateContent.
   license:
     name: Apache-2.0
     url: https://www.apache.org/licenses/LICENSE-2.0
@@ -81,6 +84,95 @@ paths:
         "402": { $ref: "#/components/responses/Error" }
         "413": { $ref: "#/components/responses/Error" }
         "502": { $ref: "#/components/responses/Error" }
+  /v1/audio/speech:
+    post:
+      summary: Text-to-speech (OpenAI-compatible)
+      description: >
+        Synthesize `input` with a TTS model. Audio streams back with chunked
+        transfer as the provider generates it (`stream: false` buffers it and
+        adds X-SpeechRouter-Cost-Usd). Errors after the first byte end the
+        stream early; earlier errors use the envelope.
+      operationId: createSpeech
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [model, input]
+              properties:
+                model: { type: string, examples: ["openai/gpt-4o-mini-tts"] }
+                input: { type: string, minLength: 1, maxLength: 4096 }
+                voice: { type: string, description: "Provider-native voice id; default per model" }
+                response_format:
+                  type: string
+                  enum: [mp3, opus, aac, flac, wav, pcm, mulaw, alaw]
+                  description: "Default mp3, or wav for pcm-only models"
+                sample_rate:
+                  type: integer
+                  enum: [24000, 8000]
+                  description: pcm/wav/mulaw/alaw only; mulaw/alaw default 8000
+                speed: { type: number, minimum: 0.25, maximum: 4.0 }
+                instructions: { type: string, description: Style prompt (models with capabilities.instructions) }
+                language: { type: string }
+                stream: { type: boolean, default: true }
+                provider_params: { type: object }
+      responses:
+        "200":
+          description: Audio in the requested format
+          headers:
+            X-SpeechRouter-Request-Id: { schema: { type: string } }
+            X-SpeechRouter-Model: { schema: { type: string } }
+            X-SpeechRouter-Characters: { schema: { type: integer } }
+            X-SpeechRouter-Cost-Usd:
+              description: Only with stream=false
+              schema: { type: number }
+          content:
+            audio/mpeg: { schema: { type: string, format: binary } }
+            audio/wav: { schema: { type: string, format: binary } }
+            audio/L16: { schema: { type: string, format: binary } }
+            audio/PCMU: { schema: { type: string, format: binary } }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "402": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+  /v1/realtime/client_secrets:
+    post:
+      summary: Short-lived token for browser live sessions (OpenAI-shaped)
+      description: >
+        Alias of /v1/tokens in OpenAI's client_secrets shape. `value` is an st_
+        token; expires_after.seconds is clamped to 10-300. `session` is
+        echoed, not pinned to the token.
+      operationId: createRealtimeClientSecret
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expires_after:
+                  type: object
+                  properties:
+                    anchor: { type: string }
+                    seconds: { type: integer }
+                session: { type: object }
+      responses:
+        "200":
+          description: The token
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [value, expires_at]
+                properties:
+                  value: { type: string, examples: ["st_..."] }
+                  expires_at: { type: integer, description: Unix seconds }
+                  session: { type: object }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
   /v1/tokens:
     post:
       summary: Mint a short-lived client token
@@ -234,21 +326,44 @@ components:
         slug: { type: string, examples: ["deepgram/nova-3"] }
         provider: { type: string }
         name: { type: string }
-        kind: { type: string, enum: [stt, tts] }
+        kind: { type: string, enum: [stt, tts, live] }
         modes:
           type: array
-          items: { type: string, enum: [streaming, batch] }
+          items: { type: string, enum: [streaming, batch, live] }
+        dialect:
+          type: string
+          enum: [openai-realtime, gemini-live]
+          description: live only — the vendor protocol to speak
         pricing:
           type: object
-          description: Vendor list price in its native unit; exactly one rate field
+          description: >
+            Vendor list price in its native unit. STT: exactly one seconds rate.
+            TTS/live: per-character and/or per-1M-token rates by modality.
           properties:
             per_audio_second_usd: { type: number }
             per_audio_minute_usd: { type: number }
             per_audio_hour_usd: { type: number }
             per_session_hour_usd: { type: number }
             minimum_usd: { type: number }
+            per_character_usd: { type: number }
+            per_1m_text_input_tokens_usd: { type: number }
+            per_1m_cached_text_input_tokens_usd: { type: number }
+            per_1m_audio_input_tokens_usd: { type: number }
+            per_1m_cached_audio_input_tokens_usd: { type: number }
+            per_1m_image_input_tokens_usd: { type: number }
+            per_1m_text_output_tokens_usd: { type: number }
+            per_1m_audio_output_tokens_usd: { type: number }
             per_second_usd:
               type: number
               deprecated: true
               description: Derived by the gateway for legacy consumers
+        pricing_schedule:
+          type: array
+          description: Dated price changes; `pricing` is already the rate in force today
+          items:
+            type: object
+            required: [effective_from, pricing]
+            properties:
+              effective_from: { type: string, format: date }
+              pricing: { type: object }
         capabilities: { type: object }

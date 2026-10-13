@@ -103,5 +103,51 @@
         "vi"
       ]
     }
+  },
+  {
+    "slug": "xai/grok-tts",
+    "provider": "xai",
+    "name": "xAI Grok TTS",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 1.5e-05
+    },
+    "pricing_source": "https://docs.x.ai/developers/pricing",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "eve",
+        "ara",
+        "rex"
+      ],
+      "default_voice": "eve",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        44100,
+        48000
+      ],
+      "max_input_chars": 60000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "no model id upstream (voice_id selects); /v1/speak uses the native socket (text.clear barge-in); more voices via GET /v1/tts/voices"
   }
 ]

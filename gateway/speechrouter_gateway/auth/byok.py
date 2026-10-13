@@ -30,6 +30,15 @@ PROVIDER_KEY_FIELDS = {
     "gemini": "gemini_api_key",
     "meta": "meta_api_key",
     "xai": "xai_api_key",
+    # TTS-only providers (phase 2). Cloud's ByokCredential::PROVIDERS must
+    # list the same ids. azure/google stay out: multi-field / split credentials.
+    "rime": "rime_api_key",
+    "inworld": "inworld_api_key",
+    "fishaudio": "fishaudio_api_key",
+    "minimax": "minimax_api_key",
+    "murf": "murf_api_key",
+    "smallest": "smallest_api_key",
+    "together": "together_api_key",
 }
 
 

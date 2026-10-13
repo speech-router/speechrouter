@@ -40,6 +40,9 @@ class SessionOpen(BaseModel):
     model: Annotated[str, Field(description='Resolved slug, e.g. deepgram/nova-3')]
     encoding: str | None = None
     sample_rate: int | None = None
+    voice: Annotated[str | None, Field(description='/v1/speak: resolved voice id')] = (
+        None
+    )
 
 
 class Transcript(BaseModel):
@@ -110,6 +113,12 @@ class Clear(BaseModel):
     """
 
     type: Literal['clear']
+    playback_ms: Annotated[
+        int | None,
+        Field(
+            description='Optional: milliseconds of session audio the client has actually played. Providers that report what was spoken at barge-in (Deepgram Flux) use it; without it the gateway uses audio sent.'
+        ),
+    ] = None
 
 
 class Cleared(BaseModel):
@@ -119,6 +128,18 @@ class Cleared(BaseModel):
 
     type: Literal['cleared']
     last_seq: int
+    text_spoken: Annotated[
+        str | None,
+        Field(
+            description='Provider-reported text actually voiced before the barge-in (native-socket providers that report it, e.g. Deepgram Flux); absent otherwise'
+        ),
+    ] = None
+    text_remaining: Annotated[
+        str | None,
+        Field(
+            description='Provider-reported text that was accepted but not voiced; absent otherwise'
+        ),
+    ] = None
 
 
 class KeepAlive(BaseModel):
@@ -153,6 +174,15 @@ class Usage(BaseModel):
     characters: int | None = None
     model: str | None = None
     cost_usd: float | None = None
+    output_audio_seconds: Annotated[
+        float | None, Field(description='TTS: audio generated')
+    ] = None
+    units: Annotated[
+        dict[str, float] | None,
+        Field(
+            description='Priced quantities (characters, *_tokens by modality); same keys as the usage event, see PLAN-tts-live.md §3.0'
+        ),
+    ] = None
 
 
 class Done(BaseModel):

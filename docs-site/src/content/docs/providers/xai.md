@@ -1,7 +1,7 @@
 ---
 title: xAI
 description: Grok Voice Transcribe 2.0 — word timings, speaker labels and keyterms included; $0.20/hr streaming, $0.10/hr batch.
-sidebar: { order: 17 }
+sidebar: { order: 24 }
 ---
 
 Grok Voice Transcribe 2.0 — word timings, speaker labels and keyterms included; $0.20/hr streaming, $0.10/hr batch.
@@ -13,6 +13,14 @@ knobs pass through untouched via `provider_params`.
 | --- | --- | --- | --- | --- |
 | `xai/grok-voice-transcribe-2.0` | streaming | $0.2/hr | <span class="sr-yes">✓</span> | <span class="sr-yes">✓</span> |
 | `xai/grok-voice-transcribe-2.0-batch` | batch | $0.1/hr | <span class="sr-yes">✓</span> | <span class="sr-yes">✓</span> |
+
+## Text-to-speech
+
+Token prices are per 1M tokens; "+" means any account or library voice id is accepted. [Text-to-speech guide](/guides/tts/).
+
+| Model | List price | Formats | Voices |
+| --- | --- | --- | --- |
+| `xai/grok-tts` | $15 per 1M chars | pcm, wav, mp3, mulaw, alaw | 3+ |
 
 ## Provider options
 

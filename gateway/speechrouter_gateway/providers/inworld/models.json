@@ -1,0 +1,97 @@
+[
+  {
+    "slug": "inworld/inworld-tts-2",
+    "provider": "inworld",
+    "name": "Inworld TTS-2",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 2.5e-05
+    },
+    "pricing_source": "https://inworld.ai/pricing (On-Demand)",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "Ashley",
+        "Alex",
+        "Dennis"
+      ],
+      "default_voice": "Ashley",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "flac",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        44100,
+        48000
+      ],
+      "max_input_chars": 4000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "~400 system voices via /voices/v1/voices; characters = UTF-16 code units"
+  },
+  {
+    "slug": "inworld/inworld-tts-2-flash",
+    "provider": "inworld",
+    "name": "Inworld TTS-2 Flash",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 1.5e-05
+    },
+    "pricing_source": "https://inworld.ai/pricing (On-Demand)",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "Ashley",
+        "Alex",
+        "Dennis"
+      ],
+      "default_voice": "Ashley",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "flac",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        22050,
+        24000,
+        44100,
+        48000
+      ],
+      "max_input_chars": 4000,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  }
+]

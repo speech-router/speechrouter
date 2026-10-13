@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import json
+from collections.abc import AsyncIterator
 from typing import Any, BinaryIO
 from urllib.parse import urlencode
 
 import httpx
 
 from .errors import SpeechRouterError
+from .speak import SpeakStream
 from .stream import ListenStream
 
 DEFAULT_BASE = "https://api.speechrouter.ai"
@@ -116,6 +118,93 @@ class SpeechRouter:
         if "application/json" in response.headers.get("content-type", ""):
             return response.json()
         return response.text
+
+    def speak(
+        self,
+        *,
+        model: str,
+        voice: str | None = None,
+        encoding: str = "linear16",
+        sample_rate: int | None = None,
+        speed: float | None = None,
+        language: str | None = None,
+        instructions: str | None = None,
+        provider_params: dict[str, Any] | None = None,
+        connect_timeout: float = 10.0,
+    ) -> SpeakStream:
+        """Open a streaming text-to-speech session (async context manager)."""
+        query: dict[str, str] = {"model": model, "encoding": encoding}
+        for key, value in (("voice", voice), ("sample_rate", sample_rate), ("speed", speed),
+                           ("language", language), ("instructions", instructions)):
+            if value is not None:
+                query[key] = str(value)
+        if provider_params:
+            query["provider_params"] = json.dumps(provider_params)
+        url = f"{self._ws_base}/v1/speak?{urlencode(query)}"
+        return SpeakStream(url, api_key=self._api_key, connect_timeout=connect_timeout)
+
+    def _speech_body(self, model: str, input: str, **options: Any) -> dict[str, Any]:
+        body: dict[str, Any] = {"model": model, "input": input}
+        body.update({k: v for k, v in options.items() if v is not None})
+        return body
+
+    async def speech(
+        self,
+        *,
+        model: str,
+        input: str,
+        voice: str | None = None,
+        response_format: str | None = None,
+        sample_rate: int | None = None,
+        speed: float | None = None,
+        instructions: str | None = None,
+        language: str | None = None,
+        provider_params: dict[str, Any] | None = None,
+    ) -> bytes:
+        """Synthesize `input` and return the whole audio file."""
+        body = self._speech_body(
+            model, input, voice=voice, response_format=response_format,
+            sample_rate=sample_rate, speed=speed, instructions=instructions,
+            language=language, provider_params=provider_params, stream=False,
+        )
+        response = await self._request("POST", "/v1/audio/speech", json=body)
+        return response.content
+
+    async def speech_stream(
+        self,
+        *,
+        model: str,
+        input: str,
+        voice: str | None = None,
+        response_format: str | None = None,
+        sample_rate: int | None = None,
+        speed: float | None = None,
+        instructions: str | None = None,
+        language: str | None = None,
+        provider_params: dict[str, Any] | None = None,
+    ) -> AsyncIterator[bytes]:
+        """Synthesize `input`, yielding audio chunks as they are generated."""
+        body = self._speech_body(
+            model, input, voice=voice, response_format=response_format,
+            sample_rate=sample_rate, speed=speed, instructions=instructions,
+            language=language, provider_params=provider_params,
+        )
+        async with httpx.AsyncClient(timeout=self._timeout) as http, http.stream(
+            "POST", f"{self._base}/v1/audio/speech", json=body,
+            headers={"Authorization": f"Bearer {self._api_key}"},
+        ) as response:
+            if not response.is_success:
+                await response.aread()
+                error = {}
+                try:
+                    error = response.json().get("error", {})
+                except Exception:  # noqa: BLE001, S110 - non-JSON body
+                    pass
+                raise SpeechRouterError(error.get("message", f"HTTP {response.status_code}"),
+                                        code=error.get("code", "internal_error"),
+                                        status=response.status_code)
+            async for chunk in response.aiter_bytes():
+                yield chunk
 
     async def create_token(self, ttl_seconds: int = 60) -> dict[str, Any]:
         """Mint a short-lived token for client-side use (browsers, mobile).

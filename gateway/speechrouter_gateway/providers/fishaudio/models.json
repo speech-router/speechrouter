@@ -1,0 +1,134 @@
+[
+  {
+    "slug": "fishaudio/s2.1-pro",
+    "provider": "fishaudio",
+    "name": "Fish Audio S2.1 Pro",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_utf8_byte_usd": 1.5e-05
+    },
+    "pricing_source": "https://docs.fish.audio/developer-guide/models-pricing/pricing-and-rate-limits",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "9a9cf47702da476aa4629e2506d4a857"
+      ],
+      "default_voice": "9a9cf47702da476aa4629e2506d4a857",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        24000,
+        32000,
+        44100
+      ],
+      "max_input_chars": 4096,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "billed per UTF-8 byte of input; voices are Fish model reference_ids"
+  },
+  {
+    "slug": "fishaudio/s2-pro",
+    "provider": "fishaudio",
+    "name": "Fish Audio S2 Pro",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_utf8_byte_usd": 1.5e-05
+    },
+    "pricing_source": "https://docs.fish.audio/developer-guide/models-pricing/pricing-and-rate-limits",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "9a9cf47702da476aa4629e2506d4a857"
+      ],
+      "default_voice": "9a9cf47702da476aa4629e2506d4a857",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        24000,
+        32000,
+        44100
+      ],
+      "max_input_chars": 4096,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "fishaudio/s1",
+    "provider": "fishaudio",
+    "name": "Fish Audio S1",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_utf8_byte_usd": 1.5e-05
+    },
+    "pricing_source": "https://docs.fish.audio/developer-guide/models-pricing/pricing-and-rate-limits",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "9a9cf47702da476aa4629e2506d4a857"
+      ],
+      "default_voice": "9a9cf47702da476aa4629e2506d4a857",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mp3",
+        "opus",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        8000,
+        16000,
+        24000,
+        32000,
+        44100
+      ],
+      "max_input_chars": 4096,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    },
+    "deprecated": true,
+    "notes": "retires 2026-12-31"
+  }
+]

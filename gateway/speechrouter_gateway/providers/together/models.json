@@ -1,0 +1,47 @@
+[
+  {
+    "slug": "together/kokoro-82m",
+    "provider": "together",
+    "name": "Kokoro 82M (Together AI)",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 4e-06
+    },
+    "pricing_source": "https://www.together.ai/pricing",
+    "pricing_checked": "2026-10-13",
+    "capabilities": {
+      "voices": [
+        "af_heart",
+        "af_bella",
+        "af_alloy",
+        "am_adam",
+        "bf_emma",
+        "bm_george",
+        "zf_xiaoxiao"
+      ],
+      "default_voice": "af_heart",
+      "custom_voices": true,
+      "formats": [
+        "pcm",
+        "wav",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        24000,
+        8000
+      ],
+      "max_input_chars": 4096,
+      "instructions": false,
+      "speed": false,
+      "languages": [
+        "auto"
+      ]
+    },
+    "notes": "cheap open-weight tier (Apache-2.0 model); Together ToS forbids medical information: NON-PHI ONLY; ~50 voices via GET /v1/voices?model=hexgrad/Kokoro-82M"
+  }
+]

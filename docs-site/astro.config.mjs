@@ -76,6 +76,8 @@ export default defineConfig({
           items: [
             { label: 'Streaming transcription', slug: 'guides/streaming' },
             { label: 'Batch transcription', slug: 'guides/batch' },
+            { label: 'Text-to-speech', slug: 'guides/tts' },
+            { label: 'Live voice (realtime)', slug: 'guides/live' },
             { label: 'Failover', slug: 'guides/failover' },
             { label: 'Diarization', slug: 'guides/diarization' },
             { label: 'Keyterm boosting', slug: 'guides/keyterms' },

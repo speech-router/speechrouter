@@ -9,11 +9,19 @@ from functools import partial
 
 from ..config import Settings
 from ..protocol.events import Code
-from ..providers.base import BillingBasis, STTBatchProvider, STTConfig, STTStreamProvider
+from ..providers.base import (
+    BillingBasis,
+    STTBatchProvider,
+    STTConfig,
+    STTStreamProvider,
+    TTSConfig,
+    TTSProvider,
+)
 from ..providers.registry import (
     ProviderNotConfigured,
     stt_batch_provider,
     stt_stream_provider,
+    tts_provider,
 )
 from .catalog import Catalog
 
@@ -64,7 +72,12 @@ def resolve_batch(
         raise ResolveError(Code.model_not_found, f"invalid model slug '{slug}'")
     registered = stt_batch_provider(provider_id)
     entry = catalog.find(slug)
-    if registered is None or entry is None or "batch" not in entry.get("modes", []):
+    if (
+        registered is None
+        or entry is None
+        or entry.get("kind", "stt") != "stt"
+        or "batch" not in entry.get("modes", [])
+    ):
         raise ResolveError(Code.model_not_found, f"'{slug}' is not available for batch")
     caps = registered.capabilities
     if request.diarization and not caps.diarization:
@@ -101,6 +114,10 @@ def resolve_stream(
     entry = catalog.find(slug)
     if entry is None:
         raise ResolveError(Code.model_not_found, f"unknown model '{slug}'")
+    if entry.get("kind", "stt") != "stt":
+        raise ResolveError(
+            Code.model_not_found, f"'{slug}' is a {entry.get('kind')} model, not speech-to-text"
+        )
 
     caps = registered.capabilities
     if request.diarization and not caps.diarization:
@@ -138,3 +155,182 @@ def resolve_stream(
             (entry.get("pricing") or {}).get("per_second_usd") or 0.0
         ),
     )
+
+
+# ------------------------------------------------------------------ TTS
+
+# gateway-side wrappers over a pcm-producing adapter (audio/pcm_codec.py)
+PCM_WRAPPED_FORMATS = frozenset({"wav", "mulaw", "alaw"})
+# telephony codecs default to 8 kHz; everything else keeps the native rate
+_DEFAULT_RATE = {"mulaw": 8000, "alaw": 8000}
+
+CONTENT_TYPES = {
+    "mp3": "audio/mpeg",
+    "opus": "audio/ogg",
+    "aac": "audio/aac",
+    "flac": "audio/flac",
+    "wav": "audio/wav",
+    "pcm": "audio/L16",
+    "mulaw": "audio/PCMU",
+    "alaw": "audio/PCMA",
+}
+
+
+@dataclass(frozen=True)
+class TTSRequest:
+    text_length: int = 0  # code points; 0 = unknown yet (/v1/speak validates per segment)
+    voice: str | None = None
+    format: str | None = None  # None: mp3 when the model has it (OpenAI's default), else wav
+    sample_rate: int | None = None
+    speed: float | None = None
+    instructions: str | None = None
+    language: str | None = None
+    provider_params: dict = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class ResolvedTTS:
+    slug: str
+    entry: dict  # catalog entry: pricing + per-model capabilities
+    config: TTSConfig  # what the ADAPTER is asked for
+    build: Callable[[], TTSProvider]
+    out_format: str  # what the CLIENT receives
+    out_sample_rate: int  # meaningful for pcm-family formats
+    native_rate: int  # adapter pcm rate (for wrappers + duration math)
+    wrap: bool  # gateway converts adapter pcm -> out_format/out_sample_rate
+    max_input_chars: int
+
+    @property
+    def content_type(self) -> str:
+        base = CONTENT_TYPES.get(self.out_format, "application/octet-stream")
+        if self.out_format in {"pcm", "mulaw", "alaw"}:
+            return f"{base};rate={self.out_sample_rate};channels=1"
+        return base
+
+
+def resolve_tts(
+    slug: str, request: TTSRequest, settings: Settings, catalog: Catalog
+) -> ResolvedTTS:
+    provider_id, _, model_name = slug.partition("/")
+    if not provider_id or not model_name:
+        raise ResolveError(Code.model_not_found, f"invalid model slug '{slug}'")
+    registered = tts_provider(provider_id)
+    entry = catalog.find(slug)
+    if registered is None or entry is None or entry.get("kind") != "tts":
+        raise ResolveError(Code.model_not_found, f"'{slug}' is not an available TTS model")
+    caps = entry.get("capabilities") or {}
+
+    voices = caps.get("voices") or []
+    voice = request.voice or caps.get("default_voice") or registered.capabilities.default_voice
+    if not voice:
+        raise ResolveError(Code.invalid_request, f"'{slug}' requires a voice")
+    if voices and voice not in voices and not caps.get("custom_voices"):
+        raise ResolveError(
+            Code.invalid_request,
+            f"unknown voice '{voice}' for '{slug}' (one of: {', '.join(voices)})",
+        )
+
+    formats = caps.get("formats") or []
+    fmt = request.format or ("mp3" if "mp3" in formats else "wav")
+    if fmt not in formats:
+        raise ResolveError(
+            Code.unsupported_encoding,
+            f"'{slug}' cannot produce '{fmt}' (one of: {', '.join(formats)})",
+        )
+    native_formats = registered.capabilities.formats
+    wrap = fmt not in native_formats
+    if wrap and not (fmt in PCM_WRAPPED_FORMATS and "pcm" in native_formats):
+        raise ResolveError(Code.unsupported_encoding, f"'{slug}' cannot produce '{fmt}'")
+    # native_rates: rates at which the adapter itself produces its pcm-family
+    # formats (pcm/wav/mulaw/alaw). Anything else is decimated from pcm.
+    native_rates = registered.capabilities.sample_rates or frozenset({24000})
+    native_rate = 24000 if 24000 in native_rates else max(native_rates)
+    rates = caps.get("output_sample_rates") or [native_rate]
+    out_rate = request.sample_rate or _DEFAULT_RATE.get(fmt, native_rate)
+    if fmt in {"pcm", "wav", "mulaw", "alaw"}:
+        if out_rate not in rates:
+            raise ResolveError(
+                Code.unsupported_encoding,
+                f"'{slug}' outputs sample_rate {', '.join(map(str, rates))}, not {out_rate}",
+            )
+        fmt_rates = registered.capabilities.format_rates.get(fmt, native_rates)
+        if not wrap and out_rate in fmt_rates:
+            native_rate = out_rate  # the provider renders this rate itself
+        elif out_rate != native_rate:
+            sources = [r for r in native_rates if r % out_rate == 0]
+            if not sources or "pcm" not in native_formats:
+                raise ResolveError(Code.unsupported_encoding,
+                                   f"'{slug}' cannot produce {fmt} at {out_rate} Hz")
+            native_rate = native_rate if native_rate in sources else max(sources)
+            wrap = True  # gateway decimates
+    elif request.sample_rate is not None:
+        raise ResolveError(Code.invalid_request, "sample_rate applies to pcm/wav/mulaw/alaw only")
+
+    if request.instructions and not caps.get("instructions"):
+        raise ResolveError(
+            Code.unsupported_capability, f"'{slug}' does not accept instructions"
+        )
+    if request.speed is not None:
+        if not caps.get("speed"):
+            raise ResolveError(Code.unsupported_capability, f"'{slug}' does not accept speed")
+        if not 0.25 <= request.speed <= 4.0:
+            raise ResolveError(Code.invalid_request, "speed must be between 0.25 and 4.0")
+
+    max_chars = min(
+        caps.get("max_input_chars") or settings.max_tts_input_chars,
+        settings.max_tts_input_chars,
+    )
+    if request.text_length > max_chars:
+        raise ResolveError(
+            Code.payload_too_large, f"input exceeds {max_chars} characters for '{slug}'"
+        )
+
+    try:
+        _ = registered.build(settings)
+    except ProviderNotConfigured as exc:
+        raise ResolveError(Code.invalid_request, str(exc)) from exc
+
+    config = TTSConfig(
+        model=model_name,
+        voice=voice,
+        format="pcm" if wrap else fmt,
+        sample_rate=native_rate,
+        speed=request.speed,
+        instructions=request.instructions,
+        language=request.language,
+        provider_params=request.provider_params,
+    )
+    return ResolvedTTS(
+        slug=slug,
+        entry=entry,
+        config=config,
+        build=partial(registered.build, settings),
+        out_format=fmt,
+        out_sample_rate=out_rate,
+        native_rate=native_rate,
+        wrap=wrap,
+        max_input_chars=max_chars,
+    )
+
+
+# ------------------------------------------------------------------ live
+
+
+def resolve_live(slug: str, dialect: str, settings: Settings, catalog: Catalog):
+    """Validate a live slug for the dialect the client connected with and
+    that the gateway holds credentials. Returns (entry, provider model)."""
+    provider_id, _, model_name = slug.partition("/")
+    entry = catalog.find(slug)
+    if entry is None or entry.get("kind") != "live" or not model_name:
+        raise ResolveError(Code.model_not_found, f"'{slug}' is not an available live model")
+    if entry.get("dialect") != dialect:
+        raise ResolveError(
+            Code.model_not_found,
+            f"'{slug}' speaks {entry.get('dialect')}, not {dialect} — connect to its endpoint",
+        )
+    field_name = {"openai": "openai_api_key", "gemini": "gemini_api_key"}.get(provider_id)
+    if field_name is None or not getattr(settings, field_name, ""):
+        raise ResolveError(
+            Code.invalid_request, f"provider '{provider_id}' has no credentials configured"
+        )
+    return entry, model_name

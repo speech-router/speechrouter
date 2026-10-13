@@ -1,7 +1,7 @@
 ---
 title: Gemini
 description: Gemini 3.5 Transcribe Live at $0.30/hr — 85+ languages, custom vocabulary, and a SMART mode that cleans up disfluencies as it goes.
-sidebar: { order: 8 }
+sidebar: { order: 9 }
 ---
 
 Gemini 3.5 Transcribe Live at $0.30/hr — 85+ languages, custom vocabulary, and a SMART mode that cleans up disfluencies as it goes.
@@ -12,6 +12,26 @@ knobs pass through untouched via `provider_params`.
 | Model | Modes | List price | Diarization | Word timings |
 | --- | --- | --- | --- | --- |
 | `gemini/gemini-3.5-transcribe-live` | streaming | $0.3/hr | <span class="sr-no">—</span> | <span class="sr-no">—</span> |
+
+## Text-to-speech
+
+Token prices are per 1M tokens; "+" means any account or library voice id is accepted. [Text-to-speech guide](/guides/tts/).
+
+| Model | List price | Formats | Voices |
+| --- | --- | --- | --- |
+| `gemini/gemini-3.8-flash-tts` | $0.5 text in · $9 audio out (from 2027-01-01: $1 text in · $18 audio out) | pcm, wav, mulaw, alaw | 30 |
+| `gemini/gemini-3.8-flash-lite-tts` | $0.5 text in · $6 audio out (from 2027-01-01: $1 text in · $12 audio out) | pcm, wav, mulaw, alaw | 30 |
+
+## Live voice
+
+Speech-to-speech sessions in the vendor's own protocol (`gemini-live`). Prices
+per 1M tokens. [Live voice guide](/guides/live/).
+
+| Model | List price |
+| --- | --- |
+| `gemini/gemini-3.8-live` | $0.75 text in · $3 audio in · $1 image in · $4.5 text out · $12 audio out |
+| `gemini/gemini-3.8-live-extended-thinking` | $0.75 text in · $3 audio in · $1 image in · $4.5 text out · $12 audio out |
+| `gemini/gemini-2.5-flash-native-audio-preview-12-2025` (deprecated) | $0.5 text in · $3 audio in · $3 image in · $2 text out · $12 audio out |
 
 ## Provider options
 

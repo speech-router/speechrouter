@@ -136,3 +136,112 @@ class STTBatchProvider(ABC):
     async def transcribe(self, audio: bytes, content_type: str, config: STTConfig) -> Transcript:
         """One-shot transcription. Returns a single final Transcript with words
         when the provider supports them."""
+
+
+# ------------------------------------------------------------------ TTS
+#
+# TTS contract (PLAN-tts-live.md §1.2). One adapter instance per request.
+# synthesize() yields encoded audio in config.format and fills the caller's
+# TTSUsage as it goes — by exhaustion it must be complete; on cancellation
+# (client barge-in, disconnect) it holds whatever the provider already
+# reported, and the gateway meters that: generated audio was paid for.
+
+
+@dataclass(frozen=True)
+class TTSCapabilities:
+    voices: frozenset[str] = field(default_factory=frozenset)  # empty = any string
+    default_voice: str = ""
+    # formats the adapter yields itself; the gateway adds wav/mulaw/alaw
+    # wrappers around pcm for adapters whose native output is pcm only
+    formats: frozenset[str] = field(default_factory=frozenset)
+    sample_rates: frozenset[int] = field(default_factory=frozenset)  # pcm output rates
+    # per-format native rates where they differ from sample_rates, e.g.
+    # {"mulaw": frozenset({8000})}; formats not listed use sample_rates
+    format_rates: dict = field(default_factory=dict)
+    max_input_chars: int = 0  # 0 = gateway default
+    instructions: bool = False
+    speed: bool = False
+
+
+@dataclass(frozen=True)
+class TTSConfig:
+    model: str  # provider-native model name (slug suffix)
+    voice: str
+    format: str  # format requested FROM THE ADAPTER (after wrapper mapping)
+    sample_rate: int = 24000
+    speed: float | None = None
+    instructions: str | None = None
+    language: str | None = None
+    provider_params: dict = field(default_factory=dict)
+
+
+@dataclass
+class TTSUsage:
+    characters: int = 0
+    audio_seconds: float = 0.0  # generated audio, when the adapter knows it
+    tokens: dict[str, float] = field(default_factory=dict)  # UsageEvent.units keys
+    estimated: bool = False
+
+
+class TTSProvider(ABC):
+    name: str
+    capabilities: TTSCapabilities
+
+    @abstractmethod
+    def synthesize(self, text: str, config: TTSConfig, usage: TTSUsage) -> AsyncIterator[bytes]:
+        """Yield audio chunks as the provider produces them. Raises
+        ProviderStreamError before or during the stream."""
+
+    def estimate_usage(  # noqa: B027 - optional hook
+        self, text: str, config: TTSConfig, audio_seconds: float, usage: TTSUsage
+    ) -> None:
+        """Called when a stream ended (usually cancelled by barge-in) before the
+        provider reported usage. Token-priced adapters fill usage.tokens with
+        an estimate and set usage.estimated; others leave it alone."""
+
+    async def close(self) -> None:  # noqa: B027 - optional hook
+        """Release pooled resources. Safe from any state."""
+
+    def open_stream(self, config: TTSConfig) -> "TTSStream | None":
+        """A native incremental-text socket for this config, or None to let
+        /v1/speak segment text over synthesize()."""
+        return None
+
+
+class TTSStream(ABC):
+    """A provider-native incremental-text socket for /v1/speak (phase 3).
+
+    One instance == one upstream connection for one client session. Text
+    goes in as it arrives; audio comes out of audio() in order until the
+    provider has flushed everything after finish(). clear() is barge-in: it
+    returns once the provider has acknowledged, and audio generated before
+    the ack never leaves audio(). It may return provider facts about what
+    was actually spoken (e.g. {"text_spoken": ..., "text_remaining": ...}).
+    """
+
+    usage: TTSUsage
+
+    @abstractmethod
+    async def connect(self, config: TTSConfig) -> None:
+        """Open upstream; returns when the provider accepts text."""
+
+    @abstractmethod
+    async def send_text(self, text: str) -> None: ...
+
+    @abstractmethod
+    async def clear(self, playback_ms: int | None = None) -> dict:
+        """playback_ms: how much audio the CLIENT has actually played, when
+        it says so in its `clear`; providers that bill or report "text
+        spoken" by playback position use it, else they fall back to audio
+        sent."""
+
+    @abstractmethod
+    async def finish(self) -> None:
+        """No more text; audio() ends after the provider's final audio."""
+
+    @abstractmethod
+    def audio(self) -> AsyncIterator[bytes]: ...
+
+    @abstractmethod
+    async def close(self) -> None:
+        """Safe from any state. Idempotent."""

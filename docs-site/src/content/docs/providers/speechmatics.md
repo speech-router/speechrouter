@@ -1,7 +1,7 @@
 ---
 title: Speechmatics
 description: Broad language coverage; Melia-1 code-switches across 56 languages.
-sidebar: { order: 15 }
+sidebar: { order: 21 }
 ---
 
 Broad language coverage; Melia-1 code-switches across 56 languages.
@@ -14,6 +14,14 @@ knobs pass through untouched via `provider_params`.
 | `speechmatics/enhanced` | streaming · batch | $1.04/hr | <span class="sr-yes">✓</span> | <span class="sr-yes">✓</span> |
 | `speechmatics/standard` | streaming · batch | $0.7992/hr | <span class="sr-yes">✓</span> | <span class="sr-yes">✓</span> |
 | `speechmatics/melia-1` | batch | $0.129/hr | <span class="sr-yes">✓</span> | <span class="sr-yes">✓</span> |
+
+## Text-to-speech
+
+Token prices are per 1M tokens; "+" means any account or library voice id is accepted. [Text-to-speech guide](/guides/tts/).
+
+| Model | List price | Formats | Voices |
+| --- | --- | --- | --- |
+| `speechmatics/preview` | $11 per 1M chars | pcm, wav, mulaw, alaw | 4 |
 
 ## Provider options
 

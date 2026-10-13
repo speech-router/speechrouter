@@ -27,3 +27,36 @@ Docs moved: platform.openai.com/docs → **developers.openai.com/api/docs**
 - diarized_json: segments[{id,start,end,**speaker**,text,type}]
 - SSE stream events: `transcript.text.delta` → `transcript.text.done` (+ `transcript.text.segment` for diarize)
 - Pricing: gpt-4o-transcribe ≈$0.006/min, mini ≈$0.003/min, gpt-realtime-whisper $0.017/min; whisper-1/diarize prices unverified — confirm before catalog entry.
+
+## TTS (added 2026-10-13, SR-TTS-LIVE) — documented, NOT yet live-verified
+
+- `POST /v1/audio/speech` `{model, input, voice, response_format, speed?, instructions?, stream_format?}`.
+  Formats mp3 / opus (ogg) / aac / flac / wav / pcm (s16le mono 24 kHz, no header).
+- `stream_format: "sse"` (gpt-4o-mini-tts only; tts-1* reject it) → `speech.audio.delta {audio: b64}` …
+  `speech.audio.done {usage: {input_tokens, output_tokens, total_tokens}}`. **The only place token usage
+  appears**, so the adapter always uses SSE for token-priced models and decodes to raw bytes.
+- input_tokens = text, output_tokens = audio. Estimated rate used only on cancellation: 1250 audio
+  tokens/min (derived from OpenAI's published ~$0.015/min at $12/1M). **Probe:** `scripts/tts_live_probe.py --exp openai_tts`.
+- Voices: gpt-4o-mini-tts 13 (alloy ash ballad coral echo fable nova onyx sage shimmer verse marin cedar);
+  tts-1/-hd 9 (no ballad/verse/marin/cedar). Verify the list against a live key.
+- `instructions` gpt-4o-mini-tts only; `speed` honoured by tts-1* (docs say ignored by gpt-4o-mini-tts).
+- Pricing (2026-10-13): gpt-4o-mini-tts $0.60/1M text in + $12/1M audio out; tts-1 $15/1M chars; tts-1-hd $30/1M chars.
+
+## Realtime live passthrough (added 2026-10-13) — documented, NOT yet live-verified
+
+- `wss://api.openai.com/v1/realtime?model=<m>`, `Authorization: Bearer`. The gateway serves the same path
+  under `/v1`, so OpenAI SDKs work with `base_url=<gateway>/v1` (SDK maps http→ws, https→wss).
+- Browser auth: subprotocols `realtime`, `openai-insecure-api-key.<key>`; the gateway accepts its `st_`
+  tokens there. Beta clients: `openai-beta.realtime-v1` subprotocol → forwarded as `OpenAI-Beta: realtime=v1`.
+- Usage: `response.done.response.usage` per response — `input_token_details {text_tokens, audio_tokens,
+  image_tokens, cached_tokens, cached_tokens_details{text_tokens, audio_tokens}}`, `output_token_details
+  {text_tokens, audio_tokens}`. Cached is a SUBSET of input: the meter subtracts it into `cached_*` units.
+- Audio: client `input_audio_buffer.append {audio}`, server `response.output_audio.delta {delta}` (GA) /
+  `response.audio.delta` (beta). Format from `session.audio.{input,output}.format.type` (`audio/pcm` 24 kHz,
+  `audio/pcmu`/`audio/pcma` 8 kHz) or beta `input_audio_format`.
+- Input transcription (`session.audio.input.transcription.model`) is billed separately at the
+  transcription model's rate: metered as an `stt_stream` companion event (PLAN §3.0).
+- Fallback estimate when no usage arrives: 10 tok/s in, 20 tok/s out (commonly cited; unverified).
+- Model is fixed per connection; `session.update` with another `model` is refused by the gateway.
+- Pricing (per 1M, 2026-10-13): gpt-realtime-2.1 audio 32/0.40 cached/64 out, text 4/0.40/24, image 5;
+  -2.1-mini audio 10/0.30/20, text 0.60/0.06/2.40, image 0.80.
