@@ -440,6 +440,18 @@ be `provider_error` (upstream refused or dropped), `error` (client protocol viol
 Gemini `setup`), or a limit status (`insufficient_credits`, `session_expired`, `audio_timeout`). A
 session refused at upstream handshake still emits exactly one final event (`<parent>:1`, empty units).
 
+**Gateway ↔ cloud Redis/HTTP contract additions (2026-10-13, agreed with SRC-TTS-LIVE):**
+- `speechrouter:live_min_balance` (micro-USD, written by cloud): live admission floor for house-key
+  sessions, compared against `speechrouter:balance:<org>`. Absent → the gateway's
+  `SPEECHROUTER_LIVE_MIN_BALANCE_MICROUSD` (default 5_000_000). BYOK sessions skip the floor.
+- `GET /v1/models?include_disabled=true` returns flag-gated kinds too, each marked `"enabled": false`,
+  so `sync_models` can price TTS/live **before** the flags flip. The default `/v1/models` keeps hiding them,
+  and disabled models stay unroutable (`model_not_found`).
+- Browser auth on **both** live paths (`/v1/realtime`, `/v1/live/gemini` and the BidiGenerateContent paths)
+  accepts the `bearer, <key>` subprotocol.
+- Live mid-session credit check subtracts only cost **not yet emitted** (emitted checkpoints are assumed
+  debited into `speechrouter:balance`).
+
 **Catalog fields cloud should read:** `kind` (`stt`|`tts`|`live`), `modes` (`streaming`|`batch`|`live`),
 `dialect` (live only: `openai-realtime`|`gemini-live`), `pricing`, `pricing_schedule`. For multi-rate
 entries `pricing.per_second_usd` is **not** derived: treat it as absent.

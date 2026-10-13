@@ -287,8 +287,9 @@ class GeminiLiveMeter(LiveMeter):
             if key:
                 _add(units, key, (detail.get("tokenCount") or 0) - cached.get(modality, 0))
         if not prompt and meta.get("promptTokenCount"):
-            # no modality split: native-audio sessions are audio-dominated
-            _add(units, "audio_input_tokens", meta["promptTokenCount"])
+            # no modality split: native-audio sessions are audio-dominated;
+            # cached tokens (already added above) are part of the prompt count
+            _add(units, "audio_input_tokens", meta["promptTokenCount"] - sum(cached.values()))
             self.split_guessed = True
         response = meta.get("responseTokensDetails") or []
         for detail in response:

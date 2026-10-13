@@ -125,20 +125,14 @@ class LiveSession:
     # ----------------------------------------------------------- lifecycle
 
     async def run(self) -> None:
+        tasks: set[asyncio.Task] = set()
         try:
             await self._dial()
-        except LiveLimit as exc:
-            self._status = exc.status
-            await self._reject_client(exc.code.value, exc.message)
-            await self._emit_final()
-            return
-
-        tasks = {
-            asyncio.create_task(self._pump_up(), name="up"),
-            asyncio.create_task(self._pump_down(), name="down"),
-            asyncio.create_task(self._watchdog(), name="watchdog"),
-        }
-        try:
+            tasks = {
+                asyncio.create_task(self._pump_up(), name="up"),
+                asyncio.create_task(self._pump_down(), name="down"),
+                asyncio.create_task(self._watchdog(), name="watchdog"),
+            }
             done, _ = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
             exc = next(iter(done)).exception()
             if exc is not None:
@@ -147,19 +141,18 @@ class LiveSession:
             self._status = "completed" if gone.code in (1000, 1001, 1005) else \
                 "client_disconnect"
             self._client_close = (1000, "")
-            await self._close_upstream(1000)
         except _UpstreamGone as gone:
             self._on_upstream_close(gone)
         except LiveLimit as exc:
             self._status = exc.status
             await self._reject_client(exc.code.value, exc.message)
-            await self._close_upstream(1000)
         except Exception:
             self._status = "error"
             logger.error("live session crashed", exc_info=True,
                          extra={"session": self.parent_id})
             await self._reject_client(Code.internal_error.value, "internal error", close=1011)
         finally:
+            # every path — failed dial included — closes both sides and meters
             for task in tasks:
                 task.cancel()
             await asyncio.gather(*tasks, return_exceptions=True)
@@ -196,7 +189,10 @@ class LiveSession:
             raise LiveLimit(Code.provider_error, "provider_error",
                             customer_facing(None)) from exc
         if self._first_frame is not None:
-            await self._upstream.send(self._first_frame)
+            try:
+                await self._upstream.send(self._first_frame)
+            except websockets.exceptions.ConnectionClosed as exc:
+                raise _UpstreamGone(*self._upstream_close(exc)) from exc
             self.meter.on_client(self._first_frame)
         logger.info("live session open", extra={
             "session": self.parent_id, "model": self._resolved.slug, "byok": self._byok,
@@ -301,7 +297,15 @@ class LiveSession:
                                 "no traffic in either direction; closing idle session")
 
     def accrued_usd(self) -> float:
-        units = self.meter.totals.units if self.meter.reported else self.meter.estimate()
+        """Cost not yet in an emitted event. Emitted checkpoints are debited
+        by cloud and already reflected in speechrouter:balance — counting
+        them again would cut sessions that still have credit. (Consumer lag
+        of a few seconds can leave a checkpoint briefly uncounted; the 30 s
+        check cadence already bounds overdraw at that scale.)"""
+        if self.meter.reported:
+            units = self.meter.totals.minus(self._emitted).units
+        else:
+            units = self.meter.estimate()  # never emitted: estimates land at close
         return price_units(self._resolved.entry, units)
 
     async def _check_credits(self) -> None:
@@ -394,6 +398,11 @@ class LiveSession:
                 "audio_out_seconds": round(current.audio_out_seconds, 3),
                 "units": current.units, "estimated": estimated,
             })
+        # shielded: _emitted/_seq already advanced, so a cancellation here
+        # (client hangs up mid-checkpoint) must not drop the write
+        await asyncio.shield(self._send_usage(events))
+
+    async def _send_usage(self, events: list[UsageEvent]) -> None:
         for item in events:
             try:
                 await self._emitter.emit(item)

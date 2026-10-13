@@ -265,7 +265,7 @@ def test_openai_browser_subprotocol_auth_and_bare_model(gw, upstream):
 
 
 def test_openai_session_update_cannot_switch_model(gw, upstream):
-    client, _ = gw
+    client, app = gw
 
     def script(conn, up):
         conn.send(json.dumps({"type": "session.created", "session": {}}))
@@ -278,6 +278,7 @@ def test_openai_session_update_cannot_switch_model(gw, upstream):
                                  "session": {"model": "gpt-realtime-mini"}}))
         error = json.loads(ws.receive_text())
         assert error["type"] == "error" and error["error"]["code"] == "invalid_request"
+        _leave(ws, app)
     assert not any("session.update" in str(f) for f in upstream.received)
 
 
@@ -354,7 +355,7 @@ def test_upstream_close_propagates_with_sanitized_account_reason(gw, upstream):
 
 
 def test_house_key_account_errors_are_rewritten_in_band(gw, upstream):
-    client, _ = gw
+    client, app = gw
 
     def script(conn, up):
         conn.send(json.dumps({"type": "error", "error": {
@@ -371,6 +372,7 @@ def test_house_key_account_errors_are_rewritten_in_band(gw, upstream):
         assert account["error"]["code"] == "provider_error"
         assert "org-abc123" not in json.dumps(account)
         assert json.loads(ws.receive_text())["error"]["message"] == "Invalid value: 'pcm17'"
+        _leave(ws, app)
 
 
 def test_checkpoints_emit_deltas_with_contiguous_seq(gw, upstream):
@@ -577,3 +579,120 @@ def test_realtime_client_secrets_alias_mints_connectable_token(gw, upstream):
         OPENAI_URL, subprotocols=["realtime", f"openai-insecure-api-key.{body['value']}"]
     ) as ws:
         assert json.loads(ws.receive_text())["type"] == "session.created"
+
+
+# ---- review regressions ----
+
+
+def test_gemini_cached_tokens_not_double_counted_without_details():
+    meter = GeminiLiveMeter()
+    units = meter.gemini_units({"promptTokenCount": 1000, "responseTokenCount": 10,
+                                "cacheTokensDetails": [{"modality": "AUDIO", "tokenCount": 800}]})
+    assert units == {"cached_audio_input_tokens": 800, "audio_input_tokens": 200,
+                     "audio_output_tokens": 10}
+
+
+def test_client_secrets_tolerates_non_object_expires_after(gw):
+    client, _ = gw
+    r = client.post("/v1/realtime/client_secrets", headers=BEARER, json={"expires_after": 60})
+    assert r.status_code == 200 and r.json()["value"].startswith("st_")
+
+
+def test_gemini_dial_failure_closes_1008_with_reason_and_meters(gw):
+    client, app = gw
+    app.state.settings = app.state.settings.model_copy(update={
+        "gemini_base_url": "http://127.0.0.1:9"})
+    with client.websocket_connect(f"{GEMINI_PATH}?key=sk_test") as ws:
+        ws.send_text(SETUP)
+        with pytest.raises(WebSocketDisconnect) as info:
+            ws.receive_bytes()
+        _wait(lambda: app.state.emitter.events)
+    assert info.value.code == 1008 and info.value.reason.startswith("provider_error")
+    assert app.state.emitter.events[0].status == "provider_error"
+
+
+def _bare_session(entry_slug="openai/gpt-realtime-2.1", emitter=None):
+    from types import SimpleNamespace
+
+    from speechrouter_gateway.config import Settings
+    from speechrouter_gateway.live.dialects import OPENAI
+    from speechrouter_gateway.live.proxy import LiveSession, ResolvedLive
+
+    catalog = Catalog.load()
+    settings = Settings(_env_file=None, openai_api_key="x")
+    resolved = ResolvedLive(slug=entry_slug, model=entry_slug.split("/")[1],
+                            entry=catalog.find(entry_slug), settings=settings)
+    return LiveSession(SimpleNamespace(), OPENAI, resolved, emitter or CaptureEmitter(),
+                       catalog, "k1", settings)
+
+
+async def test_credit_accrual_excludes_already_emitted_checkpoints():
+    session = _bare_session()
+    session.meter.on_server(json.dumps({"type": "response.done",
+                                        "response": {"usage": OPENAI_USAGE}}))
+    before = session.accrued_usd()
+    assert before > 0
+    await session._emit(final=False)  # checkpoint -> debited by cloud
+    assert session.accrued_usd() == 0
+    session.meter.on_server(json.dumps({"type": "response.done",
+                                        "response": {"usage": OPENAI_USAGE}}))
+    assert abs(session.accrued_usd() - before) < 1e-12
+
+
+async def test_checkpoint_write_survives_cancellation():
+    import asyncio
+
+    class SlowEmitter(CaptureEmitter):
+        async def emit(self, event):
+            await asyncio.sleep(0.05)
+            self.events.append(event)
+
+    emitter = SlowEmitter()
+    session = _bare_session(emitter=emitter)
+    session.meter.on_server(json.dumps({"type": "response.done",
+                                        "response": {"usage": OPENAI_USAGE}}))
+    task = asyncio.create_task(session._emit(final=False))
+    await asyncio.sleep(0.01)
+    task.cancel()  # e.g. the watchdog is cancelled as the client hangs up
+    await asyncio.sleep(0.1)
+    (event,) = emitter.events
+    assert event.units == openai_units(OPENAI_USAGE) and event.session_id.endswith(":1")
+
+
+# ---- cloud-session requests (SRC-TTS-LIVE) ----
+
+
+def test_cloud_published_live_floor_overrides_setting(gw):
+    client, app = gw
+    kv = app.state.keystore.redis.kv
+    kv["speechrouter:balance:7"] = "20000000"  # $20, above the $5 setting
+    kv["speechrouter:live_min_balance"] = "25000000"  # cloud says $25
+    with client.websocket_connect(OPENAI_URL, headers=BEARER) as ws:
+        event = json.loads(ws.receive_text())
+        assert event["error"]["code"] == "insufficient_credits"
+        assert "$25.00" in event["error"]["message"]
+
+
+def test_gemini_accepts_bearer_subprotocol(gw, upstream):
+    client, app = gw
+    upstream.script = gemini_conversation
+    with client.websocket_connect("/v1/live/gemini", subprotocols=["bearer", "sk_test"]) as ws:
+        assert ws.accepted_subprotocol == "bearer"
+        ws.send_text(SETUP)
+        assert json.loads(ws.receive_bytes()) == {"setupComplete": {}}
+        _leave(ws, app)
+    assert "sk_test" not in json.dumps(upstream.requests[0][1])
+
+
+def test_models_include_disabled_for_price_sync(gw):
+    client, app = gw
+    app.state.catalog = Catalog.load(disabled_kinds=frozenset({"tts", "live"}))
+    public = client.get("/v1/models").json()["data"]
+    assert {m["kind"] for m in public} == {"stt"}
+    full = {m["slug"]: m for m in client.get("/v1/models?include_disabled=true").json()["data"]}
+    assert full["openai/gpt-realtime-2.1"]["enabled"] is False
+    assert full["gemini/gemini-3.8-flash-tts"]["pricing"]["per_1m_audio_output_tokens_usd"] == 9.0
+    assert "enabled" not in full["deepgram/nova-3"]
+    # still not routable
+    with client.websocket_connect(OPENAI_URL, headers=BEARER) as ws:
+        assert json.loads(ws.receive_text())["error"]["code"] == "model_not_found"

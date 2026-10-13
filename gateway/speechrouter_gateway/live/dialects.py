@@ -124,7 +124,8 @@ class OpenAIRealtime(Dialect):
 class GeminiLive(Dialect):
     """The google-genai SDK's own path under http_options.base_url=<gateway>.
     Auth: ?key=, ?access_token= (ephemeral style), `x-goog-api-key`, or
-    `Authorization: Bearer|Token`. The model arrives in the first frame
+    `Authorization: Bearer|Token`, or the `bearer, <key>` subprotocol
+    (browsers). The model arrives in the first frame
     (`setup.model = "models/<m>"`), so the gateway reads one frame before
     dialing and forwards it unchanged."""
 
@@ -133,12 +134,18 @@ class GeminiLive(Dialect):
 
     def credentials(self, websocket: WebSocket) -> str:
         params = websocket.query_params
+        offered = _offered(websocket)
         return (
             params.get("key")
             or params.get("access_token")
             or websocket.headers.get("x-goog-api-key", "")
             or _bearer(websocket)
+            # browsers can't set headers: our `bearer, <key>` subprotocol
+            or (offered[1] if len(offered) == 2 and offered[0] == "bearer" else "")
         )
+
+    def accept_subprotocol(self, websocket: WebSocket) -> str | None:
+        return "bearer" if _offered(websocket)[:1] == ["bearer"] else None
 
     def model_from_first_frame(self, frame: str | bytes) -> str | None:
         payload = parse_frame(frame)

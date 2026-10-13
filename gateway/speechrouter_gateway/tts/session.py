@@ -107,6 +107,7 @@ class SpeakSession:
         self._audio_time = 0.0  # seconds of audio sent (audio.chunk.start)
         self._inner: asyncio.Task | None = None  # current pipeline; replaced on clear
         self._restart = asyncio.Event()
+        self._final_seen = False  # pipeline consumed _FINAL from the queue
         self._send_lock = asyncio.Lock()
         self._sent_mp3 = Mp3DurationCounter() if resolved.out_format == "mp3" else None
         self._finalized = False
@@ -210,7 +211,8 @@ class SpeakSession:
             await asyncio.wait({inner})
         await self._cancel_jobs()
         self._segmenter.clear()
-        finalized = False
+        finalized = self._final_seen
+        self._final_seen = False
         while not self._segments.empty():
             if self._segments.get_nowait() is _FINAL:
                 finalized = True
@@ -242,25 +244,30 @@ class SpeakSession:
                 await asyncio.wait({self._inner})
 
     async def _pipeline(self) -> None:
-        finalizing = False
         while True:
-            # top up: start jobs for segments already queued
-            while len(self._jobs) <= PREFETCH and not self._segments.empty():
-                item = self._segments.get_nowait()
-                if item is _FINAL:
-                    finalizing = True
-                    break
-                self._start_job(item)
+            self._top_up()
             if not self._jobs:
-                if finalizing:
+                if self._final_seen:
                     return
                 item = await self._segments.get()
                 if item is _FINAL:
-                    return
-                self._start_job(item)
+                    self._final_seen = True
+                else:
+                    self._start_job(item)
                 continue
             await self._send_job(self._jobs[0])
             self._finished_runs.append(self._jobs.popleft().run)
+
+    def _top_up(self) -> None:
+        """Start jobs for already-queued segments, up to PREFETCH ahead of
+        the one being sent. Consuming _FINAL only records it: segments are
+        never queued after it, so order is preserved."""
+        while len(self._jobs) <= PREFETCH and not self._final_seen and not self._segments.empty():
+            item = self._segments.get_nowait()
+            if item is _FINAL:
+                self._final_seen = True
+            else:
+                self._start_job(item)
 
     def _start_job(self, text: str) -> None:
         job = _Job(text=text, run=TTSRun(self._resolved))
@@ -289,15 +296,7 @@ class SpeakSession:
                 raise item
             # shielded: a barge-in must never split a chunk header from its audio
             await asyncio.shield(self._send_pair(item, job))
-            # more text may have been segmented while we were sending
-            while len(self._jobs) <= PREFETCH and not self._segments.empty():
-                peek = self._segments.get_nowait()
-                if peek is _FINAL:
-                    # put back in front: re-queue preserves order (queue is FIFO
-                    # and nothing else is queued after a finalize)
-                    self._segments.put_nowait(_FINAL)
-                    break
-                self._start_job(peek)
+            self._top_up()  # more text may have been segmented meanwhile
 
     async def _send_pair(self, audio: bytes, job: _Job) -> None:
         async with self._send_lock:

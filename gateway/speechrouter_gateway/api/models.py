@@ -6,5 +6,8 @@ router = APIRouter()
 
 
 @router.get("/v1/models")
-async def list_models(request: Request) -> dict:
-    return {"object": "list", "data": request.app.state.catalog.public()}
+async def list_models(request: Request, include_disabled: bool = False) -> dict:
+    """`?include_disabled=true`: also flag-gated kinds (TTS/live before launch),
+    marked "enabled": false — for cloud's price sync, never for routing."""
+    catalog = request.app.state.catalog
+    return {"object": "list", "data": catalog.public(include_disabled=include_disabled)}

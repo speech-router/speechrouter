@@ -53,6 +53,21 @@ async def _first_frame(websocket: WebSocket) -> str | bytes | None:
     return data if data is not None else message.get("text")
 
 
+LIVE_MIN_BALANCE_KEY = "speechrouter:live_min_balance"
+
+
+async def _live_floor(redis, default: int) -> int:
+    """Cloud publishes the floor (micro-USD) at speechrouter:live_min_balance;
+    the setting is the fallback when the key is absent or unreadable."""
+    if redis is None:
+        return default
+    try:
+        raw = await redis.get(LIVE_MIN_BALANCE_KEY)
+        return int(raw) if raw is not None else default
+    except Exception:  # noqa: BLE001 - fail to the configured floor
+        return default
+
+
 async def _balance_ok(redis, org_id: str | None, floor: int) -> bool:
     if redis is None or not org_id or floor <= 0:
         return True
@@ -97,7 +112,7 @@ async def serve_live(websocket: WebSocket, dialect: Dialect) -> None:
     except ResolveError as exc:
         await _reject(websocket, dialect, exc.code, exc.message)
         return
-    floor = state.settings.live_min_balance_microusd
+    floor = await _live_floor(redis, state.settings.live_min_balance_microusd)
     if not byok and not await _balance_ok(redis, record.org_id, floor):
         await _reject(websocket, dialect, Code.insufficient_credits,
                       f"live sessions need a balance of at least ${floor / 1_000_000:.2f} — "

@@ -80,7 +80,9 @@ async def realtime_client_secret(request: Request) -> JSONResponse:
             body = parsed
     except Exception:  # noqa: BLE001, S110 - empty body means defaults
         pass
-    expires = body.get("expires_after") or {}
+    expires = body.get("expires_after")
+    if not isinstance(expires, dict):
+        expires = {}
     try:
         seconds = int(expires.get("seconds", MAX_TTL))
     except (TypeError, ValueError):

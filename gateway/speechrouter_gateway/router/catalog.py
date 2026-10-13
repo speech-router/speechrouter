@@ -104,12 +104,19 @@ class Catalog:
     def all(self) -> list[dict]:
         return [e for e in self._entries if e.get("kind", "stt") not in self._disabled]
 
-    def public(self) -> list[dict]:
-        """GET /v1/models view: `pricing` is the rate set in force right now."""
+    def public(self, include_disabled: bool = False) -> list[dict]:
+        """GET /v1/models view: `pricing` is the rate set in force right now.
+        include_disabled lets cloud's price sync see flag-gated kinds before
+        the flags flip; those entries carry "enabled": false."""
+        entries = self._entries if include_disabled else self.all()
         out = []
-        for entry in self.all():
-            if entry.get("pricing_schedule"):
+        for entry in entries:
+            disabled = entry.get("kind", "stt") in self._disabled
+            if entry.get("pricing_schedule") or disabled:
                 entry = copy.deepcopy(entry)
-                entry["pricing"] = effective_pricing(entry)
+                if entry.get("pricing_schedule"):
+                    entry["pricing"] = effective_pricing(entry)
+                if disabled:
+                    entry["enabled"] = False
             out.append(entry)
         return out

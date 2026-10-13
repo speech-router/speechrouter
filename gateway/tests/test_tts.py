@@ -415,3 +415,51 @@ def test_speech_auth_validation_and_flag(api):
                       json={"model": "openai/tts-1", "input": "x"})
     assert off.status_code == 404
     assert not app.state.emitter.events
+
+
+# ---- review regressions ----
+
+
+async def test_gemini_failed_request_bills_nothing():
+    adapter = gemini_tts.GeminiTTS(
+        "k", "https://g", httpx.MockTransport(lambda r: httpx.Response(503, text="overloaded")))
+    usage = TTSUsage()
+    with pytest.raises(ProviderStreamError):
+        await _collect(adapter, "hello", TTSConfig(model="m", voice="Kore", format="pcm"), usage)
+    assert usage.tokens == {} and not usage.estimated
+
+
+async def test_speech_job_meters_and_closes_when_stream_never_iterated():
+    """Client aborts after the first chunk, before Starlette iterates the
+    body: the background backstop must still meter and close upstream."""
+    from types import SimpleNamespace
+
+    from speechrouter_gateway.api.speech import _SpeechJob
+
+    closed = []
+
+    class Adapter(openai_tts.OpenAITTS):
+        async def close(self):
+            closed.append(True)
+
+    def handler(request):
+        return httpx.Response(200, content=_sse(
+            {"type": "speech.audio.delta", "audio": base64.b64encode(PCM_1S).decode()},
+            {"type": "speech.audio.delta", "audio": base64.b64encode(PCM_1S).decode()},
+            {"type": "speech.audio.done", "usage": {"input_tokens": 3, "output_tokens": 40}},
+        ))
+
+    settings = Settings(openai_api_key="o", _env_file=None)
+    resolved = resolve_tts("openai/gpt-4o-mini-tts", TTSRequest(format="pcm"), settings,
+                           Catalog.load())
+    resolved = resolved.__class__(**{**resolved.__dict__, "build": lambda: Adapter(
+        "o", "https://x/v1", httpx.MockTransport(handler))})
+    emitter = CaptureEmitter()
+    job = _SpeechJob(SimpleNamespace(emitter=emitter), resolved, "Hello", "tts_x", "k1", False)
+    assert await job.first_chunk() == PCM_1S
+    await job.finish("client_disconnect")  # what the BackgroundTask runs
+    await job.finish("completed")  # idempotent
+    (event,) = emitter.events
+    assert event.status == "client_disconnect" and closed == [True]
+    assert event.audio_seconds == 1.0  # only what was pulled
+    assert event.units["audio_output_tokens"] > 0 and event.units_estimated

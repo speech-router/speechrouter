@@ -315,3 +315,11 @@ def test_endpoint_rejects_bad_auth_model_and_encoding(app_client):
     ]:
         with client.websocket_connect(url) as ws:
             assert json.loads(ws.receive_text())["code"] == code, url
+
+
+def test_segmenter_never_exceeds_max_even_with_a_late_terminator():
+    seg = TextSegmenter(min_chars=5, max_chars=50)
+    out = seg.push("word " * 12 + "end. tail")  # terminator at ~65 > max
+    assert out and all(len(s) <= 50 for s in out)
+    rest = seg.flush() or ""
+    assert " ".join(out + [rest]).split() == ("word " * 12 + "end. tail").split()

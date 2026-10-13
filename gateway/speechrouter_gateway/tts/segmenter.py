@@ -44,6 +44,8 @@ class TextSegmenter:
 
     def _next_cut(self) -> int | None:
         for match in _TERMINATOR.finditer(self._buf):
+            if match.end() > self._max:
+                break  # too far: fall through to the forced word-boundary cut
             if match.end() >= self._min:
                 return match.end()
         if len(self._buf) > self._max:

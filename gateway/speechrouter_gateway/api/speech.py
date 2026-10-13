@@ -13,6 +13,8 @@ Usage is emitted exactly once per request from the generator's finally, so
 client aborts are metered too (generated audio was paid for upstream).
 """
 
+import asyncio
+import contextlib
 import time
 import uuid
 from collections.abc import AsyncIterator
@@ -20,6 +22,7 @@ from collections.abc import AsyncIterator
 from fastapi import APIRouter, Request
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
+from starlette.background import BackgroundTask
 
 from ..alerting import customer_facing, report_provider_failure
 from ..auth.byok import apply_byok, org_blocked
@@ -122,8 +125,12 @@ async def speech(request: Request, body: SpeechBody):
             return _error(Code.provider_error, customer_facing(None))
         headers["X-SpeechRouter-Cost-Usd"] = f"{job.cost:.6f}"
         return Response(b"".join(chunks), media_type=resolved.content_type, headers=headers)
+    # The background task is the backstop: if the client aborts before
+    # Starlette ever iterates rest(), its finally never runs — finish() still
+    # closes the upstream stream and meters what the provider generated.
     return StreamingResponse(
-        job.rest(prefix=first), media_type=resolved.content_type, headers=headers
+        job.rest(prefix=first), media_type=resolved.content_type, headers=headers,
+        background=BackgroundTask(job.finish, "client_disconnect"),
     )
 
 
@@ -168,14 +175,20 @@ class _SpeechJob:
             logger.error("tts stream crashed", exc_info=True,
                          extra={"model": self._resolved.slug})
         finally:
-            await self.finish(status)
+            # shielded: a disconnect cancels this generator, and metering must
+            # still land (the provider already charged us)
+            await asyncio.shield(self.finish(status))
 
     async def finish(self, status: str) -> None:
+        """Idempotent: close upstream, then emit the one usage event."""
         if self._emitted:
             return
         self._emitted = True
         self.status = status
-        await self._adapter.close()
+        with contextlib.suppress(Exception):
+            await self._iter.aclose()  # type: ignore[attr-defined]
+        with contextlib.suppress(Exception):
+            await self._adapter.close()
         usage = self._run.usage
         units = tts_units(self._resolved.entry, usage, produced=self._run.produced_bytes > 0)
         self.cost = list_cost(self._resolved.entry, units, self._byok)

@@ -154,7 +154,8 @@ class GeminiTTS(TTSProvider):
         except httpx.HTTPError as exc:
             raise wrap_transport_error(self.name, exc) from exc
         finally:
-            if not reported:
+            # nothing generated -> nothing billed upstream -> nothing estimated
+            if not reported and produced:
                 estimate_usage(usage, prompt_chars, produced)
 
     async def close(self) -> None:
