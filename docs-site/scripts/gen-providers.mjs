@@ -16,6 +16,7 @@ const NAMES = {
   aws: 'AWS', google: 'Google', groq: 'Groq', mistral: 'Mistral',
   elevenlabs: 'ElevenLabs', cartesia: 'Cartesia', telnyx: 'Telnyx',
   palabra: 'Palabra', gemini: 'Gemini', meta: 'Meta', xai: 'xAI',
+  rime: 'Rime', inworld: 'Inworld', fishaudio: 'Fish Audio', minimax: 'MiniMax', murf: 'Murf',
 };
 
 const BLURBS = {
@@ -36,6 +37,11 @@ const BLURBS = {
   gemini: 'Gemini 3.5 Transcribe Live at $0.30/hr — 85+ languages, custom vocabulary, and a SMART mode that cleans up disfluencies as it goes.',
   meta: 'Muse Voice Transcribe — 25 languages with code-switching, turn detection and speaker labels at $0.18/hr.',
   xai: 'Grok Voice Transcribe 2.0 — word timings, speaker labels and keyterms included; $0.20/hr streaming, $0.10/hr batch.',
+  rime: 'Rime TTS — Coda and Mist v3 voices built for conversational agents.',
+  inworld: 'Inworld TTS-2 — expressive voices at $15–25 per 1M characters.',
+  fishaudio: 'Fish Audio S2 — huge community voice library; billed per UTF-8 byte.',
+  minimax: 'MiniMax Speech 2.x — HD and Turbo voices, strong multilingual coverage.',
+  murf: 'Murf Falcon 2 — low-latency streaming TTS at $10 per 1M characters.',
 };
 
 const esc = (t) => String(t).replace(/\|/g, '\\|');
@@ -81,11 +87,13 @@ const yes = '<span class="sr-yes">✓</span>', no = '<span class="sr-no">—</sp
 // TTS + live models price in characters or per-1M tokens by modality
 const UNIT_LABELS = {
   per_character_usd: ['char', 1e6, 'per 1M chars'],
+  per_utf8_byte_usd: ['byte', 1e6, 'per 1M UTF-8 bytes'],
   per_1m_text_input_tokens_usd: ['text in'],
   per_1m_cached_text_input_tokens_usd: ['cached text in'],
   per_1m_audio_input_tokens_usd: ['audio in'],
   per_1m_cached_audio_input_tokens_usd: ['cached audio in'],
   per_1m_image_input_tokens_usd: ['image in'],
+  per_1m_cached_image_input_tokens_usd: ['cached image in'],
   per_1m_text_output_tokens_usd: ['text out'],
   per_1m_audio_output_tokens_usd: ['audio out'],
 };
@@ -104,11 +112,11 @@ const voiceSection = (all) => {
     out += `
 ## Text-to-speech
 
-Token prices are per 1M tokens. [Text-to-speech guide](/guides/tts/).
+Token prices are per 1M tokens; "+" means any account or library voice id is accepted. [Text-to-speech guide](/guides/tts/).
 
 | Model | List price | Formats | Voices |
 | --- | --- | --- | --- |
-${tts.map((m) => `| \`${m.slug}\` | ${unitPrice(m.pricing)}${m.pricing_schedule?.length ? ` (from ${m.pricing_schedule[0].effective_from}: ${unitPrice(m.pricing_schedule[0].pricing)})` : ''} | ${(m.capabilities?.formats ?? []).join(', ')} | ${(m.capabilities?.voices ?? []).length} |`).join('\n')}
+${tts.map((m) => `| \`${m.slug}\` | ${unitPrice(m.pricing)}${m.pricing_schedule?.length ? ` (from ${m.pricing_schedule[0].effective_from}: ${unitPrice(m.pricing_schedule[0].pricing)})` : ''} | ${(m.capabilities?.formats ?? []).join(', ')} | ${(m.capabilities?.voices ?? []).length}${m.capabilities?.custom_voices ? '+' : ''} |`).join('\n')}
 `;
   }
   if (live.length) {
@@ -140,6 +148,15 @@ wss://api.speechrouter.ai/v1/listen?model=${stream.slug}
 \`\`\`
 Streaming-only — connect with the [SDKs](/sdks/javascript/) or see [Streaming](/guides/streaming/).`;
 };
+const ttsSample = (all) => {
+  const m = all.find((x) => x.kind === 'tts')
+  return `\`\`\`bash
+curl -s https://api.speechrouter.ai/v1/audio/speech \\
+  -H "Authorization: Bearer $SPEECHROUTER_API_KEY" -H "Content-Type: application/json" \\
+  -d '{"model": "${m.slug}", "input": "Hello from SpeechRouter", "response_format": "wav"}' \\
+  --output hello.wav
+\`\`\``;
+};
 const providers = readdirSync(providersDir, { withFileTypes: true })
   .filter((d) => d.isDirectory() && !d.name.startsWith('_'))
   .map((d) => d.name)
@@ -154,7 +171,7 @@ const allSlugs = [];
 for (const name of providers) {
   const all = JSON.parse(readFileSync(join(providersDir, name, 'models.json'), 'utf8'));
   const models = all.filter((m) => (m.kind ?? 'stt') === 'stt');
-  if (!models.length) continue;
+  if (!all.length) continue;
   total += models.length;
   allSlugs.push(...models.map((m) => m.slug));
 
@@ -180,13 +197,13 @@ ${BLURBS[name] ?? ''}
 All prices are the vendor's public list price — 0% markup. Extra provider
 knobs pass through untouched via \`provider_params\`.
 
-| Model | Modes | List price | Diarization | Word timings |
+${models.length ? `| Model | Modes | List price | Diarization | Word timings |
 | --- | --- | --- | --- | --- |
 ${rows}
-${sessionNote}${voiceSection(all)}${paramsSection(join(providersDir, name))}
+` : ''}${sessionNote}${voiceSection(all)}${paramsSection(join(providersDir, name))}
 ## Try it
 
-${sample(models)}
+${models.length ? sample(models) : ttsSample(all)}
 
 <sub>Generated from the gateway catalog — the billing engine's own source of truth.</sub>
 `);

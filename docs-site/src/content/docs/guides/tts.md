@@ -12,10 +12,16 @@ Two ways to synthesize speech, same models and voices:
 | Use for | Prompts, notifications, files | Voice agents speaking LLM output as it streams |
 | Compatible with | OpenAI SDK (`audio.speech`) | SpeechRouter protocol |
 
-Models at launch: `openai/gpt-4o-mini-tts`, `openai/tts-1`, `openai/tts-1-hd`,
-`gemini/gemini-3.8-flash-tts`, `gemini/gemini-3.8-flash-lite-tts`. The live list,
-voices and formats per model: [`GET /v1/models`](/reference/rest/#get-v1models)
-(entries with `"kind": "tts"`).
+40 models from 14 providers: OpenAI, Gemini, ElevenLabs, Cartesia, Deepgram Aura,
+Azure, Google Cloud, Rime, Inworld, Fish Audio, MiniMax, Groq (Orpheus), Murf and
+Speechmatics. The live list, voices, formats and prices per model:
+[`GET /v1/models`](/reference/rest/#get-v1models) (entries with `"kind": "tts"`), or the
+[provider pages](/providers/).
+
+Voices are each provider's own ids: ElevenLabs voice ids, Azure voice names
+(`en-US-JennyNeural`), Deepgram Aura model ids (`aura-2-thalia-en`) and so on. Models
+marked `custom_voices` accept any id your provider account can use, such as cloned or
+library voices.
 
 ## POST /v1/audio/speech
 
@@ -119,6 +125,15 @@ async def speak(tokens):
             elif json.loads(frame)["type"] == "done":
                 break
 ```
+
+### Provider notes
+
+- **Google Cloud** synthesizes the whole clip before responding (its REST API doesn't
+  stream), so time to first byte equals total synthesis time.
+- **Groq Orpheus** takes at most 200 characters per request. `/v1/speak` segments for
+  you; `/v1/audio/speech` rejects longer input.
+- **Speechmatics** renders 16 kHz natively (8 kHz G.711 is derived).
+- **Fish Audio** bills per UTF-8 byte, so CJK text costs about 3x per character.
 
 ## Billing
 

@@ -34,7 +34,9 @@ V2_FIELDS = {
     "units_estimated", "parent_session_id", "session_seconds", "output_audio_seconds",
     "list_cost_usd",
 }
-UNIT_KEYS = {"characters", "text_input_tokens", "cached_text_input_tokens",
+PHASE2 = ["elevenlabs", "cartesia", "deepgram", "azure", "google", "rime", "inworld",
+          "fishaudio", "minimax", "groq", "murf", "speechmatics"]
+UNIT_KEYS = {"utf8_bytes", "cached_image_input_tokens", "characters", "text_input_tokens", "cached_text_input_tokens",
              "audio_input_tokens", "cached_audio_input_tokens", "image_input_tokens",
              "text_output_tokens", "audio_output_tokens"}
 
@@ -72,13 +74,20 @@ def tts_rest(base: str, key: str, report: Report) -> None:
         ("gemini/gemini-3.8-flash-tts", "Puck", "wav", "tts-gemini-flash.wav"),
         ("gemini/gemini-3.8-flash-lite-tts", "Kore", "mulaw", "tts-gemini-lite.ulaw"),
     ]
+    # phase 2: one model per provider, default voice, through the same SDK call
+    for slug in ["elevenlabs/eleven_flash_v2_5", "cartesia/sonic-3.6", "deepgram/aura-2",
+                 "azure/neural", "google/chirp3-hd", "rime/coda", "inworld/inworld-tts-2",
+                 "fishaudio/s2.1-pro", "minimax/speech-2.8-turbo", "groq/orpheus-v1-english",
+                 "murf/falcon-2", "speechmatics/preview"]:
+        cases.append((slug, None, "wav", f"tts-{slug.replace('/', '-')}.wav"))
     for model, voice, fmt, filename in cases:
         started = time.monotonic()
         first_at = None
         chunks = 0
         data = b""
+        extra = {"voice": voice}  # None -> JSON null -> the model's default voice
         with client.audio.speech.with_streaming_response.create(
-            model=model, voice=voice, response_format=fmt,  # type: ignore[arg-type]
+            model=model, response_format=fmt, **extra,  # type: ignore[arg-type]
             input="Hello from the SpeechRouter smoke test. This sentence is synthetic.",
         ) as response:
             headers = dict(response.headers)
@@ -215,6 +224,13 @@ def check_usage(gateway_log: Path, mock_base: str, report: Report) -> None:
     kinds = sorted({e["kind"] for e in events})
     report.check("usage:schema_v2_exact_fields", schema_ok and units_ok, events=len(events),
                  kinds=kinds)
+    phase2 = {e["model"].split("/")[0]: e for e in events if e["kind"] == "tts_batch"}
+    fish = phase2.get("fishaudio", {})
+    report.check("usage:fish_bills_utf8_bytes", set(fish.get("units", {})) == {"utf8_bytes"},
+                 units=fish.get("units"))
+    report.check("usage:phase2_providers_all_metered",
+                 all(phase2.get(p, {}).get("list_cost_usd", 0) > 0 for p in PHASE2),
+                 missing=[p for p in PHASE2 if p not in phase2])
     report.check("usage:all_kinds_present",
                  {"tts_batch", "tts_stream", "live", "stt_stream"} <= set(kinds), kinds=kinds)
     unique = len({e["session_id"] for e in events}) == len(events)

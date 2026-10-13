@@ -1,7 +1,7 @@
 ---
 title: Meta
 description: Muse Voice Transcribe — 25 languages with code-switching, turn detection and speaker labels at $0.18/hr.
-sidebar: { order: 11 }
+sidebar: { order: 13 }
 ---
 
 Muse Voice Transcribe — 25 languages with code-switching, turn detection and speaker labels at $0.18/hr.

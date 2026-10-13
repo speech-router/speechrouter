@@ -47,6 +47,20 @@ PIDS+=($!)
   SPEECHROUTER_GEMINI_API_KEY=mock-house-gemini \
   SPEECHROUTER_OPENAI_BASE_URL="http://127.0.0.1:$MOCK_PORT/v1" \
   SPEECHROUTER_GEMINI_BASE_URL="http://127.0.0.1:$MOCK_PORT" \
+  SPEECHROUTER_ELEVENLABS_API_KEY=mock-house-elevenlabs \
+  SPEECHROUTER_CARTESIA_API_KEY=mock-house-cartesia \
+  SPEECHROUTER_DEEPGRAM_API_KEY=mock-house-deepgram \
+  SPEECHROUTER_AZURE_SPEECH_KEY=mock-house-azure \
+  SPEECHROUTER_GOOGLE_TTS_API_KEY=mock-house-google \
+  SPEECHROUTER_RIME_API_KEY=mock-house-rime \
+  SPEECHROUTER_INWORLD_API_KEY=mock-house-inworld \
+  SPEECHROUTER_FISHAUDIO_API_KEY=mock-house-fishaudio \
+  SPEECHROUTER_MINIMAX_API_KEY=mock-house-minimax \
+  SPEECHROUTER_GROQ_API_KEY=mock-house-groq \
+  SPEECHROUTER_MURF_API_KEY=mock-house-murf \
+  SPEECHROUTER_SPEECHMATICS_API_KEY=mock-house-speechmatics \
+  SPEECHROUTER_AZURE_SPEECH_REGION=eastus \
+  SPEECHROUTER_TTS_BASE_URLS="{\"elevenlabs\":\"http://127.0.0.1:$MOCK_PORT/vendor/elevenlabs\",\"cartesia\":\"http://127.0.0.1:$MOCK_PORT/vendor/cartesia\",\"deepgram\":\"http://127.0.0.1:$MOCK_PORT/vendor/deepgram\",\"azure\":\"http://127.0.0.1:$MOCK_PORT/vendor/azure\",\"google\":\"http://127.0.0.1:$MOCK_PORT/vendor/google\",\"rime\":\"http://127.0.0.1:$MOCK_PORT/vendor/rime\",\"inworld\":\"http://127.0.0.1:$MOCK_PORT/vendor/inworld\",\"fishaudio\":\"http://127.0.0.1:$MOCK_PORT/vendor/fishaudio\",\"minimax\":\"http://127.0.0.1:$MOCK_PORT/vendor/minimax\",\"groq\":\"http://127.0.0.1:$MOCK_PORT/vendor/groq\",\"murf\":\"http://127.0.0.1:$MOCK_PORT/vendor/murf\",\"speechmatics\":\"http://127.0.0.1:$MOCK_PORT/vendor/speechmatics\"}" \
   exec "$PY" -m uvicorn speechrouter_gateway.main:app --host 127.0.0.1 --port "$GW_PORT" \
     --ssl-keyfile "$WORK/key.pem" --ssl-certfile "$WORK/cert.pem" --log-level warning
 ) > "$OUT/gateway.log" 2>&1 &

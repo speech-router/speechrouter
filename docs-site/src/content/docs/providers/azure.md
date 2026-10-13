@@ -17,6 +17,15 @@ knobs pass through untouched via `provider_params`.
 | `azure/speech-realtime` | streaming | $1/hr | <span class="sr-no">—</span> | <span class="sr-yes">✓</span> |
 | `azure/conversation-transcription` | streaming | $1.2/hr | <span class="sr-yes">✓</span> | <span class="sr-yes">✓</span> |
 
+## Text-to-speech
+
+Token prices are per 1M tokens; "+" means any account or library voice id is accepted. [Text-to-speech guide](/guides/tts/).
+
+| Model | List price | Formats | Voices |
+| --- | --- | --- | --- |
+| `azure/neural` | $15 per 1M chars | pcm, wav, mp3, opus, mulaw, alaw | 4+ |
+| `azure/neural-hd` | $22 per 1M chars | pcm, wav, mp3, opus, mulaw, alaw | 12+ |
+
 ## Provider options
 
 Reach past the unified surface with [`provider_params`](/guides/streaming/#query-parameters)

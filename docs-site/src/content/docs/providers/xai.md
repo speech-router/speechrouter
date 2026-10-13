@@ -1,7 +1,7 @@
 ---
 title: xAI
 description: Grok Voice Transcribe 2.0 — word timings, speaker labels and keyterms included; $0.20/hr streaming, $0.10/hr batch.
-sidebar: { order: 17 }
+sidebar: { order: 22 }
 ---
 
 Grok Voice Transcribe 2.0 — word timings, speaker labels and keyterms included; $0.20/hr streaming, $0.10/hr batch.

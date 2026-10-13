@@ -117,6 +117,67 @@ async def gemini_generate(model_action: str, request: Request):
     return StreamingResponse(events(), media_type="text/event-stream")
 
 
+# ------------------------------------------------------- phase-2 TTS vendors
+#
+# The gateway's SPEECHROUTER_TTS_BASE_URLS points each vendor at
+# /vendor/<provider>; this route answers in that vendor's wire format and
+# checks the vendor-specific auth header carries the HOUSE key.
+
+PHASE2_AUTH = {
+    "elevenlabs": ("xi-api-key", "{k}"), "cartesia": ("authorization", "Bearer {k}"),
+    "deepgram": ("authorization", "Token {k}"), "azure": ("ocp-apim-subscription-key", "{k}"),
+    "google": ("x-goog-api-key", "{k}"), "rime": ("authorization", "Bearer {k}"),
+    "inworld": ("authorization", "Basic {k}"), "fishaudio": ("authorization", "Bearer {k}"),
+    "minimax": ("authorization", "Bearer {k}"), "groq": ("authorization", "Bearer {k}"),
+    "murf": ("api-key", "{k}"), "speechmatics": ("authorization", "Bearer {k}"),
+}
+
+
+@app.post("/vendor/{provider}/{rest:path}")
+async def vendor_tts(provider: str, rest: str, request: Request):
+    header, template = PHASE2_AUTH[provider]
+    expected = template.format(k=f"mock-house-{provider}")
+    raw = await request.body()
+    if not record(f"{provider}_tts", request.headers.get(header, ""), expected,
+                  path="/" + rest):
+        return JSONResponse({"error": "bad key"}, status_code=401)
+    text = "x" * 40
+    if raw.startswith(b"{"):
+        body = json.loads(raw)
+        text = body.get("text") or body.get("transcript") or body.get("input") or text
+    rate = 16000 if provider == "speechmatics" else 24000
+    pcm = tone(0.2 + len(text) * 0.02, rate, 380)
+    if provider == "google":
+        return JSONResponse({"audioContent": base64.b64encode(wav_header(len(pcm)) + pcm)
+                             .decode()})
+    if provider == "groq":
+        return Response(wav_header(len(pcm)) + pcm, media_type="audio/wav")
+    if provider == "inworld":
+        lines = [json.dumps({"result": {"audioContent": base64.b64encode(pcm[i:i + 9600])
+                                        .decode(), **({"usage": {"processedCharactersCount":
+                                                                 len(text)}} if i == 0 else {})}})
+                 for i in range(0, len(pcm), 9600)]
+        return Response("\n".join(lines), media_type="application/x-ndjson")
+    if provider == "minimax":
+        async def sse():
+            for i in range(0, len(pcm), 9600):
+                event = {"data": {"audio": pcm[i:i + 9600].hex(), "status": 1},
+                         "base_resp": {"status_code": 0}}
+                yield f"data: {json.dumps(event)}\n\n"
+            final = {"data": {"audio": pcm.hex(), "status": 2},
+                     "extra_info": {"usage_characters": len(text)},
+                     "base_resp": {"status_code": 0, "status_msg": "success"}}
+            yield f"data: {json.dumps(final)}\n\n"
+        return StreamingResponse(sse(), media_type="text/event-stream")
+    headers = {"dg-char-count": str(len(text))} if provider == "deepgram" else {}
+
+    async def chunks():
+        for i in range(0, len(pcm), 4800):
+            yield pcm[i:i + 4800]
+            await asyncio.sleep(0.005)
+    return StreamingResponse(chunks(), media_type="application/octet-stream", headers=headers)
+
+
 # ------------------------------------------------------------- live
 
 

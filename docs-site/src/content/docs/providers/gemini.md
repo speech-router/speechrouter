@@ -1,7 +1,7 @@
 ---
 title: Gemini
 description: Gemini 3.5 Transcribe Live at $0.30/hr — 85+ languages, custom vocabulary, and a SMART mode that cleans up disfluencies as it goes.
-sidebar: { order: 8 }
+sidebar: { order: 9 }
 ---
 
 Gemini 3.5 Transcribe Live at $0.30/hr — 85+ languages, custom vocabulary, and a SMART mode that cleans up disfluencies as it goes.
@@ -15,7 +15,7 @@ knobs pass through untouched via `provider_params`.
 
 ## Text-to-speech
 
-Token prices are per 1M tokens. [Text-to-speech guide](/guides/tts/).
+Token prices are per 1M tokens; "+" means any account or library voice id is accepted. [Text-to-speech guide](/guides/tts/).
 
 | Model | List price | Formats | Voices |
 | --- | --- | --- | --- |

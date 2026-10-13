@@ -1,7 +1,7 @@
 ---
 title: OpenAI
 description: Whisper and the GPT-4o transcribe family — LLM-grade accuracy.
-sidebar: { order: 13 }
+sidebar: { order: 17 }
 ---
 
 Whisper and the GPT-4o transcribe family — LLM-grade accuracy.
@@ -19,7 +19,7 @@ knobs pass through untouched via `provider_params`.
 
 ## Text-to-speech
 
-Token prices are per 1M tokens. [Text-to-speech guide](/guides/tts/).
+Token prices are per 1M tokens; "+" means any account or library voice id is accepted. [Text-to-speech guide](/guides/tts/).
 
 | Model | List price | Formats | Voices |
 | --- | --- | --- | --- |
@@ -34,12 +34,12 @@ per 1M tokens. [Live voice guide](/guides/live/).
 
 | Model | List price |
 | --- | --- |
-| `openai/gpt-realtime-2.1` | $4 text in · $0.4 cached text in · $32 audio in · $0.4 cached audio in · $5 image in · $24 text out · $64 audio out |
-| `openai/gpt-realtime-2.1-mini` | $0.6 text in · $0.06 cached text in · $10 audio in · $0.3 cached audio in · $0.8 image in · $2.4 text out · $20 audio out |
-| `openai/gpt-realtime-2` | $4 text in · $0.4 cached text in · $32 audio in · $0.4 cached audio in · $5 image in · $24 text out · $64 audio out |
-| `openai/gpt-realtime-1.5` | $4 text in · $0.4 cached text in · $32 audio in · $0.4 cached audio in · $5 image in · $16 text out · $64 audio out |
-| `openai/gpt-realtime` | $4 text in · $0.4 cached text in · $32 audio in · $0.4 cached audio in · $5 image in · $16 text out · $64 audio out |
-| `openai/gpt-realtime-mini` | $0.6 text in · $0.06 cached text in · $10 audio in · $0.3 cached audio in · $0.8 image in · $2.4 text out · $20 audio out |
+| `openai/gpt-realtime-2.1` | $4 text in · $0.4 cached text in · $32 audio in · $0.4 cached audio in · $5 image in · $0.5 cached image in · $24 text out · $64 audio out |
+| `openai/gpt-realtime-2.1-mini` | $0.6 text in · $0.06 cached text in · $10 audio in · $0.3 cached audio in · $0.8 image in · $0.08 cached image in · $2.4 text out · $20 audio out |
+| `openai/gpt-realtime-2` | $4 text in · $0.4 cached text in · $32 audio in · $0.4 cached audio in · $5 image in · $0.5 cached image in · $24 text out · $64 audio out |
+| `openai/gpt-realtime-1.5` | $4 text in · $0.4 cached text in · $32 audio in · $0.4 cached audio in · $5 image in · $0.5 cached image in · $16 text out · $64 audio out |
+| `openai/gpt-realtime` | $4 text in · $0.4 cached text in · $32 audio in · $0.4 cached audio in · $5 image in · $0.5 cached image in · $16 text out · $64 audio out |
+| `openai/gpt-realtime-mini` | $0.6 text in · $0.06 cached text in · $10 audio in · $0.3 cached audio in · $0.8 image in · $0.08 cached image in · $2.4 text out · $20 audio out |
 
 ## Provider options
 

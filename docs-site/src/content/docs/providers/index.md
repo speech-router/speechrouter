@@ -4,7 +4,7 @@ description: Every provider behind the one API.
 sidebar: { order: 0, label: Overview }
 ---
 
-17 providers, 44 models, one schema. Prices below are
+22 providers, 44 models, one schema. Prices below are
 vendor list prices — [we add nothing](/guides/pricing/).
 
 - [Soniox](/providers/soniox/) — 60+ languages with translation-grade accuracy; realtime bills wall-clock session time.
@@ -14,13 +14,18 @@ vendor list prices — [we add nothing](/guides/pricing/).
 - [Cartesia](/providers/cartesia/) — Ink — low-latency STT built for realtime agents.
 - [Deepgram](/providers/deepgram/) — The realtime workhorse — fast, cheap, excellent English.
 - [ElevenLabs](/providers/elevenlabs/) — Scribe — high-accuracy STT from the voice company.
+- [Fish Audio](/providers/fishaudio/) — Fish Audio S2 — huge community voice library; billed per UTF-8 byte.
 - [Gemini](/providers/gemini/) — Gemini 3.5 Transcribe Live at $0.30/hr — 85+ languages, custom vocabulary, and a SMART mode that cleans up disfluencies as it goes.
 - [Google](/providers/google/) — Google Cloud Speech-to-Text (Chirp).
 - [Groq](/providers/groq/) — Whisper on LPUs — the fastest batch Whisper anywhere.
+- [Inworld](/providers/inworld/) — Inworld TTS-2 — expressive voices at $15–25 per 1M characters.
 - [Meta](/providers/meta/) — Muse Voice Transcribe — 25 languages with code-switching, turn detection and speaker labels at $0.18/hr.
+- [MiniMax](/providers/minimax/) — MiniMax Speech 2.x — HD and Turbo voices, strong multilingual coverage.
 - [Mistral](/providers/mistral/) — Voxtral — open-weights transcription via Mistral's API.
+- [Murf](/providers/murf/) — Murf Falcon 2 — low-latency streaming TTS at $10 per 1M characters.
 - [OpenAI](/providers/openai/) — Whisper and the GPT-4o transcribe family — LLM-grade accuracy.
 - [Palabra](/providers/palabra/) — Realtime ASR at $0.002/min, with live translation available on the same socket.
+- [Rime](/providers/rime/) — Rime TTS — Coda and Mist v3 voices built for conversational agents.
 - [Speechmatics](/providers/speechmatics/) — Broad language coverage; Melia-1 code-switches across 56 languages.
 - [Telnyx](/providers/telnyx/) — Whisper Large-v3-Turbo as a live stream — 100 languages, hosted by Telnyx.
 - [xAI](/providers/xai/) — Grok Voice Transcribe 2.0 — word timings, speaker labels and keyterms included; $0.20/hr streaming, $0.10/hr batch.

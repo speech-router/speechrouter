@@ -523,14 +523,15 @@ Ordered by dependency. **Items 1–4 must deploy before the gateway flags flip i
      audio playback). Keep it OpenAI-first; Gemini second.
 10. **Keys page quickstarts:** add TTS (curl `/v1/audio/speech`, OpenAI SDK) and live (OpenAI
     SDK realtime with base_url; google-genai with `http_options`) snippets.
-11. **BYOK:** `openai` and `gemini` are already in `ByokCredential::PROVIDERS`, so nothing is
+11. **BYOK (phase 2 addition):** the gateway accepts org keys for `rime`, `inworld`, `fishaudio`, `minimax` and `murf` (`auth/byok.py::PROVIDER_KEY_FIELDS`). Add the same ids to `ByokCredential::PROVIDERS`. `azure` and `google` stay excluded (multi-field or split credentials).
+12. **BYOK (phase 1):** `openai` and `gemini` are already in `ByokCredential::PROVIDERS`, so nothing is
     needed for this ticket. Update the OrgSettings copy ("Cloud STT only" → STT/TTS/live).
     Phase 2 TTS providers are already listed too, except Azure, which is multi-field.
-12. **Admin (Avo):** surface units/kind on the usage event resource.
-13. **Tests:** extend `test/jobs/usage_consumer_job_test.rb` with tts (chars), tts (tokens),
+13. **Admin (Avo):** surface units/kind on the usage event resource.
+14. **Tests:** extend `test/jobs/usage_consumer_job_test.rb` with tts (chars), tts (tokens),
     live (multi-component + checkpoints), unpriced → alert, poison → dead-letter. Add
     `sync_models` tests for the new fields.
-14. **API docs:** live in **this** repo's `docs-site/` (Starlight), not in cloud. See §4.
+15. **API docs:** live in **this** repo's `docs-site/` (Starlight), not in cloud. See §4.
 
 ---
 

@@ -17,6 +17,15 @@ knobs pass through untouched via `provider_params`.
 | `deepgram/flux-general-en` | streaming | $0.00648/min | <span class="sr-no">—</span> | <span class="sr-yes">✓</span> |
 | `deepgram/flux-general-multi` | streaming | $0.0078/min | <span class="sr-no">—</span> | <span class="sr-yes">✓</span> |
 
+## Text-to-speech
+
+Token prices are per 1M tokens; "+" means any account or library voice id is accepted. [Text-to-speech guide](/guides/tts/).
+
+| Model | List price | Formats | Voices |
+| --- | --- | --- | --- |
+| `deepgram/aura-2` | $30 per 1M chars | pcm, wav, mp3, opus, flac, aac, mulaw, alaw | 15+ |
+| `deepgram/aura-1` | $15 per 1M chars | pcm, wav, mp3, opus, flac, aac, mulaw, alaw | 12+ |
+
 ## Provider options
 
 Reach past the unified surface with [`provider_params`](/guides/streaming/#query-parameters)
