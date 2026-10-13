@@ -502,6 +502,6 @@
         "en"
       ]
     },
-    "notes": "voice = Deepgram model id (flux-<name>-en, 36 voices); /v1/speak uses the native /v2/speak socket (Interrupt barge-in reports text_spoken/text_remaining) for pcm/mulaw/alaw"
+    "notes": "voice = Deepgram model id (flux-<name>-en, 36 voices); /v1/speak uses the native /v2/speak socket (Interrupt barge-in reports text_spoken/text_remaining) for pcm/mulaw/alaw; verified live 2026-10-13: after an Interrupt, Deepgram bills only what it synthesized (29 of 79 characters sent); the gateway bills Deepgram's SessionMetadata count"
   }
 ]

@@ -288,6 +288,12 @@ class GeminiLiveMeter(LiveMeter):
             key = _PROMPT_KEYS.get(modality)
             if key:
                 _add(units, key, (detail.get("tokenCount") or 0) - cached.get(modality, 0))
+        if prompt and meta.get("promptTokenCount"):
+            # verified live: details can sum short of promptTokenCount (312 TEXT +
+            # 222 AUDIO of 559). Bill the remainder at the cheapest input rate
+            # (text) rather than drop it.
+            covered = sum(d.get("tokenCount") or 0 for d in prompt)
+            _add(units, "text_input_tokens", meta["promptTokenCount"] - covered)
         if not prompt and meta.get("promptTokenCount"):
             # no modality split: native-audio sessions are audio-dominated;
             # cached tokens (already added above) are part of the prompt count

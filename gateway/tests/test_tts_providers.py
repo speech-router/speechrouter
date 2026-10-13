@@ -698,3 +698,56 @@ async def test_native_speak_session_relays_cleared_with_text_spoken():
     (usage,) = Emitter.events
     assert usage.kind == "tts_stream" and usage.characters == len("Hi you") + len("Again")
     assert usage.units == {"characters": 11.0} and usage.list_cost_usd > 0
+
+
+# ------------------------------------------------- live-verified fixtures (2026-10-13)
+
+
+async def test_mistral_real_sse_shape(monkeypatch):
+    """Shape captured from the real API: event: speech.audio.delta {type,
+    audio_data}, then speech.audio.done {type, usage{...}}."""
+    f32 = _f32(PCM)
+    stream = (
+        "event: speech.audio.delta\n"
+        f"data: {json.dumps({'type': 'speech.audio.delta', 'audio_data': base64.b64encode(f32).decode()})}\n\n"  # noqa: E501
+        "event: speech.audio.done\n"
+        'data: {"type": "speech.audio.done", "usage": {"prompt_tokens": 121, '
+        '"completion_tokens": 23040, "total_tokens": 23161}}\n\n'
+    ).encode()
+    monkeypatch.setattr(mistral, "TRANSPORT", httpx.MockTransport(
+        lambda r: httpx.Response(200, content=stream,
+                                 headers={"content-type": "text/event-stream"})))
+    _, run, audio = await synth("mistral/voxtral-mini-tts-2603", format="pcm")
+    assert len(audio) == len(PCM)
+    assert tts_units(Catalog.load().find("mistral/voxtral-mini-tts-2603"), run.usage) == {
+        "characters": 11}
+
+
+async def test_azure_empty_400_explains_region_voice(monkeypatch):
+    monkeypatch.setattr(azure, "TRANSPORT", httpx.MockTransport(
+        lambda r: httpx.Response(400, content=b"")))  # verified: westus + Dragon HD
+    with pytest.raises(ProviderStreamError) as info:
+        await synth("azure/neural-hd", format="pcm")
+    assert "not available on this Azure Speech resource's region" in str(info.value)
+    assert info.value.code == "invalid_request"
+
+
+async def test_groq_terms_acceptance_400_is_account_error_not_user_error(monkeypatch):
+    body = {"error": {"message": "The model `canopylabs/orpheus-v1-english` requires terms "
+                                 "acceptance. Please have the org admin accept the terms at "
+                                 "https://console.groq.com/playground?model=x",
+                      "type": "invalid_request_error", "code": "model_terms_required"}}
+    monkeypatch.setattr(groq, "TRANSPORT", httpx.MockTransport(
+        lambda r: httpx.Response(400, json=body)))
+    with pytest.raises(ProviderStreamError) as info:
+        await synth("groq/orpheus-v1-english", format="pcm")
+    assert info.value.code == "account" and not info.value.recoverable
+
+
+def test_openai_tts_estimate_uses_measured_rate():
+    from speechrouter_gateway.providers.base import TTSConfig, TTSUsage
+
+    usage = TTSUsage()
+    openai_tts.OpenAITTS("k", "https://x/v1").estimate_usage(
+        "x" * 40, TTSConfig(model="gpt-4o-mini-tts", voice="alloy", format="pcm"), 3.4, usage)
+    assert usage.tokens["audio_output_tokens"] == 92  # ceil(3.4 * 26.8); real: 91

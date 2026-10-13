@@ -468,6 +468,7 @@
       "languages": [
         "auto"
       ]
-    }
+    },
+    "notes": "Dragon HD voices are region-limited: the house resource (westus) lists none, so requests fail until an HD-capable region resource is configured (verified live 2026-10-13)"
   }
 ]

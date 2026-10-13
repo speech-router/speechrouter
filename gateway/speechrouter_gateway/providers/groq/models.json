@@ -283,7 +283,7 @@
         "auto"
       ]
     },
-    "notes": "upstream canopylabs/orpheus-v1-english; 200 chars per request"
+    "notes": "upstream canopylabs/orpheus-v1-english; 200 chars per request; requires a one-time terms acceptance by the Groq org admin in the console before the API serves it (verified live 2026-10-13)"
   },
   {
     "slug": "groq/orpheus-arabic-saudi",
@@ -331,6 +331,7 @@
       "languages": [
         "ar"
       ]
-    }
+    },
+    "notes": "requires a one-time terms acceptance by the Groq org admin in the console before the API serves it (verified live 2026-10-13)"
   }
 ]

@@ -711,3 +711,31 @@ def test_cors_exposes_speechrouter_headers(gw):
     r = client.get("/v1/models", headers={"Origin": "https://app.example"})
     exposed = r.headers.get("access-control-expose-headers", "").lower()
     assert "x-speechrouter-cost-usd" in exposed and "x-speechrouter-request-id" in exposed
+
+
+def test_gemini_live_real_per_turn_usage_sums_and_bills_unlisted_prompt_tokens():
+    """Two real turns (2026-10-13): one usageMetadata per turn, response does
+    not accumulate (44 -> 47) while the prompt re-bills context (559 -> 628).
+    Details (TEXT+AUDIO) sum short of promptTokenCount: remainder is billed."""
+    meter = GeminiLiveMeter()  # per_message default
+    turns = [
+        {"promptTokenCount": 559, "responseTokenCount": 44, "totalTokenCount": 603,
+         "promptTokensDetails": [{"modality": "TEXT", "tokenCount": 312},
+                                 {"modality": "AUDIO", "tokenCount": 222}],
+         "responseTokensDetails": [{"modality": "AUDIO", "tokenCount": 44}],
+         "thoughtsTokenCount": 49},
+        {"promptTokenCount": 628, "responseTokenCount": 47, "totalTokenCount": 675,
+         "promptTokensDetails": [{"modality": "TEXT", "tokenCount": 323},
+                                 {"modality": "AUDIO", "tokenCount": 266}],
+         "responseTokensDetails": [{"modality": "AUDIO", "tokenCount": 47}],
+         "thoughtsTokenCount": 31},
+    ]
+    for meta in turns:
+        meter.on_server(json.dumps({"usageMetadata": meta}))
+    units = meter.totals.units
+    assert units["audio_input_tokens"] == 222 + 266
+    assert units["text_input_tokens"] == (312 + 25) + (323 + 39)  # incl. unlisted remainder
+    assert units["audio_output_tokens"] == 44 + 47
+    assert units["text_output_tokens"] == 49 + 31  # thinking billed as text output
+    total_in = units["audio_input_tokens"] + units["text_input_tokens"]
+    assert total_in == 559 + 628  # every prompt token billed exactly once

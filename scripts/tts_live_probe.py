@@ -29,11 +29,17 @@ import base64
 import json
 import math
 import os
+import sys
 import time
 from pathlib import Path
 
 import httpx
 import websockets
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _scrub import scrub  # noqa: E402
+
+SECRETS: list[str] = []  # every value loaded from the env file; scrubbed from all output
 
 TEXT = "This is a short synthetic probe sentence for metering."
 
@@ -46,7 +52,19 @@ def load_env(path: str | None) -> None:
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, _, value = line.removeprefix("export ").partition("=")
-        os.environ.setdefault(key.strip(), value.strip().strip("'\""))
+        value = value.strip().strip("'\"")
+        if value:
+            SECRETS.append(value)
+        os.environ.setdefault(key.strip(), value)
+
+
+def save_wav(path: Path, pcm: bytes, rate: int = 24000) -> None:
+    import struct
+
+    header = (b"RIFF" + struct.pack("<I", 36 + len(pcm)) + b"WAVEfmt "
+              + struct.pack("<IHHIIHH", 16, 1, 1, rate, rate * 2, 2, 16)
+              + b"data" + struct.pack("<I", len(pcm)))
+    path.write_bytes(header + pcm)
 
 
 def tone(seconds: float, rate: int) -> bytes:
@@ -71,8 +89,10 @@ class Recorder:
         self.t0 = time.monotonic()
 
     def write(self, direction: str, payload) -> None:
-        self.file.write(json.dumps({"t": round(time.monotonic() - self.t0, 3),
-                                    "dir": direction, "frame": redact(payload)}) + "\n")
+        line = json.dumps({"t": round(time.monotonic() - self.t0, 3),
+                           "dir": direction, "frame": redact(payload)})
+        self.file.write(scrub(line, SECRETS) + "\n")
+        self.file.flush()
 
 
 async def openai_tts(out: Path) -> dict:
@@ -81,6 +101,7 @@ async def openai_tts(out: Path) -> dict:
     body = {"model": "gpt-4o-mini-tts", "voice": "coral", "input": TEXT,
             "response_format": "pcm", "stream_format": "sse"}
     audio = 0
+    pcm_out: list[bytes] = []
     usage = None
     async with httpx.AsyncClient(timeout=60) as client, client.stream(
         "POST", "https://api.openai.com/v1/audio/speech", json=body,
@@ -88,15 +109,17 @@ async def openai_tts(out: Path) -> dict:
     ) as resp:
         resp.raise_for_status()
         async for line in resp.aiter_lines():
-            if not line.startswith("data:"):
+            if not line.startswith("data:") or line[5:].strip() == "[DONE]":
                 continue
             event = json.loads(line[5:])
             rec.write("down", event)
             if event.get("type") == "speech.audio.delta":
-                audio += len(base64.b64decode(event["audio"]))
+                pcm_out.append(base64.b64decode(event["audio"]))
+                audio += len(pcm_out[-1])
             elif event.get("type") == "speech.audio.done":
                 usage = event.get("usage")
     seconds = audio / 48000
+    save_wav(out / "openai__gpt-4o-mini-tts.wav", b"".join(pcm_out))
     return {"audio_seconds": round(seconds, 3), "usage": usage,
             "audio_tokens_per_second": round((usage or {}).get("output_tokens", 0) / seconds, 2)
             if seconds else None}
@@ -109,6 +132,7 @@ async def gemini_tts(out: Path) -> dict:
             "generationConfig": {"responseModalities": ["AUDIO"], "speechConfig": {
                 "voiceConfig": {"prebuiltVoiceConfig": {"voiceName": "Kore"}}}}}
     audio = 0
+    pcm_out: list[bytes] = []
     usages = []
     url = ("https://generativelanguage.googleapis.com/v1beta/models/"
            "gemini-3.8-flash-tts:streamGenerateContent?alt=sse")
@@ -124,11 +148,13 @@ async def gemini_tts(out: Path) -> dict:
             for cand in chunk.get("candidates") or []:
                 for part in (cand.get("content") or {}).get("parts") or []:
                     if part.get("inlineData"):
-                        audio += len(base64.b64decode(part["inlineData"]["data"]))
+                        pcm_out.append(base64.b64decode(part["inlineData"]["data"]))
+                        audio += len(pcm_out[-1])
             if chunk.get("usageMetadata"):
                 usages.append(chunk["usageMetadata"])
     seconds = audio / 48000
     last = usages[-1] if usages else {}
+    save_wav(out / "gemini__gemini-3.8-flash-tts.wav", b"".join(pcm_out))
     return {"audio_seconds": round(seconds, 3), "usage_messages": len(usages),
             "usage_last": last, "audio_tokens_per_second": round(
                 last.get("candidatesTokenCount", 0) / seconds, 2) if seconds else None}
@@ -236,8 +262,8 @@ async def main() -> None:
             summary[name] = await run(args.out)
         except Exception as exc:  # noqa: BLE001 - record and continue
             summary[name] = {"error": f"{type(exc).__name__}: {str(exc)[:300]}"}
-        print(name, json.dumps(summary[name])[:400])
-    (args.out / "summary.json").write_text(json.dumps(summary, indent=2))
+        print(scrub(f"{name} {json.dumps(summary[name])[:600]}", SECRETS), flush=True)
+    (args.out / "summary.json").write_text(scrub(json.dumps(summary, indent=2), SECRETS))
 
 
 if __name__ == "__main__":

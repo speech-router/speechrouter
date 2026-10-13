@@ -30,10 +30,10 @@ from ..registry import ProviderNotConfigured, register_tts
 
 _SSE_MODELS = {"gpt-4o-mini-tts"}
 
-# Fallback estimate only (stream cancelled before speech.audio.done). OpenAI
-# publishes gpt-4o-mini-tts at ~$0.015/min of audio = 1250 tokens/min at
-# $12/1M — not a measured wire figure. Verify with a live probe.
-AUDIO_TOKENS_PER_SECOND = 1250 / 60
+# Fallback estimate only (stream cancelled before speech.audio.done).
+# Measured live 2026-10-13 (scripts/tts_live_probe.py): 91 audio tokens for
+# 3.40 s = 26.8 tokens/s. (OpenAI's ~$0.015/min marketing figure implies 20.8.)
+AUDIO_TOKENS_PER_SECOND = 26.8
 CHARS_PER_TEXT_TOKEN = 4
 
 VOICES = frozenset({

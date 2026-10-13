@@ -1,12 +1,13 @@
 """Mistral Voxtral TTS: POST /v1/audio/speech, stream=true (docs/providers/tts/mistral.md).
 
 - Bearer auth; body {model, input, voice_id, response_format, stream}.
-- SSE with base64 audio. The event field names come from a third-party PR,
-  not Mistral's own reference (UNVERIFIED), so the parser accepts the
-  plausible spellings: audio_data | audio | delta | data.
+- SSE, verified live 2026-10-13: `event: speech.audio.delta` with data
+  {type, audio_data: base64}; then `speech.audio.done` with data {type,
+  usage{prompt_tokens, completion_tokens, total_tokens}} (Mistral prices TTS
+  per character, so the token usage is informational).
 - Mistral pcm is FLOAT32 little-endian: converted here to s16le so the rest
-  of the gateway (wrappers, G.711, duration) sees ordinary pcm. 24 kHz is the
-  third-party-reported rate (UNVERIFIED).
+  of the gateway (wrappers, G.711, duration) sees ordinary pcm. 24 kHz
+  verified live (round-trip transcription of the real sample).
 - No documented default voice: callers pass a voice_id (preset or saved).
 """
 
@@ -66,11 +67,8 @@ class MistralTTS(HTTPStreamTTS, TTSProvider):
                 "json": body}
 
     def audio_from_event(self, event, state):
-        for field in ("audio_data", "audio", "delta", "data"):
-            value = event.get(field)
-            if isinstance(value, str) and value:
-                return base64.b64decode(value)
-        return None
+        data = event.get("audio_data")
+        return base64.b64decode(data) if isinstance(data, str) and data else None
 
     async def synthesize(self, text, config, usage):
         carry = b""

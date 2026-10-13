@@ -27,6 +27,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "gateway"))
 
+sys.path.insert(0, str(ROOT / "scripts"))
+from _scrub import scrub  # noqa: E402
+
 from speechrouter_gateway import providers as _providers  # noqa: E402,F401  (registers adapters)
 from speechrouter_gateway.config import Settings  # noqa: E402
 from speechrouter_gateway.router.catalog import Catalog  # noqa: E402
@@ -97,31 +100,86 @@ def load_env(path: str | None) -> dict[str, str]:
     return values
 
 
-async def probe(slug: str, settings: Settings, catalog: Catalog) -> dict:
+def _save(audio_dir: Path | None, slug: str, fmt: str, rate: int, audio: bytes) -> str | None:
+    if audio_dir is None or not audio:
+        return None
+    from speechrouter_gateway.audio.pcm_codec import wav_header
+
+    audio_dir.mkdir(parents=True, exist_ok=True)
+    name = slug.replace("/", "__")
+    if fmt == "pcm":
+        path = audio_dir / f"{name}.wav"
+        path.write_bytes(wav_header(rate) + audio)
+    else:
+        path = audio_dir / f"{name}.{ {'mulaw': 'ulaw', 'opus': 'ogg'}.get(fmt, fmt)}"
+        path.write_bytes(audio)
+    return path.name
+
+
+async def probe(slug: str, settings: Settings, catalog: Catalog, audio_dir: Path | None,
+                fmt: str | None = None) -> dict:
     entry = catalog.find(slug) or {}
-    fmt = "pcm" if "pcm" in (entry.get("capabilities") or {}).get("formats", []) else None
+    if fmt is None:
+        fmt = "pcm" if "pcm" in (entry.get("capabilities") or {}).get("formats", []) else None
     resolved = resolve_tts(slug, TTSRequest(text_length=len(TEXT), format=fmt), settings,
                            catalog)
     adapter = resolved.build()
     run = TTSRun(resolved)
     started = time.monotonic()
     first = None
-    size = 0
+    audio = b""
     try:
         async for chunk in run.stream(adapter, TEXT):
             first = first or time.monotonic() - started
-            size += len(chunk)
+            audio += chunk
     finally:
         await adapter.close()
     units = tts_units(resolved.entry, run.usage, produced=run.produced_bytes > 0)
+    suffix = "" if fmt in (None, "pcm") else f"__{fmt}"
     return {
-        "ok": size > 0, "format": resolved.out_format, "voice": resolved.config.voice,
-        "bytes": size, "audio_seconds": round(run.audio_seconds, 3),
-        "ttfb_ms": round((first or 0) * 1000), "total_ms": round((time.monotonic() - started)
-                                                                 * 1000),
+        "ok": len(audio) > 0, "format": resolved.out_format,
+        "sample_rate": resolved.out_sample_rate, "voice": resolved.config.voice,
+        "bytes": len(audio), "audio_seconds": round(run.audio_seconds, 3),
+        "ttfb_ms": round((first or 0) * 1000),
+        "total_ms": round((time.monotonic() - started) * 1000),
+        # vendor-reported billed characters (when the adapter reads one) vs text length
+        "text_length": len(TEXT), "billed_characters": run.usage.characters,
         "units": units, "estimated": run.usage.estimated,
         "list_cost_usd": list_cost(resolved.entry, units, False),
+        "audio_file": _save(audio_dir, slug + suffix, resolved.out_format,
+                            resolved.out_sample_rate, audio),
     }
+
+
+async def probe_flux_socket(settings: Settings, catalog: Catalog) -> dict:
+    """Native /v2/speak socket: two Speak frames, a barge-in, finish."""
+    resolved = resolve_tts("deepgram/flux", TTSRequest(format="pcm"), settings, catalog)
+    adapter = resolved.build()
+    stream = adapter.open_stream(resolved.config)
+    assert stream is not None
+    audio: list[bytes] = []
+    text = "Good morning. Your appointment is confirmed for Tuesday at ten."
+    await stream.connect(resolved.config)
+
+    async def collect():
+        async for chunk in stream.audio():
+            audio.append(chunk)
+
+    reader = asyncio.create_task(collect())
+    await stream.send_text(text)
+    async with asyncio.timeout(10):
+        while sum(map(len, audio)) < 48000 * 0.6:  # noqa: ASYNC110 - ~0.6 s of audio
+            await asyncio.sleep(0.02)
+    played_ms = 500
+    info = await asyncio.wait_for(stream.clear(playback_ms=played_ms), 10)
+    await stream.send_text("Sorry, go ahead.")
+    await stream.finish()
+    await asyncio.wait_for(reader, 20)
+    await stream.close()
+    sent = len(text) + len("Sorry, go ahead.")
+    return {"ok": bool(audio), "interrupt": info, "text_sent_chars": sent,
+            "billed_characters": stream.usage.characters,
+            "audio_bytes": sum(map(len, audio))}
 
 
 async def main() -> int:
@@ -129,8 +187,14 @@ async def main() -> int:
     parser.add_argument("--env-file", default="/home/agent/agent-env/speechrouter-providers.env")
     parser.add_argument("--out", type=Path, default=Path("/tmp/tts-provider-probe"))
     parser.add_argument("--only", default="", help="comma-separated provider ids")
+    parser.add_argument("--max-models", type=int, default=99)
+    parser.add_argument("--audio-dir", type=Path, default=None)
     args = parser.parse_args()
     env = load_env(args.env_file)
+    secrets = list(env.values())
+
+    def out(line: str) -> None:
+        print(scrub(line, secrets), flush=True)
     fields = {ENV_TO_SETTING[k]: v for k, v in env.items() if k in ENV_TO_SETTING}
     settings = Settings(_env_file=None, **fields)
     catalog = Catalog.load()
@@ -153,19 +217,33 @@ async def main() -> int:
             results[provider] = {"status": "skipped: no key (mock-tested only)"}
             continue
         results[provider] = {"status": "live", "models": {}}
-        for slug in slugs[:MAX_MODELS]:
+        cases = [(slug, None) for slug in slugs[:args.max_models]]
+        # the 8 kHz telephony path, natively where the provider has it
+        cases += [(slugs[0], "mulaw")]
+        for slug, fmt in cases:
+            label = slug if fmt is None else f"{slug} [{fmt}]"
             try:
-                outcome = await probe(slug, settings, catalog)
+                outcome = await probe(slug, settings, catalog, args.audio_dir, fmt)
             except Exception as exc:  # noqa: BLE001 - record and continue
-                outcome = {"ok": False, "error": f"{type(exc).__name__}: {str(exc)[:300]}"}
+                outcome = {"ok": False, "error": f"{type(exc).__name__}: {str(exc)[:400]}"}
             total += outcome.get("list_cost_usd", 0.0)
-            results[provider]["models"][slug] = outcome
-            print(f"{slug:<48} {json.dumps(outcome)[:220]}", flush=True)
+            results[provider]["models"][label] = outcome
+            out(f"{label:<48} {json.dumps(outcome)[:260]}")
+        if provider == "deepgram":
+            try:
+                results[provider]["flux_native_socket"] = await probe_flux_socket(settings,
+                                                                                  catalog)
+            except Exception as exc:  # noqa: BLE001
+                results[provider]["flux_native_socket"] = {
+                    "ok": False, "error": f"{type(exc).__name__}: {str(exc)[:400]}"}
+            socket = results[provider]["flux_native_socket"]
+            out(f"deepgram/flux native socket {json.dumps(socket)}")
+            total += 80 * 0.000045
     results["_estimated_spend_usd"] = round(total, 4)
     args.out.mkdir(parents=True, exist_ok=True)
-    (args.out / "summary.json").write_text(json.dumps(results, indent=2))
+    (args.out / "summary.json").write_text(scrub(json.dumps(results, indent=2), secrets))
     live = [p for p, r in results.items() if isinstance(r, dict) and r.get("status") == "live"]
-    print(f"live: {live or 'none'}; estimated list spend ${total:.4f}")
+    out(f"live: {live or 'none'}; estimated list spend ${total:.4f}")
     return 0
 
 

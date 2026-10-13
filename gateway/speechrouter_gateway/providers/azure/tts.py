@@ -62,6 +62,14 @@ class AzureTTS(HTTPStreamTTS, TTSProvider):
     name = "azure"
     capabilities = CAPABILITIES
 
+    def describe_error(self, status, body, config):
+        # Verified live: an unknown voice — e.g. Dragon HD in a region without
+        # HD voices (westus lists none) — is a 400 with an EMPTY body.
+        if status == 400 and not body.strip():
+            return (f"voice '{config.voice}' is not available on this Azure Speech "
+                    "resource's region (Dragon HD voices are region-limited)")
+        return None
+
     def build_request(self, text, config):
         ssml = build_ssml(text, config.voice, config.language, config.speed)
         return {

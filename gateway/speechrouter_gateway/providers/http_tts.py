@@ -9,6 +9,7 @@
 """
 
 import json
+import re
 from collections.abc import AsyncIterator
 
 import httpx
@@ -26,7 +27,20 @@ def make_client(transport: httpx.AsyncBaseTransport | None = None) -> httpx.Asyn
     )
 
 
+# 4xx bodies that describe OUR provider account, not the caller's input.
+# They must not be shown to customers as "invalid_request" (verified live:
+# Groq returns 400 "requires terms acceptance ... org admin").
+_ACCOUNT_HINTS = re.compile(
+    r"terms acceptance|accept the terms|org admin|quota|billing|insufficient (funds|credit|"
+    r"balance)|credit balance|subscription|payment required|api key|unauthori[sz]ed",
+    re.IGNORECASE,
+)
+
+
 def status_error(provider: str, status: int, body: str) -> ProviderStreamError:
+    if status in (400, 402, 403) and _ACCOUNT_HINTS.search(body):
+        return ProviderStreamError(f"{provider} HTTP {status} (account): {body[:300]}",
+                                   recoverable=False, provider=provider, code="account")
     code = {
         400: "invalid_request",
         401: "auth",
@@ -125,6 +139,10 @@ class HTTPStreamTTS:
     def on_event_usage(self, event: dict, usage) -> None:  # noqa: ANN001
         """Read usage reported in an event."""
 
+    def describe_error(self, status: int, body: str, config) -> str | None:  # noqa: ANN001
+        """Replace an unhelpful vendor error body (e.g. Azure's empty 400)."""
+        return None
+
     def strip_header(self, chunk: bytes, first: bool) -> bytes:
         """e.g. drop a WAV header when raw pcm was asked for."""
         return chunk
@@ -143,6 +161,7 @@ class HTTPStreamTTS:
             async with self._client.stream(method, url, **spec) as resp:
                 if resp.status_code >= 400:
                     detail = (await resp.aread()).decode(errors="replace")
+                    detail = self.describe_error(resp.status_code, detail, config) or detail
                     raise status_error(self.name, resp.status_code, detail)
                 self.on_headers(resp.headers, usage)
                 if self.response_mode == "bytes":
