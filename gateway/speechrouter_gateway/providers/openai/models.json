@@ -597,5 +597,451 @@
       ],
       "diarization": true
     }
+  },
+  {
+    "slug": "openai/gpt-4o-mini-tts",
+    "provider": "openai",
+    "name": "OpenAI GPT-4o mini TTS",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_1m_text_input_tokens_usd": 0.6,
+      "per_1m_audio_output_tokens_usd": 12.0
+    },
+    "capabilities": {
+      "voices": [
+        "alloy",
+        "ash",
+        "ballad",
+        "coral",
+        "echo",
+        "fable",
+        "nova",
+        "onyx",
+        "sage",
+        "shimmer",
+        "verse",
+        "marin",
+        "cedar"
+      ],
+      "default_voice": "alloy",
+      "formats": [
+        "mp3",
+        "opus",
+        "aac",
+        "flac",
+        "wav",
+        "pcm",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        24000,
+        8000
+      ],
+      "max_input_chars": 4096,
+      "instructions": true,
+      "speed": false,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "openai/tts-1",
+    "provider": "openai",
+    "name": "OpenAI TTS-1",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 1.5e-05
+    },
+    "capabilities": {
+      "voices": [
+        "alloy",
+        "ash",
+        "coral",
+        "echo",
+        "fable",
+        "nova",
+        "onyx",
+        "sage",
+        "shimmer"
+      ],
+      "default_voice": "alloy",
+      "formats": [
+        "mp3",
+        "opus",
+        "aac",
+        "flac",
+        "wav",
+        "pcm",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        24000,
+        8000
+      ],
+      "max_input_chars": 4096,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "openai/tts-1-hd",
+    "provider": "openai",
+    "name": "OpenAI TTS-1 HD",
+    "kind": "tts",
+    "modes": [
+      "streaming",
+      "batch"
+    ],
+    "pricing": {
+      "per_character_usd": 3e-05
+    },
+    "capabilities": {
+      "voices": [
+        "alloy",
+        "ash",
+        "coral",
+        "echo",
+        "fable",
+        "nova",
+        "onyx",
+        "sage",
+        "shimmer"
+      ],
+      "default_voice": "alloy",
+      "formats": [
+        "mp3",
+        "opus",
+        "aac",
+        "flac",
+        "wav",
+        "pcm",
+        "mulaw",
+        "alaw"
+      ],
+      "output_sample_rates": [
+        24000,
+        8000
+      ],
+      "max_input_chars": 4096,
+      "instructions": false,
+      "speed": true,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "openai/gpt-realtime-2.1",
+    "provider": "openai",
+    "name": "OpenAI GPT Realtime 2.1",
+    "kind": "live",
+    "modes": [
+      "live"
+    ],
+    "dialect": "openai-realtime",
+    "pricing": {
+      "per_1m_audio_input_tokens_usd": 32.0,
+      "per_1m_cached_audio_input_tokens_usd": 0.4,
+      "per_1m_audio_output_tokens_usd": 64.0,
+      "per_1m_text_input_tokens_usd": 4.0,
+      "per_1m_cached_text_input_tokens_usd": 0.4,
+      "per_1m_text_output_tokens_usd": 24.0,
+      "per_1m_image_input_tokens_usd": 5.0
+    },
+    "capabilities": {
+      "voices": [
+        "alloy",
+        "ash",
+        "ballad",
+        "coral",
+        "echo",
+        "sage",
+        "shimmer",
+        "verse",
+        "marin",
+        "cedar"
+      ],
+      "default_voice": "alloy",
+      "encodings": [
+        "linear16",
+        "mulaw",
+        "alaw"
+      ],
+      "input_sample_rates": [
+        24000
+      ],
+      "output_sample_rates": [
+        24000
+      ],
+      "tools": true,
+      "max_session_seconds": 3600,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "openai/gpt-realtime-2.1-mini",
+    "provider": "openai",
+    "name": "OpenAI GPT Realtime 2.1 mini",
+    "kind": "live",
+    "modes": [
+      "live"
+    ],
+    "dialect": "openai-realtime",
+    "pricing": {
+      "per_1m_audio_input_tokens_usd": 10.0,
+      "per_1m_cached_audio_input_tokens_usd": 0.3,
+      "per_1m_audio_output_tokens_usd": 20.0,
+      "per_1m_text_input_tokens_usd": 0.6,
+      "per_1m_cached_text_input_tokens_usd": 0.06,
+      "per_1m_text_output_tokens_usd": 2.4,
+      "per_1m_image_input_tokens_usd": 0.8
+    },
+    "capabilities": {
+      "voices": [
+        "alloy",
+        "ash",
+        "ballad",
+        "coral",
+        "echo",
+        "sage",
+        "shimmer",
+        "verse",
+        "marin",
+        "cedar"
+      ],
+      "default_voice": "alloy",
+      "encodings": [
+        "linear16",
+        "mulaw",
+        "alaw"
+      ],
+      "input_sample_rates": [
+        24000
+      ],
+      "output_sample_rates": [
+        24000
+      ],
+      "tools": true,
+      "max_session_seconds": 3600,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "openai/gpt-realtime-2",
+    "provider": "openai",
+    "name": "OpenAI GPT Realtime 2",
+    "kind": "live",
+    "modes": [
+      "live"
+    ],
+    "dialect": "openai-realtime",
+    "pricing": {
+      "per_1m_audio_input_tokens_usd": 32.0,
+      "per_1m_cached_audio_input_tokens_usd": 0.4,
+      "per_1m_audio_output_tokens_usd": 64.0,
+      "per_1m_text_input_tokens_usd": 4.0,
+      "per_1m_cached_text_input_tokens_usd": 0.4,
+      "per_1m_text_output_tokens_usd": 24.0,
+      "per_1m_image_input_tokens_usd": 5.0
+    },
+    "capabilities": {
+      "voices": [
+        "alloy",
+        "ash",
+        "ballad",
+        "coral",
+        "echo",
+        "sage",
+        "shimmer",
+        "verse",
+        "marin",
+        "cedar"
+      ],
+      "default_voice": "alloy",
+      "encodings": [
+        "linear16",
+        "mulaw",
+        "alaw"
+      ],
+      "input_sample_rates": [
+        24000
+      ],
+      "output_sample_rates": [
+        24000
+      ],
+      "tools": true,
+      "max_session_seconds": 3600,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "openai/gpt-realtime-1.5",
+    "provider": "openai",
+    "name": "OpenAI GPT Realtime 1.5",
+    "kind": "live",
+    "modes": [
+      "live"
+    ],
+    "dialect": "openai-realtime",
+    "pricing": {
+      "per_1m_audio_input_tokens_usd": 32.0,
+      "per_1m_cached_audio_input_tokens_usd": 0.4,
+      "per_1m_audio_output_tokens_usd": 64.0,
+      "per_1m_text_input_tokens_usd": 4.0,
+      "per_1m_cached_text_input_tokens_usd": 0.4,
+      "per_1m_text_output_tokens_usd": 16.0,
+      "per_1m_image_input_tokens_usd": 5.0
+    },
+    "capabilities": {
+      "voices": [
+        "alloy",
+        "ash",
+        "ballad",
+        "coral",
+        "echo",
+        "sage",
+        "shimmer",
+        "verse",
+        "marin",
+        "cedar"
+      ],
+      "default_voice": "alloy",
+      "encodings": [
+        "linear16",
+        "mulaw",
+        "alaw"
+      ],
+      "input_sample_rates": [
+        24000
+      ],
+      "output_sample_rates": [
+        24000
+      ],
+      "tools": true,
+      "max_session_seconds": 3600,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "openai/gpt-realtime",
+    "provider": "openai",
+    "name": "OpenAI GPT Realtime",
+    "kind": "live",
+    "modes": [
+      "live"
+    ],
+    "dialect": "openai-realtime",
+    "pricing": {
+      "per_1m_audio_input_tokens_usd": 32.0,
+      "per_1m_cached_audio_input_tokens_usd": 0.4,
+      "per_1m_audio_output_tokens_usd": 64.0,
+      "per_1m_text_input_tokens_usd": 4.0,
+      "per_1m_cached_text_input_tokens_usd": 0.4,
+      "per_1m_text_output_tokens_usd": 16.0,
+      "per_1m_image_input_tokens_usd": 5.0
+    },
+    "capabilities": {
+      "voices": [
+        "alloy",
+        "ash",
+        "ballad",
+        "coral",
+        "echo",
+        "sage",
+        "shimmer",
+        "verse",
+        "marin",
+        "cedar"
+      ],
+      "default_voice": "alloy",
+      "encodings": [
+        "linear16",
+        "mulaw",
+        "alaw"
+      ],
+      "input_sample_rates": [
+        24000
+      ],
+      "output_sample_rates": [
+        24000
+      ],
+      "tools": true,
+      "max_session_seconds": 3600,
+      "languages": [
+        "auto"
+      ]
+    }
+  },
+  {
+    "slug": "openai/gpt-realtime-mini",
+    "provider": "openai",
+    "name": "OpenAI GPT Realtime mini",
+    "kind": "live",
+    "modes": [
+      "live"
+    ],
+    "dialect": "openai-realtime",
+    "pricing": {
+      "per_1m_audio_input_tokens_usd": 10.0,
+      "per_1m_cached_audio_input_tokens_usd": 0.3,
+      "per_1m_audio_output_tokens_usd": 20.0,
+      "per_1m_text_input_tokens_usd": 0.6,
+      "per_1m_cached_text_input_tokens_usd": 0.06,
+      "per_1m_text_output_tokens_usd": 2.4,
+      "per_1m_image_input_tokens_usd": 0.8
+    },
+    "capabilities": {
+      "voices": [
+        "alloy",
+        "ash",
+        "ballad",
+        "coral",
+        "echo",
+        "sage",
+        "shimmer",
+        "verse",
+        "marin",
+        "cedar"
+      ],
+      "default_voice": "alloy",
+      "encodings": [
+        "linear16",
+        "mulaw",
+        "alaw"
+      ],
+      "input_sample_rates": [
+        24000
+      ],
+      "output_sample_rates": [
+        24000
+      ],
+      "tools": true,
+      "max_session_seconds": 3600,
+      "languages": [
+        "auto"
+      ]
+    }
   }
 ]

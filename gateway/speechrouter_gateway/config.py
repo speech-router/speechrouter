@@ -39,6 +39,21 @@ class Settings(BaseSettings):
     idle_timeout_seconds: int = 60
     ring_buffer_seconds: int = 10
 
+    # TTS + live voice (PLAN-tts-live.md). On for self-host; cloud deploys set
+    # them false until cloud billing prices unit-based events. A disabled
+    # kind vanishes from /v1/models and its endpoints answer model_not_found.
+    enable_tts: bool = True
+    enable_live: bool = True
+    max_tts_input_chars: int = 4096  # per request / per /v1/speak segment
+    # live sessions cost ~10-50x STT per minute: separate, tighter cap
+    max_concurrent_live: int = 5  # per org (cloud) / key (local); 0 = unlimited
+    max_live_session_seconds: int = 60 * 60  # OpenAI caps upstream at 60 min
+    live_idle_timeout_seconds: int = 120
+    live_checkpoint_seconds: int = 60  # usage checkpoint cadence (§2.6)
+    # admission needs this much balance (micro-USD; cloud mode only, house
+    # keys only). 5_000_000 = $5. 0 disables the floor.
+    live_min_balance_microusd: int = 5_000_000
+
     # Provider credentials (gateway-owned; BYOK arrives via the cloud keystore)
     deepgram_api_key: str = ""
     soniox_api_key: str = ""
@@ -73,6 +88,11 @@ class Settings(BaseSettings):
     aws_secret_access_key: str = ""
     aws_region: str = "us-east-1"
     openai_api_key: str = ""
+    # Upstream base URLs for TTS + live. Overridable for self-host egress
+    # proxies and for the local smoke harness (mock upstream); the realtime
+    # WebSocket URL is derived (https->wss). STT adapters keep their own.
+    openai_base_url: str = "https://api.openai.com/v1"
+    gemini_base_url: str = "https://generativelanguage.googleapis.com"
     elevenlabs_api_key: str = ""
     cartesia_api_key: str = ""
     groq_api_key: str = ""

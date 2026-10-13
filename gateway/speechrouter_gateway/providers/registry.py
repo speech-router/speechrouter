@@ -10,7 +10,7 @@ from collections.abc import Callable
 from typing import NamedTuple
 
 from ..config import Settings
-from .base import Capabilities, STTBatchProvider, STTStreamProvider
+from .base import Capabilities, STTBatchProvider, STTStreamProvider, TTSCapabilities, TTSProvider
 
 
 class ProviderNotConfigured(Exception):
@@ -29,8 +29,14 @@ class RegisteredBatch(NamedTuple):
     capabilities: Capabilities
 
 
+class RegisteredTTS(NamedTuple):
+    build: Callable[[Settings], TTSProvider]
+    capabilities: TTSCapabilities
+
+
 _stt_stream: dict[str, RegisteredStream] = {}
 _stt_batch: dict[str, RegisteredBatch] = {}
+_tts: dict[str, RegisteredTTS] = {}
 
 
 def register_stt_stream(provider_id: str, *, capabilities: Capabilities):
@@ -55,3 +61,15 @@ def stt_stream_provider(provider_id: str) -> RegisteredStream | None:
 
 def stt_batch_provider(provider_id: str) -> RegisteredBatch | None:
     return _stt_batch.get(provider_id)
+
+
+def register_tts(provider_id: str, *, capabilities: TTSCapabilities):
+    def deco(build: Callable[[Settings], TTSProvider]):
+        _tts[provider_id] = RegisteredTTS(build, capabilities)
+        return build
+
+    return deco
+
+
+def tts_provider(provider_id: str) -> RegisteredTTS | None:
+    return _tts.get(provider_id)

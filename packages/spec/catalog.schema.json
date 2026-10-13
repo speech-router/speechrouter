@@ -27,7 +27,8 @@
     "kind": {
       "enum": [
         "stt",
-        "tts"
+        "tts",
+        "live"
       ]
     },
     "modes": {
@@ -35,13 +36,14 @@
       "items": {
         "enum": [
           "streaming",
-          "batch"
+          "batch",
+          "live"
         ]
       }
     },
     "pricing": {
       "type": "object",
-      "description": "Vendor list price in native billing units. Pass-through: this is exactly what we charge. Exactly one rate field per model.",
+      "description": "Vendor list price in native billing units. Pass-through: this is exactly what we charge. STT: exactly one seconds-based rate (per_audio_*, per_session_hour). TTS/live: one or more unit rates priced against usage `units` (characters, per-1M token counts by modality). Contract: PLAN-tts-live.md §3.0.",
       "properties": {
         "per_audio_second_usd": {
           "type": "number"
@@ -58,16 +60,44 @@
         },
         "per_character_usd": {
           "type": "number",
-          "description": "TTS"
+          "description": "TTS: per Unicode code point of input text"
         },
         "minimum_usd": {
           "type": "number",
           "description": "per-request vendor floor (AWS 15s, Groq 10s)"
         },
+        "per_1m_text_input_tokens_usd": {
+          "type": "number",
+          "description": "per 1,000,000 text input tokens"
+        },
+        "per_1m_cached_text_input_tokens_usd": {
+          "type": "number",
+          "description": "per 1,000,000 cached text input tokens"
+        },
+        "per_1m_audio_input_tokens_usd": {
+          "type": "number",
+          "description": "per 1,000,000 audio input tokens"
+        },
+        "per_1m_cached_audio_input_tokens_usd": {
+          "type": "number",
+          "description": "per 1,000,000 cached audio input tokens"
+        },
+        "per_1m_image_input_tokens_usd": {
+          "type": "number",
+          "description": "per 1,000,000 image input tokens"
+        },
+        "per_1m_text_output_tokens_usd": {
+          "type": "number",
+          "description": "per 1,000,000 text output tokens"
+        },
+        "per_1m_audio_output_tokens_usd": {
+          "type": "number",
+          "description": "per 1,000,000 audio output tokens"
+        },
         "per_second_usd": {
           "type": "number",
           "deprecated": true,
-          "description": "DERIVED by the gateway for legacy consumers; do not author"
+          "description": "DERIVED by the gateway for legacy consumers of seconds-priced (STT) models only; do not author"
         }
       },
       "additionalProperties": false
@@ -114,11 +144,56 @@
           "items": {
             "type": "string"
           },
-          "description": "TTS: namespaced voice ids"
+          "description": "TTS/live: provider-native voice ids accepted by `voice`"
         },
         "max_audio_seconds": {
           "type": "number",
           "description": "batch upload limit"
+        },
+        "default_voice": {
+          "type": "string",
+          "description": "TTS/live: voice used when the request names none"
+        },
+        "formats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "TTS: response_format values (mp3, opus, aac, flac, wav, pcm, mulaw, alaw)"
+        },
+        "max_input_chars": {
+          "type": "integer",
+          "description": "TTS: input text limit per request"
+        },
+        "instructions": {
+          "type": "boolean",
+          "description": "TTS: accepts a style prompt (`instructions`)"
+        },
+        "speed": {
+          "type": "boolean",
+          "description": "TTS: accepts `speed`"
+        },
+        "input_sample_rates": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "description": "live: accepted input audio rates"
+        },
+        "output_sample_rates": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          },
+          "description": "live/TTS: produced audio rates"
+        },
+        "tools": {
+          "type": "boolean",
+          "description": "live: function calling"
+        },
+        "max_session_seconds": {
+          "type": "number",
+          "description": "live: upstream session cap"
         }
       }
     },
@@ -144,6 +219,34 @@
     },
     "deprecated": {
       "type": "boolean"
+    },
+    "dialect": {
+      "enum": [
+        "openai-realtime",
+        "gemini-live"
+      ],
+      "description": "live only: the provider-native WebSocket protocol the client speaks (use that vendor's SDK pointed at the gateway)"
+    },
+    "pricing_schedule": {
+      "type": "array",
+      "description": "Dated price changes. The rate set in force on a UTC date is the latest step with effective_from <= that date, else `pricing`. GET /v1/models serves `pricing` already resolved to today.",
+      "items": {
+        "type": "object",
+        "required": [
+          "effective_from",
+          "pricing"
+        ],
+        "properties": {
+          "effective_from": {
+            "type": "string",
+            "format": "date"
+          },
+          "pricing": {
+            "$ref": "#/properties/pricing"
+          }
+        },
+        "additionalProperties": false
+      }
     }
   }
 }

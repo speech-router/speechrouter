@@ -40,7 +40,8 @@
         "session_id": { "type": "string" },
         "model": { "type": "string", "description": "Resolved slug, e.g. deepgram/nova-3" },
         "encoding": { "type": "string" },
-        "sample_rate": { "type": "integer" }
+        "sample_rate": { "type": "integer" },
+        "voice": { "type": "string", "description": "/v1/speak: resolved voice id" }
       }
     },
     "Transcript": {
@@ -140,7 +141,9 @@
             "audio_seconds": { "type": "number" },
             "characters": { "type": "integer" },
             "model": { "type": "string" },
-            "cost_usd": { "type": "number" }
+            "cost_usd": { "type": "number" },
+            "output_audio_seconds": { "type": "number", "description": "TTS: audio generated" },
+            "units": { "type": "object", "additionalProperties": { "type": "number" }, "description": "Priced quantities (characters, *_tokens by modality); same keys as the usage event, see PLAN-tts-live.md §3.0" }
           }
         }
       }

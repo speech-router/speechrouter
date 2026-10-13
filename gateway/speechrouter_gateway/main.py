@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 
 from .api.listen_ws import router as listen_router
 from .api.models import router as models_router
+from .api.speech import router as speech_router
 from .api.tokens import router as tokens_router
 from .api.transcriptions import router as transcriptions_router
 from .audio import build_audio_sink
@@ -49,8 +50,12 @@ async def lifespan(app: FastAPI):
     )
     app.state.emitter = build_emitter(cfg)
     app.state.audio_sink = build_audio_sink(cfg)
-    app.state.catalog = Catalog.load()
+    disabled = frozenset(
+        kind for kind, on in (("tts", cfg.enable_tts), ("live", cfg.enable_live)) if not on
+    )
+    app.state.catalog = Catalog.load(disabled_kinds=disabled)
     app.state.concurrency = ConcurrencyGuard(limit=cfg.max_concurrent_streams)
+    app.state.live_concurrency = ConcurrencyGuard(limit=cfg.max_concurrent_live)
     if cfg.keystore == KeyStoreKind.none:
         logger.warning("AUTH IS DISABLED (SPEECHROUTER_KEYSTORE=none) — dev mode only")
     logger.info(
@@ -79,6 +84,7 @@ app.include_router(models_router)
 app.include_router(listen_router)
 app.include_router(transcriptions_router)
 app.include_router(tokens_router)
+app.include_router(speech_router)
 
 
 @app.exception_handler(RequestValidationError)

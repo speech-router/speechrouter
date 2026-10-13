@@ -40,6 +40,9 @@ class SessionOpen(BaseModel):
     model: Annotated[str, Field(description='Resolved slug, e.g. deepgram/nova-3')]
     encoding: str | None = None
     sample_rate: int | None = None
+    voice: Annotated[str | None, Field(description='/v1/speak: resolved voice id')] = (
+        None
+    )
 
 
 class Transcript(BaseModel):
@@ -153,6 +156,15 @@ class Usage(BaseModel):
     characters: int | None = None
     model: str | None = None
     cost_usd: float | None = None
+    output_audio_seconds: Annotated[
+        float | None, Field(description='TTS: audio generated')
+    ] = None
+    units: Annotated[
+        dict[str, float] | None,
+        Field(
+            description='Priced quantities (characters, *_tokens by modality); same keys as the usage event, see PLAN-tts-live.md §3.0'
+        ),
+    ] = None
 
 
 class Done(BaseModel):

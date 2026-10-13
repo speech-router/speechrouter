@@ -136,3 +136,58 @@ class STTBatchProvider(ABC):
     async def transcribe(self, audio: bytes, content_type: str, config: STTConfig) -> Transcript:
         """One-shot transcription. Returns a single final Transcript with words
         when the provider supports them."""
+
+
+# ------------------------------------------------------------------ TTS
+#
+# TTS contract (PLAN-tts-live.md §1.2). One adapter instance per request.
+# synthesize() yields encoded audio in config.format and fills the caller's
+# TTSUsage as it goes — by exhaustion it must be complete; on cancellation
+# (client barge-in, disconnect) it holds whatever the provider already
+# reported, and the gateway meters that: generated audio was paid for.
+
+
+@dataclass(frozen=True)
+class TTSCapabilities:
+    voices: frozenset[str] = field(default_factory=frozenset)  # empty = any string
+    default_voice: str = ""
+    # formats the adapter yields itself; the gateway adds wav/mulaw/alaw
+    # wrappers around pcm for adapters whose native output is pcm only
+    formats: frozenset[str] = field(default_factory=frozenset)
+    sample_rates: frozenset[int] = field(default_factory=frozenset)  # pcm output rates
+    max_input_chars: int = 0  # 0 = gateway default
+    instructions: bool = False
+    speed: bool = False
+
+
+@dataclass(frozen=True)
+class TTSConfig:
+    model: str  # provider-native model name (slug suffix)
+    voice: str
+    format: str  # format requested FROM THE ADAPTER (after wrapper mapping)
+    sample_rate: int = 24000
+    speed: float | None = None
+    instructions: str | None = None
+    language: str | None = None
+    provider_params: dict = field(default_factory=dict)
+
+
+@dataclass
+class TTSUsage:
+    characters: int = 0
+    audio_seconds: float = 0.0  # generated audio, when the adapter knows it
+    tokens: dict[str, float] = field(default_factory=dict)  # UsageEvent.units keys
+    estimated: bool = False
+
+
+class TTSProvider(ABC):
+    name: str
+    capabilities: TTSCapabilities
+
+    @abstractmethod
+    def synthesize(self, text: str, config: TTSConfig, usage: TTSUsage) -> AsyncIterator[bytes]:
+        """Yield audio chunks as the provider produces them. Raises
+        ProviderStreamError before or during the stream."""
+
+    async def close(self) -> None:  # noqa: B027 - optional hook
+        """Release pooled resources. Safe from any state."""

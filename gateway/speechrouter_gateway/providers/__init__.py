@@ -19,6 +19,7 @@ from .deepgram import batch as _deepgram_batch  # noqa: F401
 from .elevenlabs import adapter as _elevenlabs_adapter  # noqa: F401
 from .elevenlabs import batch as _elevenlabs_batch  # noqa: F401
 from .gemini import adapter as _gemini_adapter  # noqa: F401  (self-registers)
+from .gemini import tts as _gemini_tts  # noqa: F401
 from .google import adapter as _google_adapter  # noqa: F401
 from .groq import batch as _groq_batch  # noqa: F401
 from .meta import adapter as _meta_adapter  # noqa: F401  (self-registers)
@@ -27,13 +28,16 @@ from .mistral import adapter as _mistral_adapter  # noqa: F401
 from .mistral import batch as _mistral_batch  # noqa: F401
 from .openai import adapter as _openai_adapter  # noqa: F401
 from .openai import batch as _openai_batch  # noqa: F401
+from .openai import tts as _openai_tts  # noqa: F401
 from .palabra import adapter as _palabra_adapter  # noqa: F401  (self-registers)
 from .registry import (  # noqa: F401
     ProviderNotConfigured,
     register_stt_batch,
     register_stt_stream,
+    register_tts,
     stt_batch_provider,
     stt_stream_provider,
+    tts_provider,
 )
 from .soniox import adapter as _soniox_adapter  # noqa: F401  (self-registers)
 from .soniox import batch as _soniox_batch  # noqa: F401

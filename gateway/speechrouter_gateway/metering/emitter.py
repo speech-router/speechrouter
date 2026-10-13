@@ -13,17 +13,27 @@ class UsageEvent:
     session_id: str
     key_id: str
     model: str  # resolved slug, e.g. deepgram/nova-3
-    kind: str  # stt_stream | stt_batch | tts_stream | tts_batch
+    kind: str  # stt_stream | stt_batch | tts_stream | tts_batch | live
     audio_seconds: float = 0.0
     # what billing prices: wall-clock seconds for session_time providers
     # (Soniox/AssemblyAI streaming bill WS-open time), audio seconds otherwise
     billed_seconds: float = 0.0
-    billing_basis: str = "audio_time"  # audio_time | session_time
+    billing_basis: str = "audio_time"  # audio_time | session_time | units
     characters: int = 0
     provider_switches: int = 0
-    status: str = "completed"  # completed | client_disconnect | provider_error | error
+    # completed | client_disconnect | provider_error | error | <limit status>,
+    # or in_progress for a live checkpoint (more events follow for the parent)
+    status: str = "completed"
     byok: bool = False  # org-supplied provider key; billed at the routing fee only
     ts: float = field(default_factory=time.time)
+    # --- v2 (TTS + live). Authoritative contract: PLAN-tts-live.md §3.0 ---
+    # priced raw counts, keys from router.catalog.UNIT_RATE_FIELDS
+    units: dict[str, float] = field(default_factory=dict)
+    units_estimated: bool = False  # provider sent no usage; gateway estimated
+    parent_session_id: str | None = None  # live: every checkpoint rolls up here
+    session_seconds: float = 0.0  # wall clock covered by this event
+    output_audio_seconds: float = 0.0  # audio generated (TTS, live downlink)
+    list_cost_usd: float = 0.0  # gateway's own price, cross-check only
 
 
 class UsageEmitter(ABC):

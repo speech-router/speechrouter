@@ -15,6 +15,8 @@ def test_every_model_has_exactly_one_native_rate_and_derived_legacy():
     catalog = Catalog.load()
     assert catalog.all(), "catalog must not be empty"
     for entry in catalog.all():
+        if entry.get("kind", "stt") != "stt":
+            continue  # unit-priced; see test_unit_priced_models_*
         pricing = entry.get("pricing", {})
         rates = [f for f in RATE_FIELDS if f in pricing]
         assert len(rates) == 1, f"{entry['slug']}: expected exactly one rate field, got {rates}"
@@ -137,3 +139,93 @@ def test_elevenlabs_plain_commit_is_dropped_as_duplicate():
     assert parse_message(json.dumps(plain)) == []
     finals = parse_message(json.dumps(stamped))
     assert len(finals) == 1 and finals[0].is_final and finals[0].text == "hello there"
+
+
+# ---- TTS / live (unit pricing, PLAN-tts-live.md §3.0) ----
+
+def _schema_pricing_fields() -> set[str]:
+    import json
+    from pathlib import Path
+
+    schema = json.loads(
+        (Path(__file__).parents[2] / "packages/spec/catalog.schema.json").read_text()
+    )
+    return set(schema["properties"]["pricing"]["properties"])
+
+
+def test_unit_priced_models_have_known_rates_and_no_legacy_field():
+    from speechrouter_gateway.router.catalog import UNIT_RATE_FIELDS
+
+    allowed = {field for field, _ in UNIT_RATE_FIELDS.values()}
+    schema_fields = _schema_pricing_fields()
+    unit_models = [e for e in Catalog.load().all() if e["kind"] in {"tts", "live"}]
+    assert {e["kind"] for e in unit_models} == {"tts", "live"}
+    for entry in unit_models:
+        pricing = entry["pricing"]
+        assert pricing, entry["slug"]
+        assert set(pricing) <= allowed, entry["slug"]
+        assert set(pricing) <= schema_fields, entry["slug"]
+        # never mispriced to a legacy seconds consumer
+        assert "per_second_usd" not in pricing, entry["slug"]
+        for step in entry.get("pricing_schedule", []):
+            assert set(step["pricing"]) <= allowed, entry["slug"]
+
+
+def test_live_models_declare_dialect():
+    for entry in Catalog.load().all():
+        if entry["kind"] == "live":
+            assert entry["modes"] == ["live"]
+            assert entry["dialect"] == {"openai": "openai-realtime",
+                                        "gemini": "gemini-live"}[entry["provider"]]
+
+
+def test_price_units_sums_components():
+    from speechrouter_gateway.router.catalog import price_units
+
+    entry = {"pricing": {"per_1m_text_input_tokens_usd": 0.60,
+                         "per_1m_audio_output_tokens_usd": 12.00}}
+    cost = price_units(entry, {"text_input_tokens": 1_000, "audio_output_tokens": 10_000,
+                               "characters": 99})  # no per-char rate -> free
+    assert abs(cost - (0.0006 + 0.12)) < 1e-12
+    per_char = price_units({"pricing": {"per_character_usd": 0.000015}}, {"characters": 1000})
+    assert abs(per_char - 0.015) < 1e-12
+
+
+def test_pricing_schedule_switches_on_date():
+    from datetime import UTC, datetime
+
+    from speechrouter_gateway.router.catalog import effective_pricing
+
+    entry = Catalog.load().find("gemini/gemini-3.8-flash-tts")
+    assert entry is not None
+    before = datetime(2026, 12, 31, 23, 59, tzinfo=UTC).timestamp()
+    after = datetime(2027, 1, 1, 0, 0, tzinfo=UTC).timestamp()
+    assert effective_pricing(entry, before)["per_1m_audio_output_tokens_usd"] == 9.00
+    assert effective_pricing(entry, after)["per_1m_audio_output_tokens_usd"] == 18.00
+
+
+def test_disabled_kinds_vanish():
+    catalog = Catalog.load(disabled_kinds=frozenset({"tts", "live"}))
+    assert catalog.find("openai/gpt-4o-mini-tts") is None
+    assert catalog.find("openai/gpt-realtime-2.1") is None
+    assert catalog.find("deepgram/nova-3") is not None
+    assert all(e["kind"] == "stt" for e in catalog.public())
+
+
+def test_tts_slug_is_not_transcription():
+    import pytest
+
+    from speechrouter_gateway.config import Settings
+    from speechrouter_gateway.router.resolver import (
+        ResolveError,
+        StreamRequest,
+        resolve_batch,
+        resolve_stream,
+    )
+
+    settings = Settings(openai_api_key="x", _env_file=None)
+    catalog = Catalog.load()
+    with pytest.raises(ResolveError):
+        resolve_stream("openai/gpt-4o-mini-tts", StreamRequest(), settings, catalog)
+    with pytest.raises(ResolveError):
+        resolve_batch("openai/tts-1", StreamRequest(), settings, catalog)
