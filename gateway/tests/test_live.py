@@ -565,7 +565,7 @@ def test_gemini_second_setup_closes_session(gw, upstream):
 
 
 def test_realtime_client_secrets_alias_mints_connectable_token(gw, upstream):
-    client, _ = gw
+    client, app = gw
     r = client.post("/v1/realtime/client_secrets", headers=BEARER,
                     json={"expires_after": {"anchor": "created_at", "seconds": 600},
                           "session": {"type": "realtime", "model": "gpt-realtime-2.1"}})
@@ -579,6 +579,7 @@ def test_realtime_client_secrets_alias_mints_connectable_token(gw, upstream):
         OPENAI_URL, subprotocols=["realtime", f"openai-insecure-api-key.{body['value']}"]
     ) as ws:
         assert json.loads(ws.receive_text())["type"] == "session.created"
+        _leave(ws, app)
 
 
 # ---- review regressions ----
