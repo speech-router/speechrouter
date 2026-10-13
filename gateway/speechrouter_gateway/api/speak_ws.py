@@ -18,6 +18,7 @@ from ..auth.tokens import resolve_credentials
 from ..protocol import Error
 from ..protocol.events import Code
 from ..router.resolver import ResolveError, TTSRequest, resolve_tts
+from ..tts.native_session import NativeSpeakSession
 from ..tts.session import SpeakClosed, SpeakSession
 from .listen_ws import _extract_key, _subprotocol_auth
 
@@ -131,14 +132,30 @@ async def speak(websocket: WebSocket) -> None:
                      f"concurrent stream limit ({state.settings.max_concurrent_streams}) "
                      "reached for this organization")
         return
-    session = SpeakSession(
-        transport=transport, resolved=resolved, emitter=state.emitter, key_id=record.key_id,
-        settings=state.settings, byok=byok, org_id=record.org_id, redis=redis,
-    )
+    # Providers with a native incremental-text socket (xAI, Deepgram Flux)
+    # stream text straight through; everyone else is segmented per sentence.
+    probe = resolved.build()
+    native = probe.open_stream(resolved.config)
+    session: SpeakSession | NativeSpeakSession
+    if native is not None:
+        session = NativeSpeakSession(
+            transport=transport, resolved=resolved, stream=native, emitter=state.emitter,
+            key_id=record.key_id, settings=state.settings, byok=byok, org_id=record.org_id,
+            redis=redis,
+        )
+    else:
+        await probe.close()
+        session = SpeakSession(
+            transport=transport, resolved=resolved, emitter=state.emitter,
+            key_id=record.key_id, settings=state.settings, byok=byok, org_id=record.org_id,
+            redis=redis,
+        )
     try:
         await session.run()
     finally:
         state.concurrency.release(scope)
+        if native is not None:
+            await probe.close()
     # linger so `done` flushes through proxies before close (see listen_ws)
     try:
         async with asyncio.timeout(3):

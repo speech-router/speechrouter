@@ -58,6 +58,12 @@ ENV_TO_SETTING = {
     "SPEECHMATICS_API_KEY": "speechmatics_api_key",
     "MURF_API_KEY": "murf_api_key",
     "RESEMBLE_API_KEY": "resemble_api_key",
+    # phase 3
+    "XAI_API_KEY": "xai_api_key",
+    "MISTRAL_API_KEY": "mistral_api_key",
+    "SMALLEST_API_KEY": "smallest_api_key",
+    "TOGETHER_API_KEY": "together_api_key",
+    # Polly is mock-only by decision (no real AWS calls); deliberately unmapped
 }
 
 # provider -> Settings field that must be set for it to be probed
@@ -69,6 +75,8 @@ PROVIDER_KEY = {
     "fishaudio": "fishaudio_api_key", "playht": "playht_api_key", "groq": "groq_api_key",
     "minimax": "minimax_api_key", "speechmatics": "speechmatics_api_key",
     "murf": "murf_api_key", "resemble": "resemble_api_key",
+    "xai": "xai_api_key", "mistral": "mistral_api_key", "smallest": "smallest_api_key",
+    "together": "together_api_key",
 }
 
 
@@ -137,6 +145,9 @@ async def main() -> int:
     total = 0.0
     for provider, slugs in sorted(by_provider.items()):
         if only and provider not in only:
+            continue
+        if provider == "aws":
+            results[provider] = {"status": "skipped: mock-only by decision (no real AWS calls)"}
             continue
         if not getattr(settings, PROVIDER_KEY.get(provider, ""), ""):
             results[provider] = {"status": "skipped: no key (mock-tested only)"}

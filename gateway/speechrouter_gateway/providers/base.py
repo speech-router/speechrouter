@@ -201,3 +201,47 @@ class TTSProvider(ABC):
 
     async def close(self) -> None:  # noqa: B027 - optional hook
         """Release pooled resources. Safe from any state."""
+
+    def open_stream(self, config: TTSConfig) -> "TTSStream | None":
+        """A native incremental-text socket for this config, or None to let
+        /v1/speak segment text over synthesize()."""
+        return None
+
+
+class TTSStream(ABC):
+    """A provider-native incremental-text socket for /v1/speak (phase 3).
+
+    One instance == one upstream connection for one client session. Text
+    goes in as it arrives; audio comes out of audio() in order until the
+    provider has flushed everything after finish(). clear() is barge-in: it
+    returns once the provider has acknowledged, and audio generated before
+    the ack never leaves audio(). It may return provider facts about what
+    was actually spoken (e.g. {"text_spoken": ..., "text_remaining": ...}).
+    """
+
+    usage: TTSUsage
+
+    @abstractmethod
+    async def connect(self, config: TTSConfig) -> None:
+        """Open upstream; returns when the provider accepts text."""
+
+    @abstractmethod
+    async def send_text(self, text: str) -> None: ...
+
+    @abstractmethod
+    async def clear(self, playback_ms: int | None = None) -> dict:
+        """playback_ms: how much audio the CLIENT has actually played, when
+        it says so in its `clear`; providers that bill or report "text
+        spoken" by playback position use it, else they fall back to audio
+        sent."""
+
+    @abstractmethod
+    async def finish(self) -> None:
+        """No more text; audio() ends after the provider's final audio."""
+
+    @abstractmethod
+    def audio(self) -> AsyncIterator[bytes]: ...
+
+    @abstractmethod
+    async def close(self) -> None:
+        """Safe from any state. Idempotent."""

@@ -60,7 +60,13 @@ PIDS+=($!)
   SPEECHROUTER_MURF_API_KEY=mock-house-murf \
   SPEECHROUTER_SPEECHMATICS_API_KEY=mock-house-speechmatics \
   SPEECHROUTER_AZURE_SPEECH_REGION=eastus \
-  SPEECHROUTER_TTS_BASE_URLS="{\"elevenlabs\":\"http://127.0.0.1:$MOCK_PORT/vendor/elevenlabs\",\"cartesia\":\"http://127.0.0.1:$MOCK_PORT/vendor/cartesia\",\"deepgram\":\"http://127.0.0.1:$MOCK_PORT/vendor/deepgram\",\"azure\":\"http://127.0.0.1:$MOCK_PORT/vendor/azure\",\"google\":\"http://127.0.0.1:$MOCK_PORT/vendor/google\",\"rime\":\"http://127.0.0.1:$MOCK_PORT/vendor/rime\",\"inworld\":\"http://127.0.0.1:$MOCK_PORT/vendor/inworld\",\"fishaudio\":\"http://127.0.0.1:$MOCK_PORT/vendor/fishaudio\",\"minimax\":\"http://127.0.0.1:$MOCK_PORT/vendor/minimax\",\"groq\":\"http://127.0.0.1:$MOCK_PORT/vendor/groq\",\"murf\":\"http://127.0.0.1:$MOCK_PORT/vendor/murf\",\"speechmatics\":\"http://127.0.0.1:$MOCK_PORT/vendor/speechmatics\"}" \
+  SPEECHROUTER_XAI_API_KEY=mock-house-xai \
+  SPEECHROUTER_MISTRAL_API_KEY=mock-house-mistral \
+  SPEECHROUTER_SMALLEST_API_KEY=mock-house-smallest \
+  SPEECHROUTER_TOGETHER_API_KEY=mock-house-together \
+  SPEECHROUTER_AWS_ACCESS_KEY_ID=mock-house-aws \
+  SPEECHROUTER_AWS_SECRET_ACCESS_KEY=mock-secret-not-real \
+  SPEECHROUTER_TTS_BASE_URLS="{\"elevenlabs\":\"http://127.0.0.1:$MOCK_PORT/vendor/elevenlabs\",\"cartesia\":\"http://127.0.0.1:$MOCK_PORT/vendor/cartesia\",\"deepgram\":\"http://127.0.0.1:$MOCK_PORT/vendor/deepgram\",\"azure\":\"http://127.0.0.1:$MOCK_PORT/vendor/azure\",\"google\":\"http://127.0.0.1:$MOCK_PORT/vendor/google\",\"rime\":\"http://127.0.0.1:$MOCK_PORT/vendor/rime\",\"inworld\":\"http://127.0.0.1:$MOCK_PORT/vendor/inworld\",\"fishaudio\":\"http://127.0.0.1:$MOCK_PORT/vendor/fishaudio\",\"minimax\":\"http://127.0.0.1:$MOCK_PORT/vendor/minimax\",\"groq\":\"http://127.0.0.1:$MOCK_PORT/vendor/groq\",\"murf\":\"http://127.0.0.1:$MOCK_PORT/vendor/murf\",\"speechmatics\":\"http://127.0.0.1:$MOCK_PORT/vendor/speechmatics\",\"xai\":\"http://127.0.0.1:$MOCK_PORT/vendor/xai\",\"mistral\":\"http://127.0.0.1:$MOCK_PORT/vendor/mistral\",\"smallest\":\"http://127.0.0.1:$MOCK_PORT/vendor/smallest\",\"together\":\"http://127.0.0.1:$MOCK_PORT/vendor/together\",\"aws\":\"http://127.0.0.1:$MOCK_PORT/vendor/aws\"}" \
   exec "$PY" -m uvicorn speechrouter_gateway.main:app --host 127.0.0.1 --port "$GW_PORT" \
     --ssl-keyfile "$WORK/key.pem" --ssl-certfile "$WORK/cert.pem" --log-level warning
 ) > "$OUT/gateway.log" 2>&1 &

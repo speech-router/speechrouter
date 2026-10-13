@@ -422,6 +422,18 @@ existing `characters` → `per_character_usd` unit. Where the vendor reports its
 `dg-char-count`, Inworld `processedCharactersCount`, MiniMax `usage_characters`), that count replaces
 `len(text)` in `characters` and `units.characters`.
 
+**Phase 3 (2026-10-13): no new billing units.** xAI Grok TTS, Deepgram Flux, Amazon Polly (4 engines),
+Mistral Voxtral, Smallest.ai Lightning and Kokoro on Together all bill per character
+(`characters` → `per_character_usd`). Billed counts reported by the vendor replace `len(text)`:
+Polly `x-amzn-RequestCharacters`, and Flux `SessionMetadata.total_billable_character_count` on the
+native socket. `/v1/speak` sessions on a provider-native socket (xAI, Flux) emit the same single
+`kind=tts_stream` event as segmented sessions. Characters are text sent upstream, or the vendor's billed
+count when it reports one. A barge-in does not refund text that was already sent.
+New BYOK ids: `smallest`, `together` (add to `ByokCredential::PROVIDERS`). `xai`, `mistral` and `deepgram`
+were already BYOK-able. `aws` stays excluded (multi-field).
+Protocol additions (additive): client `clear.playback_ms` (optional), and server `cleared.text_spoken` /
+`cleared.text_remaining` (Flux only).
+
 New catalog fields on TTS entries (informational): `pricing_source` (URL and notes), `pricing_checked`
 (date), `notes`, and `capabilities.custom_voices` (any voice ID is accepted and validated by the provider).
 

@@ -90,6 +90,8 @@ class TextDelta:
 class Cleared:
     type: Literal["cleared"]
     last_seq: int
+    text_spoken: str | None = None  # native-socket providers that report it (Deepgram Flux)
+    text_remaining: str | None = None
 
 
 @dataclass(slots=True)

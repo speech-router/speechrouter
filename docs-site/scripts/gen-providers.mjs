@@ -17,6 +17,7 @@ const NAMES = {
   elevenlabs: 'ElevenLabs', cartesia: 'Cartesia', telnyx: 'Telnyx',
   palabra: 'Palabra', gemini: 'Gemini', meta: 'Meta', xai: 'xAI',
   rime: 'Rime', inworld: 'Inworld', fishaudio: 'Fish Audio', minimax: 'MiniMax', murf: 'Murf',
+  smallest: 'Smallest.ai', together: 'Together AI',
 };
 
 const BLURBS = {
@@ -42,6 +43,8 @@ const BLURBS = {
   fishaudio: 'Fish Audio S2 — huge community voice library; billed per UTF-8 byte.',
   minimax: 'MiniMax Speech 2.x — HD and Turbo voices, strong multilingual coverage.',
   murf: 'Murf Falcon 2 — low-latency streaming TTS at $10 per 1M characters.',
+  smallest: 'Smallest.ai Lightning v3.1 — 217 voices, native 8 kHz mu-law, $17.50 per 1M characters.',
+  together: 'Kokoro-82M on Together AI — the $4 per 1M characters open-weight tier (non-PHI traffic only).',
 };
 
 const esc = (t) => String(t).replace(/\|/g, '\\|');

@@ -35,8 +35,10 @@ V2_FIELDS = {
     "list_cost_usd",
 }
 PHASE2 = ["elevenlabs", "cartesia", "deepgram", "azure", "google", "rime", "inworld",
-          "fishaudio", "minimax", "groq", "murf", "speechmatics"]
-UNIT_KEYS = {"utf8_bytes", "cached_image_input_tokens", "characters", "text_input_tokens", "cached_text_input_tokens",
+          "fishaudio", "minimax", "groq", "murf", "speechmatics",
+          "xai", "aws", "mistral", "smallest", "together"]
+UNIT_KEYS = {"utf8_bytes", "cached_image_input_tokens",
+             "characters", "text_input_tokens", "cached_text_input_tokens",
              "audio_input_tokens", "cached_audio_input_tokens", "image_input_tokens",
              "text_output_tokens", "audio_output_tokens"}
 
@@ -78,7 +80,11 @@ def tts_rest(base: str, key: str, report: Report) -> None:
     for slug in ["elevenlabs/eleven_flash_v2_5", "cartesia/sonic-3.6", "deepgram/aura-2",
                  "azure/neural", "google/chirp3-hd", "rime/coda", "inworld/inworld-tts-2",
                  "fishaudio/s2.1-pro", "minimax/speech-2.8-turbo", "groq/orpheus-v1-english",
-                 "murf/falcon-2", "speechmatics/preview"]:
+                 "murf/falcon-2", "speechmatics/preview",
+                 # phase 3
+                 "xai/grok-tts", "deepgram/flux", "aws/polly-neural",
+                 "mistral/voxtral-mini-tts-2603", "smallest/lightning_v3.1",
+                 "together/kokoro-82m"]:
         cases.append((slug, None, "wav", f"tts-{slug.replace('/', '-')}.wav"))
     for model, voice, fmt, filename in cases:
         started = time.monotonic()
@@ -137,6 +143,39 @@ async def speak_ws(ws_base: str, key: str, report: Report, ssl_ctx) -> None:
     report.check("speak_ws:openai/gpt-4o-mini-tts", paired and len(audio) > 0,
                  session=opened.get("session_id"), audio_chunks=frames.count("bytes"),
                  pcm_seconds=round(len(audio) / 48000, 3), done_usage=done["usage"])
+
+
+async def speak_native(ws_base: str, key: str, report: Report, ssl_ctx, slug: str,
+                       encoding: str) -> None:
+    """/v1/speak over a provider-native socket, with a barge-in mid-stream."""
+    url = f"{ws_base}/v1/speak?model={slug}&encoding={encoding}"
+    events: list[dict] = []
+    audio = b""
+    async with websockets.connect(url, subprotocols=["bearer", key], ssl=ssl_ctx) as ws:
+        events.append(json.loads(await ws.recv()))
+        await ws.send(json.dumps({"type": "text.delta", "text": "Your table is ready now. "}))
+        first = await ws.recv()  # audio.chunk
+        events.append(json.loads(first))
+        audio += await ws.recv()
+        await ws.send(json.dumps({"type": "clear", "playback_ms": 120}))
+        await ws.send(json.dumps({"type": "text.delta", "text": "Sorry, go ahead."}))
+        await ws.send(json.dumps({"type": "finalize"}))
+        while True:
+            frame = await ws.recv()
+            if isinstance(frame, bytes):
+                audio += frame
+                continue
+            event = json.loads(frame)
+            events.append(event)
+            if event["type"] in ("done", "error"):
+                break
+    cleared = next((e for e in events if e["type"] == "cleared"), None)
+    done = events[-1]
+    ok = cleared is not None and done["type"] == "done" and len(audio) > 0
+    if slug == "deepgram/flux":
+        ok = ok and "text_spoken" in (cleared or {})
+    report.check(f"speak_native:{slug}:{encoding}", ok, cleared=cleared,
+                 audio_bytes=len(audio), done_usage=done.get("usage"))
 
 
 # ---------------------------------------------------------------- 3. OpenAI
@@ -274,6 +313,10 @@ async def main() -> int:
     steps = [
         ("tts_rest", lambda: asyncio.to_thread(tts_rest, args.base, key, report)),
         ("speak_ws", lambda: speak_ws(ws_base, key, report, ssl_ctx)),
+        ("speak_native_xai", lambda: speak_native(ws_base, key, report, ssl_ctx,
+                                                  "xai/grok-tts", "mulaw")),
+        ("speak_native_flux", lambda: speak_native(ws_base, key, report, ssl_ctx,
+                                                   "deepgram/flux", "linear16")),
         ("openai_realtime", lambda: openai_realtime(args.base, key, report)),
         ("gemini_live", lambda: gemini_live(args.base, key, report)),
     ]

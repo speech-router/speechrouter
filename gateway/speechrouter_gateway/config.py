@@ -111,6 +111,8 @@ class Settings(BaseSettings):
     minimax_api_key: str = ""
     murf_api_key: str = ""
     resemble_api_key: str = ""
+    smallest_api_key: str = ""
+    together_api_key: str = ""  # Kokoro tier (non-PHI only per Together ToS)
     # Google Cloud TTS REST accepts an API key; independent of the STT
     # service-account settings below
     google_tts_api_key: str = ""

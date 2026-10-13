@@ -12,4 +12,7 @@ once keys exist.
 | PlayHT | no | **shut down** (Meta acquired PlayAI in 2025; API domains don't resolve) |
 | Hume | no | TTS API **sunsets 2026-11-13**; pricing unverifiable |
 | Resemble | no | no verifiable public list price |
-| Mistral Voxtral TTS, xAI, Smallest.ai | no | candidates: see `_others.md` |
+| xAI Grok TTS, Deepgram Flux | yes (REST plus **native socket** for `/v1/speak`) | phase 3, in catalog (mock-tested) |
+| Amazon Polly (standard/neural/long-form/generative) | yes (SynthesizeSpeech, SigV4) | phase 3, **mock-only by decision**; bidirectional stream is a follow-up |
+| Mistral Voxtral, Smallest.ai Lightning, Kokoro (Together) | yes | phase 3, in catalog (mock-tested) |
+| Telnyx (Kokoro / NaturalHD) | no | Kokoro price line only inferable from the pricing page and no mu-law documented; Together chosen for the Kokoro tier |

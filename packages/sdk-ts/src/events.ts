@@ -77,6 +77,9 @@ export interface TextDeltaEvent {
 export interface ClearedEvent {
   type: 'cleared'
   last_seq: number
+  /** Native-socket providers that report it (Deepgram Flux): text voiced before the barge-in */
+  text_spoken?: string
+  text_remaining?: string
 }
 
 export interface KeepAliveEvent {

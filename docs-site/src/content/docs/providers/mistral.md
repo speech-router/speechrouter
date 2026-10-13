@@ -14,6 +14,14 @@ knobs pass through untouched via `provider_params`.
 | `mistral/voxtral-mini-latest` | batch | $0.003/min | <span class="sr-yes">✓</span> | <span class="sr-yes">✓</span> |
 | `mistral/voxtral-mini-transcribe-realtime-2602` | streaming | $0.006/min | <span class="sr-no">—</span> | <span class="sr-no">—</span> |
 
+## Text-to-speech
+
+Token prices are per 1M tokens; "+" means any account or library voice id is accepted. [Text-to-speech guide](/guides/tts/).
+
+| Model | List price | Formats | Voices |
+| --- | --- | --- | --- |
+| `mistral/voxtral-mini-tts-2603` | $16 per 1M chars | pcm, wav, mp3, flac, opus, mulaw, alaw | 1+ |
+
 ## Provider options
 
 Reach past the unified surface with [`provider_params`](/guides/streaming/#query-parameters)

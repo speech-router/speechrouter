@@ -1,6 +1,7 @@
 from .assemblyai import adapter as _assemblyai_adapter  # noqa: F401  (self-registers)
 from .assemblyai import batch as _assemblyai_batch  # noqa: F401
 from .aws import adapter as _aws_adapter  # noqa: F401
+from .aws import tts as _aws_tts  # noqa: F401
 from .azure import adapter as _azure_adapter  # noqa: F401
 from .azure import batch as _azure_batch  # noqa: F401
 from .azure import tts as _azure_tts  # noqa: F401
@@ -35,6 +36,7 @@ from .meta import batch as _meta_batch  # noqa: F401
 from .minimax import tts as _minimax_tts  # noqa: F401
 from .mistral import adapter as _mistral_adapter  # noqa: F401
 from .mistral import batch as _mistral_batch  # noqa: F401
+from .mistral import tts as _mistral_tts  # noqa: F401
 from .murf import tts as _murf_tts  # noqa: F401
 from .openai import adapter as _openai_adapter  # noqa: F401
 from .openai import batch as _openai_batch  # noqa: F401
@@ -50,11 +52,14 @@ from .registry import (  # noqa: F401
     tts_provider,
 )
 from .rime import tts as _rime_tts  # noqa: F401
+from .smallest import tts as _smallest_tts  # noqa: F401
 from .soniox import adapter as _soniox_adapter  # noqa: F401  (self-registers)
 from .soniox import batch as _soniox_batch  # noqa: F401
 from .speechmatics import adapter as _speechmatics_adapter  # noqa: F401
 from .speechmatics import batch as _speechmatics_batch  # noqa: F401
 from .speechmatics import tts as _speechmatics_tts  # noqa: F401
 from .telnyx import adapter as _telnyx_adapter  # noqa: F401  (self-registers)
+from .together import tts as _together_tts  # noqa: F401
 from .xai import adapter as _xai_adapter  # noqa: F401  (self-registers)
 from .xai import batch as _xai_batch  # noqa: F401
+from .xai import tts as _xai_tts  # noqa: F401

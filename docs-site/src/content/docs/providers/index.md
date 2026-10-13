@@ -4,7 +4,7 @@ description: Every provider behind the one API.
 sidebar: { order: 0, label: Overview }
 ---
 
-22 providers, 44 models, one schema. Prices below are
+24 providers, 44 models, one schema. Prices below are
 vendor list prices — [we add nothing](/guides/pricing/).
 
 - [Soniox](/providers/soniox/) — 60+ languages with translation-grade accuracy; realtime bills wall-clock session time.
@@ -26,8 +26,10 @@ vendor list prices — [we add nothing](/guides/pricing/).
 - [OpenAI](/providers/openai/) — Whisper and the GPT-4o transcribe family — LLM-grade accuracy.
 - [Palabra](/providers/palabra/) — Realtime ASR at $0.002/min, with live translation available on the same socket.
 - [Rime](/providers/rime/) — Rime TTS — Coda and Mist v3 voices built for conversational agents.
+- [Smallest.ai](/providers/smallest/) — Smallest.ai Lightning v3.1 — 217 voices, native 8 kHz mu-law, $17.50 per 1M characters.
 - [Speechmatics](/providers/speechmatics/) — Broad language coverage; Melia-1 code-switches across 56 languages.
 - [Telnyx](/providers/telnyx/) — Whisper Large-v3-Turbo as a live stream — 100 languages, hosted by Telnyx.
+- [Together AI](/providers/together/) — Kokoro-82M on Together AI — the $4 per 1M characters open-weight tier (non-PHI traffic only).
 - [xAI](/providers/xai/) — Grok Voice Transcribe 2.0 — word timings, speaker labels and keyterms included; $0.20/hr streaming, $0.10/hr batch.
 
 The live, machine-readable version: [`GET /v1/models`](/reference/rest/#get-v1models).

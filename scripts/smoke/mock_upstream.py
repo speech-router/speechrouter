@@ -130,7 +130,18 @@ PHASE2_AUTH = {
     "inworld": ("authorization", "Basic {k}"), "fishaudio": ("authorization", "Bearer {k}"),
     "minimax": ("authorization", "Bearer {k}"), "groq": ("authorization", "Bearer {k}"),
     "murf": ("api-key", "{k}"), "speechmatics": ("authorization", "Bearer {k}"),
+    # phase 3
+    "xai": ("authorization", "Bearer {k}"), "mistral": ("authorization", "Bearer {k}"),
+    "smallest": ("authorization", "Bearer {k}"), "together": ("authorization", "Bearer {k}"),
+    # SigV4: the access key id rides the Credential scope (prefix match below)
+    "aws": ("authorization", "AWS4-HMAC-SHA256 Credential={k}/"),
 }
+
+
+def _f32(pcm: bytes) -> bytes:
+    samples = array.array("h")
+    samples.frombytes(pcm)
+    return array.array("f", (x / 32767 for x in samples)).tobytes()
 
 
 @app.post("/vendor/{provider}/{rest:path}")
@@ -138,20 +149,34 @@ async def vendor_tts(provider: str, rest: str, request: Request):
     header, template = PHASE2_AUTH[provider]
     expected = template.format(k=f"mock-house-{provider}")
     raw = await request.body()
-    if not record(f"{provider}_tts", request.headers.get(header, ""), expected,
-                  path="/" + rest):
+    presented = request.headers.get(header, "")
+    if provider == "aws" and presented.startswith(expected):
+        presented = expected  # signature itself is verified by unit tests
+    if not record(f"{provider}_tts", presented, expected, path="/" + rest):
         return JSONResponse({"error": "bad key"}, status_code=401)
     text = "x" * 40
     if raw.startswith(b"{"):
         body = json.loads(raw)
         text = body.get("text") or body.get("transcript") or body.get("input") or text
-    rate = 16000 if provider == "speechmatics" else 24000
+    if provider == "aws":
+        text = (json.loads(raw).get("Text") or text) if raw.startswith(b"{") else text
+    rate = 16000 if provider in ("speechmatics", "aws") else 24000
     pcm = tone(0.2 + len(text) * 0.02, rate, 380)
     if provider == "google":
         return JSONResponse({"audioContent": base64.b64encode(wav_header(len(pcm)) + pcm)
                              .decode()})
-    if provider == "groq":
+    if provider in ("groq", "together"):
         return Response(wav_header(len(pcm)) + pcm, media_type="audio/wav")
+    if provider == "mistral":
+        f32 = _f32(pcm)
+
+        async def mistral_sse():
+            for i in range(0, len(f32), 19200):
+                event = {"type": "speech.audio.delta",
+                         "audio_data": base64.b64encode(f32[i:i + 19200]).decode()}
+                yield f"data: {json.dumps(event)}\n\n"
+            yield 'data: {"type": "speech.audio.done"}\n\n'
+        return StreamingResponse(mistral_sse(), media_type="text/event-stream")
     if provider == "inworld":
         lines = [json.dumps({"result": {"audioContent": base64.b64encode(pcm[i:i + 9600])
                                         .decode(), **({"usage": {"processedCharactersCount":
@@ -170,12 +195,76 @@ async def vendor_tts(provider: str, rest: str, request: Request):
             yield f"data: {json.dumps(final)}\n\n"
         return StreamingResponse(sse(), media_type="text/event-stream")
     headers = {"dg-char-count": str(len(text))} if provider == "deepgram" else {}
+    if provider == "aws":
+        headers = {"x-amzn-RequestCharacters": str(len(text))}
 
     async def chunks():
         for i in range(0, len(pcm), 4800):
             yield pcm[i:i + 4800]
             await asyncio.sleep(0.005)
     return StreamingResponse(chunks(), media_type="application/octet-stream", headers=headers)
+
+
+@app.websocket("/vendor/xai/v1/tts")
+async def xai_tts_socket(ws: WebSocket):
+    """xAI native TTS socket: text.delta/done/clear -> audio.delta/done/clear."""
+    ok = record("xai_tts_ws", ws.headers.get("authorization", ""), "Bearer mock-house-xai",
+                query=str(ws.url.query))
+    await ws.accept()
+    if not ok:
+        await ws.close(code=1008)
+        return
+    rate = int(ws.query_params.get("sample_rate", "24000"))
+    try:
+        while True:
+            msg = json.loads(await ws.receive_text())
+            if msg["type"] == "text.delta":
+                pcm = tone(len(msg["delta"]) * 0.02, rate, 300)
+                await ws.send_text(json.dumps({"type": "audio.delta",
+                                               "delta": base64.b64encode(pcm).decode()}))
+            elif msg["type"] == "text.clear":
+                await ws.send_text(json.dumps({"type": "audio.clear"}))
+            elif msg["type"] == "text.done":
+                await ws.send_text(json.dumps({"type": "audio.done", "trace_id": "mock"}))
+    except Exception:  # noqa: BLE001 - client left
+        return
+
+
+@app.websocket("/vendor/deepgram/v2/speak")
+async def flux_tts_socket(ws: WebSocket):
+    """Deepgram Flux native socket: Speak/Flush/Interrupt/Close, binary audio."""
+    ok = record("deepgram_flux_ws", ws.headers.get("authorization", ""),
+                "Token mock-house-deepgram", query=str(ws.url.query))
+    await ws.accept()
+    if not ok:
+        await ws.close(code=1008)
+        return
+    rate = int(ws.query_params.get("sample_rate", "24000"))
+    spoken: list[str] = []
+    billed = 0
+    try:
+        await ws.send_text(json.dumps({"type": "Connected", "request_id": "mock"}))
+        while True:
+            msg = json.loads(await ws.receive_text())
+            if msg["type"] == "Speak":
+                spoken.append(msg["text"])
+                billed += len(msg["text"])
+                await ws.send_bytes(tone(len(msg["text"]) * 0.02, rate, 340))
+            elif msg["type"] == "Interrupt":
+                text = "".join(spoken)
+                await ws.send_text(json.dumps({
+                    "type": "SpeechInterrupted", "audio_played_ms":
+                        msg.get("playback_offset", {}).get("value", 0),
+                    "text_spoken": text[: len(text) // 2],
+                    "text_remaining": text[len(text) // 2:]}))
+                spoken = []
+            elif msg["type"] == "Close":
+                await ws.send_text(json.dumps({"type": "SessionMetadata",
+                                               "total_billable_character_count": billed}))
+                await ws.close()
+                return
+    except Exception:  # noqa: BLE001 - client left
+        return
 
 
 # ------------------------------------------------------------- live

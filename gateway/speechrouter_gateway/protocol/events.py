@@ -113,6 +113,12 @@ class Clear(BaseModel):
     """
 
     type: Literal['clear']
+    playback_ms: Annotated[
+        int | None,
+        Field(
+            description='Optional: milliseconds of session audio the client has actually played. Providers that report what was spoken at barge-in (Deepgram Flux) use it; without it the gateway uses audio sent.'
+        ),
+    ] = None
 
 
 class Cleared(BaseModel):
@@ -122,6 +128,18 @@ class Cleared(BaseModel):
 
     type: Literal['cleared']
     last_seq: int
+    text_spoken: Annotated[
+        str | None,
+        Field(
+            description='Provider-reported text actually voiced before the barge-in (native-socket providers that report it, e.g. Deepgram Flux); absent otherwise'
+        ),
+    ] = None
+    text_remaining: Annotated[
+        str | None,
+        Field(
+            description='Provider-reported text that was accepted but not voiced; absent otherwise'
+        ),
+    ] = None
 
 
 class KeepAlive(BaseModel):

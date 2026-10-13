@@ -13,6 +13,17 @@ knobs pass through untouched via `provider_params`.
 | --- | --- | --- | --- | --- |
 | `aws/transcribe` | streaming | $0.01/min (min $0.0025/req) | <span class="sr-yes">✓</span> | <span class="sr-yes">✓</span> |
 
+## Text-to-speech
+
+Token prices are per 1M tokens; "+" means any account or library voice id is accepted. [Text-to-speech guide](/guides/tts/).
+
+| Model | List price | Formats | Voices |
+| --- | --- | --- | --- |
+| `aws/polly-generative` | $30 per 1M chars | pcm, wav, mp3, opus, mulaw, alaw | 9 |
+| `aws/polly-neural` | $16 per 1M chars | pcm, wav, mp3, opus, mulaw, alaw | 17 |
+| `aws/polly-long-form` | $100 per 1M chars | pcm, wav, mp3, opus, mulaw, alaw | 4 |
+| `aws/polly-standard` | $4 per 1M chars | pcm, wav, mp3, opus, mulaw, alaw | 10 |
+
 ## Provider options
 
 :::note

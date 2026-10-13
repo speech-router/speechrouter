@@ -25,6 +25,7 @@ Token prices are per 1M tokens; "+" means any account or library voice id is acc
 | --- | --- | --- | --- |
 | `deepgram/aura-2` | $30 per 1M chars | pcm, wav, mp3, opus, flac, aac, mulaw, alaw | 15+ |
 | `deepgram/aura-1` | $15 per 1M chars | pcm, wav, mp3, opus, flac, aac, mulaw, alaw | 12+ |
+| `deepgram/flux` | $45 per 1M chars | pcm, wav, mp3, opus, flac, aac, mulaw, alaw | 20+ |
 
 ## Provider options
 

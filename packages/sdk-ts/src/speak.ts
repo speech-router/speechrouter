@@ -146,9 +146,11 @@ export class SpeakStream {
     this.send({ type: 'text.delta', text })
   }
 
-  /** Barge-in: drop queued and in-flight audio; a `cleared` event follows. */
-  clear(): void {
-    this.send({ type: 'clear' })
+  /** Barge-in: drop queued and in-flight audio; a `cleared` event follows.
+   * playbackMs: audio actually played so far, if known (used by providers that
+   * report text_spoken, e.g. Deepgram Flux). */
+  clear(playbackMs?: number): void {
+    this.send(playbackMs === undefined ? { type: 'clear' } : { type: 'clear', playback_ms: playbackMs })
   }
 
   /** No more text: the rest is spoken, then `done`. */

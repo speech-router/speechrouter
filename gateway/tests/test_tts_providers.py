@@ -14,6 +14,7 @@ import pytest
 
 from speechrouter_gateway.audio.pcm_codec import wav_header
 from speechrouter_gateway.config import Settings
+from speechrouter_gateway.providers.aws import tts as polly
 from speechrouter_gateway.providers.azure import tts as azure
 from speechrouter_gateway.providers.base import ProviderStreamError
 from speechrouter_gateway.providers.cartesia import tts as cartesia
@@ -25,10 +26,14 @@ from speechrouter_gateway.providers.google import tts as google
 from speechrouter_gateway.providers.groq import tts as groq
 from speechrouter_gateway.providers.inworld import tts as inworld
 from speechrouter_gateway.providers.minimax import tts as minimax
+from speechrouter_gateway.providers.mistral import tts as mistral
 from speechrouter_gateway.providers.murf import tts as murf
 from speechrouter_gateway.providers.openai import tts as openai_tts
 from speechrouter_gateway.providers.rime import tts as rime
+from speechrouter_gateway.providers.smallest import tts as smallest
 from speechrouter_gateway.providers.speechmatics import tts as speechmatics
+from speechrouter_gateway.providers.together import tts as together
+from speechrouter_gateway.providers.xai import tts as xai
 from speechrouter_gateway.router.catalog import Catalog
 from speechrouter_gateway.router.resolver import TTSRequest, resolve_tts
 from speechrouter_gateway.tts.runner import TTSRun, tts_units
@@ -42,12 +47,25 @@ SETTINGS = Settings(
     azure_speech_region="eastus", google_tts_api_key="k-goog", rime_api_key="k-rime",
     inworld_api_key="k-inw", fishaudio_api_key="k-fish", minimax_api_key="k-mm",
     groq_api_key="k-groq", murf_api_key="k-murf", speechmatics_api_key="k-sm",
+    xai_api_key="k-xai", aws_access_key_id="AKIDEXAMPLE",
+    aws_secret_access_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY", aws_region="us-east-1",
+    mistral_api_key="k-mis", smallest_api_key="k-sma", together_api_key="k-tog",
 )
 
 MODULES = {"elevenlabs": elevenlabs, "cartesia": cartesia, "deepgram": deepgram,
            "azure": azure, "google": google, "rime": rime, "inworld": inworld,
            "fishaudio": fishaudio, "minimax": minimax, "groq": groq, "murf": murf,
-           "speechmatics": speechmatics, "openai": openai_tts, "gemini": gemini_tts}
+           "speechmatics": speechmatics, "openai": openai_tts, "gemini": gemini_tts,
+           "xai": xai, "aws": polly, "mistral": mistral, "smallest": smallest,
+           "together": together}
+
+
+def _f32(pcm: bytes) -> bytes:
+    import array
+
+    ints = array.array("h")
+    ints.frombytes(pcm)
+    return array.array("f", (i / 32767 for i in ints)).tobytes()
 
 
 def _sse(*events: dict) -> bytes:
@@ -70,8 +88,16 @@ def respond(provider: str, request: httpx.Request, pcm: bytes = PCM) -> httpx.Re
             {"data": {"audio": pcm[2400:].hex(), "status": 1}, "base_resp": {"status_code": 0}},
             {"data": {"audio": pcm.hex(), "status": 2}, "extra_info": {"usage_characters": 11},
              "base_resp": {"status_code": 0, "status_msg": "success"}}))
-    if provider == "groq":
+    if provider in ("groq", "together"):
         return httpx.Response(200, content=wav_header(24000) + pcm)
+    if provider == "mistral":
+        f32 = _f32(pcm)
+        return httpx.Response(200, content=_sse(
+            {"type": "speech.audio.delta", "audio_data": base64.b64encode(f32[:4002]).decode()},
+            {"type": "speech.audio.delta", "audio_data": base64.b64encode(f32[4002:]).decode()},
+            {"type": "speech.audio.done"}))
+    if provider == "aws":
+        return httpx.Response(200, content=pcm, headers={"x-amzn-RequestCharacters": "11"})
     if provider == "openai":
         body = json.loads(request.content)
         if body.get("stream_format") == "sse":
@@ -361,3 +387,314 @@ async def test_minimax_concurrent_streams_on_one_adapter_stay_independent(monkey
     first, second = await asyncio.gather(one("first segment"), one("second segment"))
     await adapter.close()
     assert first == PCM and second == PCM
+
+
+# ------------------------------------------------------------- phase 3
+
+
+async def test_polly_sigv4_body_and_billed_chars(capture):
+    resolved, run, audio = await synth("aws/polly-neural", "Hi & bye", format="mulaw", speed=1.25)
+    (_, req), = capture
+    assert str(req.url) == "https://polly.us-east-1.amazonaws.com/v1/speech"
+    auth = req.headers["authorization"]
+    assert auth.startswith("AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE/")
+    assert "/us-east-1/polly/aws4_request" in auth
+    assert "SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date" in auth
+    assert body(req) == {"Engine": "neural", "OutputFormat": "mulaw", "SampleRate": "8000",
+                         "Text": '<speak><prosody rate="125%">Hi &amp; bye</prosody></speak>',
+                         "TextType": "ssml", "VoiceId": "Joanna"}
+    assert run.usage.characters == 11  # x-amzn-RequestCharacters wins
+    assert not resolved.wrap
+
+
+def test_polly_signature_matches_aws_documentation_vector():
+    """AWS's published SigV4 example (IAM ListUsers, 2015-08-30)."""
+    import datetime
+
+    from speechrouter_gateway.providers.aws.signer import sign_headers
+
+    headers = sign_headers(
+        method="GET", url="https://iam.amazonaws.com/?Action=ListUsers&Version=2010-05-08",
+        headers={"Content-Type": "application/x-www-form-urlencoded; charset=utf-8"}, body=b"",
+        access_key="AKIDEXAMPLE", secret_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+        region="us-east-1", service="iam", content_sha256_header=False,
+        now=datetime.datetime(2015, 8, 30, 12, 36, tzinfo=datetime.UTC))
+    assert headers["Authorization"].endswith(
+        "Signature=5d672d79c15b13162d9279b0855cfba6789a8edb4c82c400e06b5924a6f2b5d7")
+
+
+async def test_polly_pcm_is_16k_native_and_24k_rejected(capture):
+    from speechrouter_gateway.router.resolver import ResolveError
+
+    resolved, _, _ = await synth("aws/polly-generative", format="pcm")
+    assert resolved.native_rate == 16000 and body(capture[0][1])["SampleRate"] == "16000"
+    with pytest.raises(ResolveError):
+        resolve_tts("aws/polly-generative", TTSRequest(format="pcm", sample_rate=24000),
+                    SETTINGS, Catalog.load())
+
+
+async def test_mistral_float32_pcm_becomes_s16(capture):
+    resolved, _, audio = await synth("mistral/voxtral-mini-tts-2603", format="pcm")
+    (_, req), = capture
+    assert body(req) == {"model": "voxtral-mini-tts-2603", "input": "Hello world",
+                         "voice_id": "fr_marie_neutral", "response_format": "pcm",
+                         "stream": True}
+    import array
+
+    got, want = array.array("h"), array.array("h")
+    got.frombytes(audio)
+    want.frombytes(PCM)
+    assert len(got) == len(want) and max(abs(a - b) for a, b in zip(got, want, strict=True)) <= 1
+
+
+async def test_smallest_request_contract(capture):
+    resolved, _, _ = await synth("smallest/lightning_v3.1", format="mulaw", speed=1.5)
+    (_, req), = capture
+    assert str(req.url) == "https://api.smallest.ai/waves/v1/tts"
+    assert body(req) == {"text": "Hello world", "voice_id": "liam", "model": "lightning_v3.1",
+                         "sample_rate": 8000, "output_format": "ulaw", "speed": 1.5}
+    assert not resolved.wrap
+
+
+async def test_together_kokoro_wav_stripped_and_8k_decimated(capture):
+    resolved, _, audio = await synth("together/kokoro-82m", format="mulaw")
+    (_, req), = capture
+    assert str(req.url) == "https://api.together.ai/v1/audio/speech"
+    assert body(req) == {"model": "hexgrad/Kokoro-82M", "input": "Hello world",
+                         "voice": "af_heart", "response_format": "wav",
+                         "response_encoding": "pcm_s16le", "sample_rate": 24000}
+    assert resolved.wrap and len(audio) == len(PCM) // 2 // 3  # 24k s16 -> 8k G.711
+
+
+async def test_xai_rest_contract(capture):
+    await synth("xai/grok-tts", format="mulaw", language="en")
+    (_, req), = capture
+    assert req.url.path == "/v1/tts" and req.headers["authorization"] == "Bearer k-xai"
+    assert body(req) == {"text": "Hello world", "voice_id": "eve", "language": "en",
+                         "output_format": {"codec": "mulaw", "sample_rate": 8000}}
+
+
+async def test_deepgram_flux_rest_uses_v2_without_container(capture):
+    await synth("deepgram/flux", format="pcm")
+    (_, req), = capture
+    assert req.url.path == "/v2/speak"
+    assert dict(req.url.params) == {"model": "flux-haley-en", "encoding": "linear16",
+                                    "sample_rate": "24000"}
+
+
+def test_native_stream_offered_only_where_it_fits():
+    def adapter_for(slug, fmt):
+        resolved = resolve_tts(slug, TTSRequest(format=fmt), SETTINGS, Catalog.load())
+        return resolved.build().open_stream(resolved.config)
+
+    assert adapter_for("xai/grok-tts", "pcm") is not None
+    assert adapter_for("deepgram/flux", "mulaw") is not None
+    assert adapter_for("deepgram/flux", "mp3") is None  # Flux socket is raw-only
+    assert adapter_for("deepgram/aura-2", "pcm") is None
+    assert adapter_for("aws/polly-neural", "pcm") is None
+
+
+# ------------------------------------------------- native sockets (fake upstreams)
+
+
+class FakeSocketServer:
+    """In-loop websockets server running a scripted handler."""
+
+    def __init__(self, handler):
+        self._handler = handler
+        self.requests: list = []
+
+    async def __aenter__(self):
+        import websockets
+
+        async def wrapped(conn):
+            self.requests.append((conn.request.path, dict(conn.request.headers)))
+            await self._handler(conn)
+
+        self._server = await websockets.serve(wrapped, "127.0.0.1", 0)
+        self.base = f"http://127.0.0.1:{self._server.sockets[0].getsockname()[1]}"
+        return self
+
+    async def __aexit__(self, *exc):
+        self._server.close()
+        await self._server.wait_closed()
+
+
+def _stream_for(slug, fmt, base, **kw):
+    settings = SETTINGS.model_copy(update={
+        "tts_base_urls": json.dumps({slug.split("/")[0]: base})})
+    resolved = resolve_tts(slug, TTSRequest(format=fmt, **kw), settings, Catalog.load())
+    return resolved, resolved.build().open_stream(resolved.config)
+
+
+async def test_xai_native_stream_barge_in_drops_stale_audio():
+    import asyncio
+
+    received = []
+
+    async def handler(conn):
+        async for raw in conn:
+            msg = json.loads(raw)
+            received.append(msg)
+            if msg["type"] == "text.delta":
+                await conn.send(json.dumps({"type": "audio.delta",
+                                            "delta": base64.b64encode(b"A" * 160).decode()}))
+            elif msg["type"] == "text.clear":
+                # audio already in flight before the ack is stale
+                await conn.send(json.dumps({"type": "audio.delta",
+                                            "delta": base64.b64encode(b"S" * 160).decode()}))
+                await conn.send(json.dumps({"type": "audio.clear"}))
+            elif msg["type"] == "text.done":
+                await conn.send(json.dumps({"type": "audio.delta",
+                                            "delta": base64.b64encode(b"B" * 160).decode()}))
+                await conn.send(json.dumps({"type": "audio.done", "trace_id": "t1"}))
+
+    async with FakeSocketServer(handler) as server:
+        resolved, stream = _stream_for("xai/grok-tts", "mulaw", server.base, language="en")
+        await stream.connect(resolved.config)
+        chunks: list[bytes] = []
+        reader = asyncio.create_task(_collect_stream(stream, chunks))
+        await stream.send_text("Hello there.")
+        await _until_len(chunks, 1)
+        assert await stream.clear() == {}
+        await stream.send_text("Fresh.")
+        await stream.finish()
+        await asyncio.wait_for(reader, 2)
+        await stream.close()
+
+    path, headers = server.requests[0]
+    assert path.startswith("/v1/tts?") and "codec=mulaw" in path and "sample_rate=8000" in path
+    assert "language=en" in path and "voice=eve" in path
+    assert headers["authorization"] == "Bearer k-xai"
+    assert [m["type"] for m in received] == ["text.delta", "text.clear", "text.delta",
+                                             "text.done"]
+    assert b"S" not in b"".join(chunks)  # stale pre-ack audio never surfaced
+    assert stream.usage.characters == len("Hello there.") + len("Fresh.")
+
+
+async def test_flux_native_stream_interrupt_reports_text_spoken():
+    import asyncio
+
+    received = []
+
+    async def handler(conn):
+        await conn.send(json.dumps({"type": "Connected", "request_id": "r1"}))
+        async for raw in conn:
+            msg = json.loads(raw)
+            received.append(msg)
+            if msg["type"] == "Speak":
+                await conn.send(b"\x01\x00" * 240)  # 10 ms of 24 kHz linear16
+            elif msg["type"] == "Interrupt":
+                await conn.send(b"\x09\x00" * 240)  # stale
+                await conn.send(json.dumps({"type": "SpeechInterrupted", "audio_played_ms": 10,
+                                            "text_spoken": "Hello", "text_remaining": " there."}))
+            elif msg["type"] == "Close":
+                await conn.send(json.dumps({"type": "SessionMetadata",
+                                            "total_billable_character_count": 9}))
+                await conn.close()
+                return
+
+    async with FakeSocketServer(handler) as server:
+        resolved, stream = _stream_for("deepgram/flux", "pcm", server.base)
+        await stream.connect(resolved.config)
+        chunks: list[bytes] = []
+        reader = asyncio.create_task(_collect_stream(stream, chunks))
+        await stream.send_text("Hello there.")
+        await _until_len(chunks, 1)
+        info = await stream.clear(playback_ms=7)
+        await stream.finish()
+        await asyncio.wait_for(reader, 2)
+        await stream.close()
+
+    path, headers = server.requests[0]
+    assert path.startswith("/v2/speak?") and "model=flux-haley-en" in path
+    assert "container" not in path and headers["authorization"] == "Token k-dg"
+    assert info == {"text_spoken": "Hello", "text_remaining": " there."}
+    interrupt = next(m for m in received if m["type"] == "Interrupt")
+    assert interrupt["playback_offset"] == {"type": "time_ms", "value": 7}
+    assert b"\x09\x00" not in b"".join(chunks)
+    assert stream.usage.characters == 9  # SessionMetadata billable count wins
+
+
+async def _collect_stream(stream, sink):
+    async for chunk in stream.audio():
+        sink.append(chunk)
+
+
+async def _until_len(items, n, limit=2.0):
+    import asyncio
+
+    async with asyncio.timeout(limit):
+        while len(items) < n:  # noqa: ASYNC110 - observing a black box
+            await asyncio.sleep(0.005)
+
+
+async def test_native_speak_session_relays_cleared_with_text_spoken():
+    """End to end through NativeSpeakSession with a scripted TTSStream."""
+    import asyncio
+
+    from speechrouter_gateway.providers.base import TTSStream, TTSUsage
+    from speechrouter_gateway.tts.native_session import NativeSpeakSession
+
+    class ScriptedStream(TTSStream):
+        def __init__(self):
+            self.usage = TTSUsage()
+            self.queue: asyncio.Queue = asyncio.Queue()
+
+        async def connect(self, config):
+            pass
+
+        async def send_text(self, text):
+            self.usage.characters += len(text)
+            await self.queue.put(b"\x01\x00" * 240)
+
+        async def clear(self, playback_ms=None):
+            return {"text_spoken": "Hi", "text_remaining": " you", "ignored": 1}
+
+        async def finish(self):
+            await self.queue.put(None)
+
+        async def audio(self):
+            while (chunk := await self.queue.get()) is not None:
+                yield chunk
+
+        async def close(self):
+            pass
+
+    class Transport:
+        def __init__(self):
+            self.inbox: asyncio.Queue = asyncio.Queue()
+            self.sent: list = []
+
+        async def recv(self):
+            return await self.inbox.get()
+
+        async def send_event(self, event):
+            self.sent.append(json.loads(event.model_dump_json(exclude_none=True)))
+
+        async def send_audio(self, data):
+            self.sent.append(data)
+
+    class Emitter:
+        events: list = []
+
+        async def emit(self, event):
+            self.events.append(event)
+
+    transport = Transport()
+    resolved = resolve_tts("xai/grok-tts", TTSRequest(format="pcm"), SETTINGS, Catalog.load())
+    session = NativeSpeakSession(transport, resolved, ScriptedStream(), Emitter(), "k1",
+                                 SETTINGS)
+    task = asyncio.create_task(session.run())
+    for event in ({"type": "text.delta", "text": "Hi you"}, {"type": "clear"},
+                  {"type": "text.delta", "text": "Again"}, {"type": "finalize"}):
+        await transport.inbox.put(json.dumps(event))
+    await asyncio.wait_for(task, 3)
+    events = [e for e in transport.sent if isinstance(e, dict)]
+    cleared = next(e for e in events if e["type"] == "cleared")
+    assert cleared == {"type": "cleared", "last_seq": cleared["last_seq"], "text_spoken": "Hi",
+                       "text_remaining": " you"}
+    assert events[0]["type"] == "session.open" and events[-1]["type"] == "done"
+    (usage,) = Emitter.events
+    assert usage.kind == "tts_stream" and usage.characters == len("Hi you") + len("Again")
+    assert usage.units == {"characters": 11.0} and usage.list_cost_usd > 0

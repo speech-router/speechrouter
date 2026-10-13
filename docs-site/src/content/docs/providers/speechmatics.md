@@ -1,7 +1,7 @@
 ---
 title: Speechmatics
 description: Broad language coverage; Melia-1 code-switches across 56 languages.
-sidebar: { order: 20 }
+sidebar: { order: 21 }
 ---
 
 Broad language coverage; Melia-1 code-switches across 56 languages.

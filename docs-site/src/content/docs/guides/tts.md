@@ -12,9 +12,10 @@ Two ways to synthesize speech, same models and voices:
 | Use for | Prompts, notifications, files | Voice agents speaking LLM output as it streams |
 | Compatible with | OpenAI SDK (`audio.speech`) | SpeechRouter protocol |
 
-40 models from 14 providers: OpenAI, Gemini, ElevenLabs, Cartesia, Deepgram Aura,
-Azure, Google Cloud, Rime, Inworld, Fish Audio, MiniMax, Groq (Orpheus), Murf and
-Speechmatics. The live list, voices, formats and prices per model:
+50 models from 19 providers: OpenAI, Gemini, ElevenLabs, Cartesia, Deepgram (Aura and
+Flux), Azure, Google Cloud, Amazon Polly, Rime, Inworld, Fish Audio, MiniMax, Groq
+(Orpheus), Murf, Speechmatics, xAI Grok TTS, Mistral Voxtral, Smallest.ai and Kokoro (via
+Together AI, non-PHI only). The live list, voices, formats and prices per model:
 [`GET /v1/models`](/reference/rest/#get-v1models) (entries with `"kind": "tts"`), or the
 [provider pages](/providers/).
 
@@ -103,7 +104,14 @@ Query: `model`, `voice`, `encoding` (`linear16` | `mulaw` | `alaw` | `mp3` |
 | `done {usage}` | Totals: characters, audio seconds, units, cost |
 | `error` | Terminal error |
 
-How it works: OpenAI and Gemini take whole text per request, so the gateway
+**Native sockets.** For `xai/grok-tts` and `deepgram/flux` (pcm/mulaw/alaw), the gateway
+relays your `text.delta` frames straight into the provider's own streaming socket. The
+provider does its own chunking, and `clear` is a native barge-in. Flux also reports what was
+actually said: `cleared` then carries `text_spoken` and `text_remaining`. Send
+`{"type": "clear", "playback_ms": 1840}` with how much audio you have *played*, so the split is
+exact; without it the gateway uses the audio it has sent.
+
+How it works everywhere else: most providers take whole text per request, so the gateway
 segments your stream at sentence boundaries (and at word boundaries if the
 text pauses for ~400 ms mid-sentence), synthesizes one segment ahead of the
 one playing, and always delivers in order. `audio.chunk.start` is the audio

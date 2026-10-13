@@ -37,6 +37,8 @@ PROVIDER_KEY_FIELDS = {
     "fishaudio": "fishaudio_api_key",
     "minimax": "minimax_api_key",
     "murf": "murf_api_key",
+    "smallest": "smallest_api_key",
+    "together": "together_api_key",
 }
 
 

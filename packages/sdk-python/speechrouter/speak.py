@@ -116,9 +116,14 @@ class SpeakStream:
         """Append text to speak. Fragments are fine; the gateway segments."""
         await self._send({"type": "text.delta", "text": text})
 
-    async def clear(self) -> None:
-        """Barge-in: drop queued and in-flight audio. A `Cleared` event follows."""
-        await self._send({"type": "clear"})
+    async def clear(self, playback_ms: int | None = None) -> None:
+        """Barge-in: drop queued and in-flight audio. A `Cleared` event follows.
+        playback_ms: audio actually played so far, if you know it — providers
+        that report what was spoken (Deepgram Flux) use it."""
+        payload: dict[str, Any] = {"type": "clear"}
+        if playback_ms is not None:
+            payload["playback_ms"] = playback_ms
+        await self._send(payload)
 
     async def finalize(self) -> None:
         """No more text: the rest is spoken, then `Done` arrives."""
