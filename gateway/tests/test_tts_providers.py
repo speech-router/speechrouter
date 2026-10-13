@@ -342,3 +342,22 @@ def test_tts_base_url_override_routes_to_mock():
     assert tts_base_url(cfg, "murf", murf.BASE) == murf.BASE
     assert tts_base_url(SETTINGS.model_copy(update={"tts_base_urls": "not json"}), "rime",
                         rime.BASE) == rime.BASE
+
+
+async def test_minimax_concurrent_streams_on_one_adapter_stay_independent(monkeypatch):
+    """/v1/speak prefetch runs two synthesize() calls on one adapter."""
+    import asyncio
+
+    monkeypatch.setattr(minimax, "TRANSPORT", httpx.MockTransport(
+        lambda r: respond("minimax", r)))
+    resolved = resolve_tts("minimax/speech-2.8-turbo", TTSRequest(format="pcm"), SETTINGS,
+                           Catalog.load())
+    adapter = resolved.build()
+
+    async def one(text):
+        run = TTSRun(resolved)
+        return b"".join([c async for c in run.stream(adapter, text)])
+
+    first, second = await asyncio.gather(one("first segment"), one("second segment"))
+    await adapter.close()
+    assert first == PCM and second == PCM

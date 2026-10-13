@@ -110,8 +110,10 @@ class HTTPStreamTTS:
     def build_request(self, text: str, config) -> dict:  # noqa: ANN001
         raise NotImplementedError
 
-    def audio_from_event(self, event: dict) -> bytes | None:
-        """Audio carried by one SSE/JSON/NDJSON event (None if none)."""
+    def audio_from_event(self, event: dict, state: dict) -> bytes | None:
+        """Audio carried by one SSE/JSON/NDJSON event (None if none). `state`
+        is per synthesize() call: /v1/speak runs calls concurrently on one
+        adapter, so per-stream bookkeeping must never live on self."""
         return None
 
     def check_event(self, event: dict) -> None:
@@ -151,9 +153,10 @@ class HTTPStreamTTS:
                             yield chunk
                     return
                 events = self._events(resp)
+                state: dict = {}
                 async for event in events:
                     self.check_event(event)
-                    audio = self.audio_from_event(event)
+                    audio = self.audio_from_event(event, state)
                     if audio:
                         audio = self.strip_header(audio, first)
                         first = False

@@ -48,12 +48,7 @@ class MiniMaxTTS(HTTPStreamTTS, TTSProvider):
     capabilities = CAPABILITIES
     response_mode = "sse"
 
-    def __init__(self, credentials, transport=None):
-        super().__init__(credentials, transport)
-        self._streamed = False
-
     def build_request(self, text, config):
-        self._streamed = False
         voice: dict = {"voice_id": config.voice}
         if config.speed is not None:
             voice["speed"] = config.speed
@@ -79,14 +74,14 @@ class MiniMaxTTS(HTTPStreamTTS, TTSProvider):
                 recoverable=code in _RETRY_CODES, provider=self.name,
                 code="auth" if code in _AUTH_CODES else f"minimax_{code}")
 
-    def audio_from_event(self, event):
+    def audio_from_event(self, event, state):
         data = event.get("data") or {}
         audio = data.get("audio")
         if not audio:
             return None
-        if data.get("status") == 2 and self._streamed:
+        if data.get("status") == 2 and state.get("streamed"):
             return None  # final summary event repeats the whole clip
-        self._streamed = True
+        state["streamed"] = True
         return bytes.fromhex(audio)
 
     def on_event_usage(self, event, usage):

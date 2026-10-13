@@ -69,7 +69,7 @@ class InworldTTS(HTTPStreamTTS, TTSProvider):
                                       recoverable=False, provider=self.name,
                                       code="stream_error")
 
-    def audio_from_event(self, event):
+    def audio_from_event(self, event, state):
         data = (event.get("result") or {}).get("audioContent")
         return base64.b64decode(data) if data else None
 

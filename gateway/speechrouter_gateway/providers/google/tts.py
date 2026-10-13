@@ -65,7 +65,7 @@ class GoogleTTS(HTTPStreamTTS, TTSProvider):
         return {"url": f"{self.credentials['base']}/v1/text:synthesize",
                 "headers": {"x-goog-api-key": self.credentials["key"]}, "json": body}
 
-    def audio_from_event(self, event):
+    def audio_from_event(self, event, state):
         data = event.get("audioContent")
         return base64.b64decode(data) if data else None
 
