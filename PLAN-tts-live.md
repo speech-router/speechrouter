@@ -380,6 +380,54 @@ Inspect server→client frames:
 ---
 
 ## 3. What cloud (Rails) needs, for the follow-up session
+
+### 3.0 Usage event schema — AUTHORITATIVE (v2, as implemented in the gateway)
+> Added during implementation (2026-10-13). This pins down what §1.4/§1.5/§2.6 describe.
+> Additive only: every v1 field keeps its meaning, so an STT event is unchanged except for
+> the new fields at their defaults.
+
+Each `XADD speechrouter:usage` entry is `{"payload": <JSON>}` with these fields:
+
+| field | type | v1? | meaning |
+|---|---|---|---|
+| `session_id` | string | yes | **Idempotency key, unique per event.** STT: `sess_…` / `batch_…` / `dg_…`. TTS: `tts_…` (REST) or `speak_…` (WS). Live: `<parent_session_id>:<seq>` (e.g. `live_ab12…:3`). |
+| `key_id` | string | yes | API key id (never the key) |
+| `model` | string | yes | resolved slug, e.g. `openai/gpt-4o-mini-tts`, `gemini/gemini-3.8-live` |
+| `kind` | string | yes | `stt_stream` \| `stt_batch` \| `tts_batch` (POST /v1/audio/speech) \| `tts_stream` (WSS /v1/speak) \| `live` |
+| `audio_seconds` | float | yes | STT: audio transcribed. **TTS: audio generated.** Live: audio *input* relayed client→provider during this event's interval |
+| `billed_seconds` | float | yes | STT only (seconds-priced). `0` for TTS and live |
+| `billing_basis` | string | yes | `audio_time` \| `session_time` \| **`units`** (new: price from `units`) |
+| `characters` | int | yes | TTS: Unicode code points sent upstream. `0` otherwise. Can exceed int4 in aggregate only; per event ≤ ~10⁶ |
+| `provider_switches` | int | yes | STT failover count; `0` for TTS/live |
+| `status` | string | yes | `completed` \| `client_disconnect` \| `provider_error` \| `error` \| `insufficient_credits` \| `session_expired` \| `audio_timeout` \| **`in_progress`** (new: a live checkpoint; more events follow for the same parent) |
+| `byok` | bool | yes | org's own provider key → routing fee only |
+| `ts` | float | yes | unix seconds at emit |
+| `units` | object `{string: number}` | **new** | Priced quantities as raw counts for this event. Keys (closed set, additions allowed): `characters`, `text_input_tokens`, `cached_text_input_tokens`, `audio_input_tokens`, `cached_audio_input_tokens`, `image_input_tokens`, `text_output_tokens`, `audio_output_tokens`. Empty `{}` for STT. Cached counts are NOT included in the uncached key (OpenAI `cached_tokens` is subtracted out). |
+| `units_estimated` | bool | **new** | `true` when the provider sent no usage and the gateway estimated tokens from relayed audio |
+| `parent_session_id` | string \| null | **new** | Live only: the session all checkpoint events roll up to. `null` for STT/TTS |
+| `session_seconds` | float | **new** | Wall-clock seconds covered by this event (live: the checkpoint interval; TTS/STT: request/session duration) |
+| `output_audio_seconds` | float | **new** | Audio generated: TTS = same as `audio_seconds`; live = provider→client audio in this interval |
+| `list_cost_usd` | float | **new** | Gateway's own Σ units × catalog rate (cross-check only; cloud prices from its table). `0` for BYOK and STT |
+
+**Pricing rule:** `price = Σ_k units[k] × rate(k)`. Rate fields in the catalog `pricing` object:
+`characters → per_character_usd` (per 1 char); every `*_tokens` key → `per_1m_<key>_usd` per 1,000,000
+(e.g. `audio_output_tokens → per_1m_audio_output_tokens_usd`). A unit with no rate field on the
+model costs 0 (e.g. OpenAI `tts-1` has only `per_character_usd`).
+
+**Dated prices:** catalog entries may carry
+`"pricing_schedule": [{"effective_from": "2027-01-01", "pricing": {…full rate set…}}]`. The rate set in
+force at event `ts` is the latest schedule entry with `effective_from <= date(ts)` (UTC), else `pricing`.
+`GET /v1/models` serves `pricing` as the rate set in force *now*, with the schedule alongside.
+
+**Live checkpoints:** every 60 s of a live session the gateway emits one event with
+`status = "in_progress"` and the *delta* units/seconds since the previous event. At close it emits a final
+event with the terminal status. `seq` starts at 1 and increments, with no gaps. A session that ends inside
+its first 60 s emits exactly one event (`<parent>:1`). Sum all events per `parent_session_id` for totals.
+
+**Catalog fields cloud should read:** `kind` (`stt`|`tts`|`live`), `modes` (`streaming`|`batch`|`live`),
+`dialect` (live only: `openai-realtime`|`gemini-live`), `pricing`, `pricing_schedule`. For multi-rate
+entries `pricing.per_second_usd` is **not** derived: treat it as absent.
+
 Ordered by dependency. **Items 1–4 must deploy before the gateway flags flip in prod.**
 
 1. **Pricing model.** Replace the single rate per slug with multiple rates:
